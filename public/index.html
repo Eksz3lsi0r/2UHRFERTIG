@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Shape Smasher!</title>
+
+  <!-- Styles & Fonts -->
+  <link rel="stylesheet" href="desktop.css">
+  <link rel="stylesheet" href="mobile.css" media="screen and (max-width: 600px)">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:wght@300;400;500;700&display=swap"
+    rel="stylesheet">
+
+  <!-- Mobile / PWA Meta -->
+  <meta name="viewport"
+    content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <meta name="theme-color" content="#8a2be2">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="HandheldFriendly" content="true">
+  <meta name="format-detection" content="telephone=no">
+
+  <!-- Globale Libraries (Howler & socket.io) -->
+  <script src="lib/howler.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+</head>
+
+<body>
+  <!-- Hintergrundsterne -->
+  <div class="nebula-bg"></div>
+
+  <!-- Hauptmenü -->
+  <div id="mainMenuContainer" class="menu-glass">
+    <h1 id="mainMenuTitle" data-lang-key="mainMenuTitle">Shape Smasher!</h1>
+
+    <div class="menu-item">
+      <label for="playerNameInput" data-lang-key="playerNameLabel">Spielername:</label>
+      <input type="text" id="playerNameInput" value="Player" class="menu-input">
+    </div>
+
+    <button id="playVsCpuButton" class="menu-button main-menu-btn" data-lang-key="playVsCpuButton">Spiel gegen
+      Computer</button>
+    <button id="playVsPlayerButton" class="menu-button main-menu-btn" data-lang-key="playVsPlayerButton">Spieler gegen
+      Spieler</button>
+    <button id="settingsButton" class="menu-button main-menu-btn" data-lang-key="settingsButton">Einstellungen</button>
+  </div>
+
+  <!-- Einstellungsmenü -->
+  <div id="settingsMenuContainer" style="display:none;">
+    <h1 data-lang-key="settingsTitle">Einstellungen</h1>
+
+    <div class="menu-item">
+      <label for="languageSelect" data-lang-key="languageLabel">Sprache:</label>
+      <select id="languageSelect">
+        <option value="de" data-lang-key="langGerman">Deutsch</option>
+        <option value="en" data-lang-key="langEnglish">Englisch</option>
+        <option value="fr" data-lang-key="langFrench">Französisch</option>
+      </select>
+    </div>
+
+    <div class="menu-item">
+      <label for="graphicsQualitySelect" data-lang-key="graphicsQualityLabel">Grafikqualität:</label>
+      <select id="graphicsQualitySelect">
+        <option value="low" data-lang-key="graphicsLow">Niedrig</option>
+        <option value="medium" data-lang-key="graphicsMedium">Mittel</option>
+        <option value="high" data-lang-key="graphicsHigh">Hoch</option>
+      </select>
+    </div>
+
+    <button id="saveSettingsButton" class="menu-button" data-lang-key="saveSettingsButton">Speichern & Zurück</button>
+    <button id="backToMainMenuButton" class="menu-button" data-lang-key="backToMainMenuButton">Zurück zum
+      Hauptmenü</button>
+  </div>
+
+  <!-- Spielbereich -->
+  <div id="gameArea" style="display:none;">
+    <div id="message" data-lang-key="waitingForConnection">Warte auf Verbindung...</div>
+
+    <div id="playerArea">
+      <h2 data-lang-key="yourBoard">Dein Spielfeld</h2>
+      <div class="scoreDisplay"><span data-lang-key="scoreLabel">Score</span>: <span id="score">0</span></div>
+      <div id="board"></div>
+      <div id="pieces"></div>
+    </div>
+
+    <div id="opponentArea">
+      <h2 data-lang-key="opponentBoard">Gegner</h2>
+      <div class="scoreDisplay"><span data-lang-key="scoreLabel">Score</span>: <span id="opponentScore">0</span></div>
+      <div id="opponentBoard"></div>
+    </div>
+  </div>
+
+  <!-- EINZIGER App-Einstieg -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script type="module" src="/src/main.js"></script>
+</body>
+
+</html>

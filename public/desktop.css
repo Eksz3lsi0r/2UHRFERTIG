@@ -1,0 +1,1035 @@
+/* Ergänzende CSS-Regeln zur Behebung von Touch-Drag und Smartphone-Darstellung */
+
+/* Verbesserte Grid-Layout für Pieces */
+.piece {
+  display: grid !important;
+  grid-auto-rows: var(--cell-size) !important;
+  grid-auto-columns: var(--cell-size) !important;
+  gap: 2px !important;
+  padding: 4px !important;
+  position: relative !important;
+  min-height: unset !important;
+  height: auto !important;
+  width: auto !important;
+}
+
+.piece .block {
+  position: relative !important;
+  left: unset !important;
+  top: unset !important;
+  width: 100% !important;
+  height: 100% !important;
+  /* Hintergrundfarbe entfernt, wird jetzt per JS gesetzt */
+  touch-action: true !important;
+  -ms-touch-action: true !important;
+  pointer-events: true !important;
+}
+
+/* Touch Ghost - verbesserte Darstellung */
+.touch-ghost {
+  position: fixed !important;
+  z-index: 9999 !important;
+  pointer-events: none !important;
+  opacity: 0.85 !important;
+  display: grid !important;
+  gap: 2px !important;
+}
+
+.touch-ghost .block {
+  background-color: var(--color-primary-light) !important;
+  border: 2px solid var(--color-primary-light) !important;
+  box-shadow: var(--glow-md) !important;
+}
+
+/* Vorschau-Zellen für Hover-Element */
+.preview-valid-cell,
+.preview-invalid-cell {
+  /* transform entfernt, border entfernt */
+  box-shadow: 0 0 12px 2px #00d2a8 !important;
+}
+
+.preview-valid-cell {
+  box-shadow: var(--glow-sm) !important;
+  background-color: var(--color-secondary) !important;
+}
+
+.preview-invalid-cell {
+  box-shadow: var(--glow-sm) !important;
+  background-color: var(--color-accent) !important;
+}
+
+/* Message-Animation */
+.message-animated {
+  animation: message-pulse 1s ease-in-out;
+}
+
+@keyframes message-pulse {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-3px) scale(1.02);
+    opacity: 0.95;
+  }
+}
+
+/* Reihe-Puls bei vollständigem Löschen */
+.row-flash {
+  animation: row-flash 0.8s ease-in-out infinite alternate;
+}
+@keyframes row-flash {
+  0% {
+    background-color: rgba(255, 255, 0, 0.5);
+  }
+  100% {
+    background-color: rgba(255, 255, 0, 0.8);
+  }
+}
+
+/* CSS-Variable für Block-Größe */
+:root {
+  --js-block-size: 30px;
+}
+
+/* Anpassungen für mobile Geräte */
+/* ─── Moderne dynamische Basisgrößen ─── */
+:root {
+  --cell-size: clamp(18px, 8vw, 38px);
+  --gap-size: calc(var(--cell-size) * 0.05);
+
+  /* Neue lebendige Farbpalette */
+  --color-primary: #8a2be2; /* Kräftigeres Lila */
+  --color-primary-light: #b67dff; /* Helleres Lila für Highlights */
+  --color-secondary: #00d2a8; /* Türkis statt Grün */
+  --color-accent: #ff4676; /* Akzentfarbe (Pink) */
+  --color-bg-start: #0f0c29;
+  --color-bg-mid: #302b63;
+  --color-bg-end: #24243e;
+  --color-text: #ffffff;
+  --color-text-shadow: rgba(138, 43, 226, 0.8);
+
+  /* Neue Formvariablen */
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+
+  /* Neue Effektvariablen */
+  --glow-sm: 0 0 8px rgba(138, 43, 226, 0.5);
+  --glow-md: 0 0 15px rgba(138, 43, 226, 0.6);
+  --glow-lg: 0 0 25px rgba(138, 43, 226, 0.7);
+
+  /* Neue Schatten */
+  --shadow-sm: 0 2px 5px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 20px rgba(0, 0, 0, 0.4);
+
+  /* Übergänge */
+  --transition-fast: 0.15s ease;
+  --transition-med: 0.25s ease;
+  --transition-slow: 0.5s ease;
+}
+
+/* Entfernte alle Regeln, die das Scrollen oder Touch-Interaktionen global verhindern */
+/* Anti-Scroll und Anti-Zoom Stilregeln für alle Geräte */
+html,
+body {
+  /* overscroll-behavior: none; entfernt */
+  /* overflow: hidden !important; entfernt */
+  /* position: fixed !important; entfernt */
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100vw !important;
+  max-height: 100vh !important;
+}
+
+/* Button und Input-Felder benötigen Spezialbehandlung für Benutzbarkeit */
+input,
+textarea,
+button,
+select {
+  user-select: text !important; /* Erlaubt Texteingabe in Formularfeldern */
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+  touch-action: auto !important; /* Erlaubt normale Touch-Interaktionen für Eingabefelder */
+}
+
+body {
+  /* overflow: hidden; entfernt */
+  /* position: fixed; entfernt */
+  /* touch-action: none; entfernt */
+  font-family: "Roboto", sans-serif;
+  margin: 0;
+  padding: 15px;
+  color: var(--color-text);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  box-sizing: border-box;
+
+  position: relative;
+
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Nebula Hintergrund */
+.nebula-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
+  background: linear-gradient(
+    -45deg,
+    var(--color-bg-start),
+    var(--color-bg-mid),
+    var(--color-bg-end)
+  );
+  background-size: 400% 400%;
+  animation: bg-pan 20s linear infinite;
+}
+
+/* Korrigiere das Hauptmenü-Design: sorge für einen sichtbaren, animierten Hintergrund wie im Spiel */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-image: radial-gradient(
+      circle at 25% 30%,
+      rgba(255, 255, 255, 0.08) 1px,
+      transparent 1px
+    ),
+    radial-gradient(
+      circle at 75% 70%,
+      rgba(255, 255, 255, 0.05) 1px,
+      transparent 1px
+    );
+  background-size: 30px 30px, 40px 40px;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+body::after {
+  content: none;
+}
+
+h1,
+h2 {
+  color: var(--color-text);
+  text-align: center;
+  font-family: "Press Start 2P", cursive;
+  letter-spacing: 1px;
+  position: relative;
+}
+
+h1 {
+  margin-top: 5px;
+  margin-bottom: 15px;
+  text-shadow: 0 0 8px var(--color-text-shadow),
+    0 0 15px var(--color-text-shadow);
+  position: relative;
+  z-index: 5;
+  animation: float 3s ease-in-out infinite;
+}
+
+h2 {
+  margin-bottom: 8px;
+  font-size: 1.1em;
+  text-shadow: 0 0 5px var(--color-text-shadow);
+}
+
+/* ────────── Neue Header-Designs ────────── */
+#gameTitleOverlay {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  background: rgba(15, 12, 41, 0.8);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  color: var(--color-text);
+  padding: 10px 20px;
+  border-radius: var(--border-radius-md);
+  font-size: 1.2em;
+  margin: 0;
+  text-align: center;
+  border: 1px solid rgba(182, 125, 255, 0.15);
+  box-shadow: var(--shadow-md), 0 0 15px rgba(138, 43, 226, 0.3);
+  text-shadow: 0 0 8px var(--color-text-shadow);
+  animation: pulse 3s ease-in-out infinite;
+  letter-spacing: 1px;
+}
+
+#message {
+  position: absolute;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  background: rgba(15, 12, 41, 0.8);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  color: var(--color-text);
+  padding: 10px 15px;
+  border-radius: var(--border-radius-md);
+  font-size: 0.9em;
+  min-height: auto;
+  width: fit-content;
+  max-width: 80%;
+  text-align: center;
+  pointer-events: none;
+  animation: pulse 3s ease-in-out;
+  border: 1px solid rgba(182, 125, 255, 0.15);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-med);
+}
+
+#message.win {
+  background: rgba(0, 210, 168, 0.85);
+  color: #fff;
+  border: 1px solid rgba(0, 255, 204, 0.3);
+  box-shadow: 0 0 20px rgba(0, 210, 168, 0.5);
+}
+
+#message.lose {
+  background: rgba(255, 70, 118, 0.85);
+  color: #fff;
+  border: 1px solid rgba(255, 100, 148, 0.3);
+  box-shadow: 0 0 20px rgba(255, 70, 118, 0.5);
+}
+
+#message.info {
+  border: 1px solid rgba(182, 125, 255, 0.3);
+  box-shadow: 0 0 10px rgba(182, 125, 255, 0.3);
+}
+
+#gameArea {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 40px;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  position: relative;
+  padding-top: 40px;
+}
+
+#playerArea,
+#opponentArea {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform var(--transition-slow);
+}
+
+/* ────────── Verbesserte Score-Anzeige ────────── */
+.scoreDisplay {
+  font-weight: bold;
+  margin-bottom: 8px;
+  min-height: 1.2em;
+  font-size: 1.1em;
+  color: var(--color-text);
+  background: rgba(15, 12, 41, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  padding: 6px 15px;
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(182, 125, 255, 0.15);
+  text-shadow: 0 0 5px rgba(138, 43, 226, 0.5);
+  transition: all 0.3s ease;
+}
+
+/* Animation für die Score-Anzeige wenn der Spieler dabei ist, die CPU einzuholen */
+@keyframes highlight-score-pulse {
+  0% {
+    box-shadow: 0 0 5px rgba(138, 43, 226, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(0, 210, 168, 0.8);
+    border-color: rgba(0, 210, 168, 0.5);
+  }
+  100% {
+    box-shadow: 0 0 5px rgba(138, 43, 226, 0.5);
+  }
+}
+
+.highlight-score {
+  animation: highlight-score-pulse 1s ease infinite;
+  border-color: rgba(0, 210, 168, 0.3);
+  background: rgba(0, 210, 168, 0.2);
+}
+
+/* ────────── Spielfeld (Spieler) mit Glasmorphismus ────────── */
+#board {
+  display: grid;
+  grid-template-columns: repeat(10, calc(var(--cell-size) * 1.05));
+  grid-template-rows: repeat(10, calc(var(--cell-size) * 1.05));
+  gap: var(--gap-size);
+  background: rgba(15, 12, 41, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: calc(var(--gap-size) * 3);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-md), 0 0 20px rgba(138, 43, 226, 0.2);
+  border: 1px solid rgba(182, 125, 255, 0.1);
+  transform: translateZ(0);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+#board:hover {
+  box-shadow: var(--shadow-lg), 0 0 25px rgba(138, 43, 226, 0.25);
+}
+
+.cell {
+  width: var(--cell-size);
+  height: var(--cell-size);
+  background: rgba(30, 25, 50, 0.8);
+  border-radius: var(--border-radius-sm);
+  transition: all var(--transition-med);
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box; /* Border beeinflusst nicht mehr das Layout */
+}
+
+.cell::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0) 50%
+  );
+  border-radius: var(--border-radius-sm);
+  pointer-events: none;
+}
+
+.cell.filled {
+  /* Hintergrundfarbe entfernt, wird jetzt per JS gesetzt */
+  box-shadow: 0 0 10px rgba(138, 43, 226, 0.5);
+  transform: translateZ(0);
+  animation: pop-in 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.cell.filled::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40%;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.2) 0%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  border-radius: var(--border-radius-sm);
+  pointer-events: none;
+}
+
+.cell.preview-valid {
+  background-color: rgba(0, 210, 168, 0.4);
+  box-shadow: 0 0 12px 2px #00d2a8 !important;
+}
+
+.cell.preview-invalid {
+  background-color: rgba(255, 70, 118, 0.4);
+  box-shadow: 0 0 12px 2px #ff4676 !important;
+}
+
+/* Verbesserte Flacker-Effekte beim Löschen */
+@keyframes line-flash {
+  0% {
+    transform: scale(1);
+    filter: brightness(6) drop-shadow(0 0 50px #b67dff)
+      drop-shadow(0 0 100px #8a2be2);
+    box-shadow: 0 0 20px 10px #fff, 0 0 40px 20px #ff4676;
+  }
+  30% {
+    transform: scale(1.15);
+    filter: brightness(8) drop-shadow(0 0 100px #b67dff)
+      drop-shadow(0 0 200px #ff4676);
+    box-shadow: 0 0 80px 40px #fff, 0 0 160px 80px #ff4676;
+  }
+  60% {
+    transform: scale(1.1);
+    filter: brightness(6.5) drop-shadow(0 0 80px #8a2be2)
+      drop-shadow(0 0 160px #00d2a8);
+    box-shadow: 0 0 60px 30px #b67dff, 0 0 120px 60px #00d2a8;
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(2) drop-shadow(0 0 20px #8a2be2);
+    box-shadow: 0 0 10px 5px #b67dff;
+  }
+}
+
+.flash {
+  animation: line-flash 0.8s cubic-bezier(0.7, 0, 0.3, 1);
+  z-index: 10;
+  position: relative;
+  will-change: filter, box-shadow, transform;
+}
+
+/* ───── Modernisiertes Inventar ───── */
+#pieces {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  min-height: calc(var(--cell-size) * 2.85);
+  width: 100%;
+  padding: 15px;
+  box-sizing: border-box;
+  background: rgba(15, 12, 41, 0.5);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(182, 125, 255, 0.1);
+  transform: scale(0.9); /* Verkleinert das Inventar um 10% */
+}
+
+#pieces::-webkit-scrollbar {
+  height: 8px;
+}
+
+#pieces::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+#pieces::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border-radius: 4px;
+  border: 2px solid rgba(138, 43, 226, 0.1);
+}
+
+/* ───── Verbesserte Piece-Container ───── */
+.piece {
+  position: relative;
+  cursor: grab;
+  transition: transform var(--transition-med);
+  transform-origin: center center;
+  filter: brightness(1);
+  margin: 5px;
+}
+
+.piece:active {
+  cursor: grabbing;
+  transform: scale(1.05);
+}
+
+.piece:hover {
+  transform: scale(1.05);
+}
+
+.piece:hover .block {
+  /* Voluminous 3D light-touch on hover */
+  transform: translate3d(0, -6px, 16px) rotateX(12deg) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1),
+    inset 0 2px 6px rgba(255, 255, 255, 0.1) !important;
+}
+
+/* ───── Touch-Ghost Element für mobile Geräte ───── */
+.touch-ghost {
+  position: relative; /* fixed statt absolute für bessere Positionierung */
+  pointer-events: none;
+  z-index: 9999; /* Sehr hoher z-index, um über allem zu liegen */
+  opacity: 0.9; /* Etwas mehr Transparenz */
+  filter: drop-shadow(0 0 15px rgba(138, 43, 226, 0.9));
+  border: none; /* Kein Rand mehr um das Ghost-Element */
+  background-color: transparent; /* Kein Hintergrund */
+}
+
+/* Hover-Preview für Touch-Drag (wie im alten Projekt) */
+.hover-preview {
+  position: relative;
+  pointer-events: none;
+  z-index: 9998;
+  opacity: 0.7;
+  display: grid;
+  will-change: left, top;
+}
+.hover-preview.valid .block {
+  background-color: rgba(0, 210, 168, 0.4) !important;
+  border: 2px dashed #00d2a8 !important;
+  box-shadow: 0 0 10px rgba(0, 210, 168, 0.3) !important;
+  transform: scale(0.95);
+}
+.hover-preview.invalid .block {
+  background-color: rgba(255, 70, 118, 0.4) !important;
+  border: 2px dashed #ff4676 !important;
+  box-shadow: 0 0 10px rgba(255, 70, 118, 0.3) !important;
+  transform: scale(0.95);
+}
+
+/* Hover-Zellen-Vorschau mit Validitäts- und Reihen-Flash-Effekten */
+.hover-preview .cell {
+  /* überschreibt Standard Preview */
+  background: transparent;
+}
+.hover-preview.valid .cell {
+  /* Platzierbar: grün */
+  background-color: rgba(0, 210, 168, 0.4);
+  border: 2px dashed #00d2a8;
+  transform: scale(0.95);
+}
+.hover-preview.invalid .cell {
+  /* Nicht platzierbar: rot */
+  background-color: rgba(255, 70, 118, 0.4);
+  border: 2px dashed #ff4676;
+  transform: scale(0.95);
+}
+.hover-preview .row-full {
+  /* Ganze Reihe gelöscht: gelber Puls */
+  animation: row-flash 0.8s ease-in-out infinite alternate;
+}
+
+/* ───── Block mit 3D-Effekten ───── */
+.piece .block {
+  width: 100%;
+  height: 100%;
+  /* Hintergrundfarbe entfernt, wird jetzt per JS gesetzt */
+  border-radius: var(--border-radius-sm);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  /* pointer-events: none; entfernt, damit Touch funktioniert */
+  transition: all var(--transition-med);
+  position: relative;
+}
+
+.piece .block::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40%;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.25) 0%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  border-radius: var(--border-radius-sm) var(--border-radius-sm) 0 0;
+  pointer-events: none;
+}
+
+/* ────────── Gegner-Board mit einheitlichem Design ────────── */
+#opponentBoard {
+  display: grid;
+  grid-template-columns: repeat(10, calc(var(--cell-size) / 2));
+  grid-template-rows: repeat(10, calc(var(--cell-size) / 2));
+  gap: calc(var(--gap-size) / 1.5);
+  background: rgba(15, 12, 41, 0.7);
+  padding: calc(var(--gap-size) * 1.5);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm), 0 0 10px rgba(0, 210, 168, 0.2);
+  border: 1px solid rgba(0, 210, 168, 0.1);
+  transform: translateZ(0);
+}
+
+.opponent-cell {
+  width: calc(var(--cell-size) / 2);
+  height: calc(var(--cell-size) / 2);
+  background: rgba(30, 25, 50, 0.8);
+  border-radius: calc(var(--border-radius-sm) / 1.5);
+  transition: all var(--transition-med);
+  position: relative;
+  overflow: hidden;
+}
+
+.opponent-cell::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0) 50%
+  );
+  border-radius: calc(var(--border-radius-sm) / 1.5);
+  pointer-events: none;
+}
+
+.opponent-cell.filled {
+  background: linear-gradient(145deg, #7dffca, var(--color-secondary));
+  box-shadow: 0 0 5px rgba(0, 210, 168, 0.4);
+  transform: translateZ(0);
+  animation: pop-in-small 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.opponent-cell.filled::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40%;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.2) 0%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  pointer-events: none;
+}
+
+/* ───── Verbesserte Animationen ───── */
+@keyframes bg-pan {
+  0% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 100% 100%;
+  }
+  100% {
+    background-position: 0% 0%;
+  }
+}
+
+@keyframes pop-in {
+  0% {
+    transform: scale(0.5) translateZ(0);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.08) translateZ(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) translateZ(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pop-in-small {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: translateX(-50%) scale(1);
+    box-shadow: var(--shadow-sm), 0 0 10px rgba(138, 43, 226, 0.3);
+  }
+  50% {
+    transform: translateX(-50%) scale(1.02);
+    box-shadow: var(--shadow-md), 0 0 15px rgba(138, 43, 226, 0.4);
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+/* ───── Hauptmenü im Spiel-Design ───── */
+.menu-glass {
+  background: rgba(15, 12, 41, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-lg), 0 0 30px rgba(138, 43, 226, 0.18);
+  border: 1.5px solid rgba(182, 125, 255, 0.18);
+  padding: 38px 32px 32px 32px;
+  margin: 60px auto 0 auto;
+  max-width: 370px;
+  width: 95vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+  position: relative;
+  z-index: 10;
+  animation: pop-in 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.menu-glass h1 {
+  margin-bottom: 18px;
+  margin-top: 0;
+  font-size: 1.5em;
+  text-shadow: 0 0 8px var(--color-text-shadow),
+    0 0 15px var(--color-text-shadow);
+  animation: float 3s ease-in-out infinite;
+}
+
+.menu-item {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 7px;
+}
+
+.menu-input {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: var(--border-radius-md);
+  border: 1.5px solid var(--color-primary-light);
+  background: rgba(30, 25, 50, 0.7);
+  color: var(--color-text);
+  font-size: 1em;
+  box-shadow: var(--shadow-sm);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.menu-input:focus {
+  border-color: var(--color-secondary);
+}
+
+.main-menu-btn {
+  width: 100%;
+  margin-top: 0;
+  margin-bottom: 0;
+  padding: 13px 0;
+  font-size: 1.08em;
+  font-family: inherit;
+  border-radius: var(--border-radius-md);
+  border: none;
+  background: linear-gradient(
+    90deg,
+    var(--color-primary) 60%,
+    var(--color-secondary) 100%
+  );
+  color: #ffffff;
+  box-shadow: var(--shadow-md), 0 0 10px rgba(138, 43, 226, 0.13);
+  cursor: pointer;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+}
+.main-menu-btn:hover,
+.main-menu-btn:focus {
+  background: linear-gradient(
+    90deg,
+    var(--color-secondary) 40%,
+    var(--color-primary) 100%
+  );
+  transform: scale(1.04);
+  box-shadow: var(--shadow-lg), 0 0 18px rgba(0, 210, 168, 0.18);
+}
+
+/* Hauptmenü-Hintergrund wie das Spiel */
+#mainMenuContainer.menu-glass {
+  background: rgba(15, 12, 41, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-lg), 0 0 30px rgba(138, 43, 226, 0.18);
+  border: 1.5px solid rgba(182, 125, 255, 0.18);
+  /* Kein weißer Hintergrund! */
+}
+
+/* Hauptmenü-Container mittig auf ganzer Höhe */
+html,
+body {
+  min-height: 100vh;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    -45deg,
+    var(--color-bg-start),
+    var(--color-bg-mid),
+    var(--color-bg-end)
+  ) !important;
+  background-size: 400% 400% !important;
+  animation: bg-pan 20s linear infinite !important;
+}
+
+body,
+html {
+  /* Entfernt alle Regeln, die Touch-Steuerung verhindern */
+  /* overflow, overscroll-behavior, position, user-select, etc. entfernt */
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  -webkit-text-size-adjust: 100% !important; /* Verhindert automatische Textvergrößerung auf iOS */
+  -moz-text-size-adjust: 100% !important;
+  -ms-text-size-adjust: 100% !important;
+}
+
+/* ───── Blitz-Flash beim Clear (neu) ───── */
+@keyframes clear-flash {
+  0% {
+    opacity: 1;
+    filter: brightness(1);
+  }
+  50% {
+    opacity: 1;
+    filter: brightness(2.5);
+  }
+  100% {
+    opacity: 0;
+    filter: brightness(1);
+  }
+}
+
+.cell.clearing {
+  animation: clear-flash 0.6s ease-out;
+}
+
+#playerArea {
+  width: 110%; /* Vergrößert das Spielfeld um 5% */
+}
+
+/* Neue CSS-Klasse für Regenbogen-Blöcke */
+.block.rainbow {
+  /* 3D conic gradient swirl with vibrant glow */
+  background: conic-gradient(
+    from 180deg,
+    var(--color-primary),
+    var(--color-primary-light),
+    var(--color-secondary),
+    var(--color-accent),
+    var(--color-primary)
+  ) !important;
+  background-size: 200% 200% !important;
+  animation: rainbow-swirl 3s linear infinite,
+    rainbow-flash 1.5s infinite alternate !important;
+}
+
+@keyframes rainbow-flash {
+  0% {
+    filter: brightness(1);
+  }
+  100% {
+    filter: brightness(1.5) saturate(1.2);
+  }
+}
+
+@keyframes rainbow-swirl {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Verhindern von unbeabsichtigtem Scrollen während des Drag-Vorgangs */
+html,
+body {
+  overscroll-behavior: none;
+  overflow: hidden !important;
+  position: fixed !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100vw !important;
+  max-height: 100vh !important;
+}
+
+/* Verhindern von Scrollen auf allen Geräten */
+html,
+body {
+  overscroll-behavior: none !important;
+  overflow: hidden !important;
+  position: fixed !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: 100vw !important;
+  max-height: 100vh !important;
+  top: 0 !important;
+  left: 0 !important;
+}
+
+@media (max-width: 600px) {
+  #board,
+  .piece {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    overflow: hidden !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Erlaubt Interaktion mit Spielteilen */
+  .piece {
+    touch-action: manipulation !important;
+    cursor: grab !important;
+  }
+
+  .piece:active {
+    cursor: grabbing !important;
+    transform: scale(1.05) !important;
+  }
+
+  /* Erlaubt Interaktionen mit UI-Elementen */
+  button,
+  .menu-button,
+  input,
+  select,
+  textarea {
+    touch-action: manipulation;
+    user-select: text;
+  }
+
+  /* Verbesserte Leistung für Animationen */
+  .hover-preview,
+  .touch-ghost,
+  .preview-valid-cell,
+  .preview-invalid-cell {
+    will-change: transform, opacity;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+}
