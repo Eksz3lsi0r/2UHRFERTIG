@@ -67,14 +67,6 @@ socket.on("playerInfo", (data) => {
   state.playerName = data.playerName;
   state.opponentName = data.opponentName;
   ui.translateUI();
-  // Notify game started with correct names
-  ui.displayMessage(
-    LANG[state.currentLanguage].gameStarted(
-      state.playerName,
-      state.opponentName
-    ),
-    "info"
-  );
 });
 
 /* ---- Start des Spiels ---------------------------------------------- */

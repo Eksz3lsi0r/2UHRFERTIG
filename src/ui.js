@@ -49,6 +49,8 @@ function translateUI() {
       el.textContent = LANG[state.currentLanguage][key];
     }
   });
+  // refresh headings with current player and opponent names
+  updateBoardTitles();
 }
 
 /* --------------------------------------------------------------------
@@ -74,9 +76,12 @@ function showGameArea() {
   mainMenu.style.display = "none";
   settings.style.display = "none";
   gameArea.style.display = "flex";
-  if (message && state.currentMode === "cpu") {
+  // hide any message overlay
+  if (message) {
     message.style.display = "none";
   }
+  // update the board headings
+  updateBoardTitles();
   import("./audio.js").then((mod) => mod.startBg());
 }
 
@@ -173,6 +178,7 @@ function initUI() {
   state.el.languageSelect.addEventListener("change", (e) => {
     currentLanguage = e.target.value;
     translateUI();
+    updateBoardTitles();
   });
   state.el.graphicsQualitySelect.addEventListener("change", (e) => {
     graphicsQuality = e.target.value;
@@ -215,6 +221,21 @@ function displayMessage(text, type = "info") {
   state.el.message.classList.remove("message-animated");
   void state.el.message.offsetWidth;
   state.el.message.classList.add("message-animated");
+}
+
+// add function to refresh board titles with player/opponent names
+function updateBoardTitles() {
+  // display only player and opponent names in headings
+  const playerLabel = state.playerName;
+  const oppLabel = state.opponentName;
+  const yourEl = document.querySelector(
+    '#playerArea [data-lang-key="yourBoard"]'
+  );
+  const oppEl = document.querySelector(
+    '#opponentArea [data-lang-key="opponentBoard"]'
+  );
+  if (yourEl) yourEl.textContent = playerLabel;
+  if (oppEl) oppEl.textContent = oppLabel;
 }
 
 /* --------------------------------------------------------------------
