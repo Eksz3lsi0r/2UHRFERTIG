@@ -63,21 +63,117 @@ function resetGame() {
 /* --------------------------------------------------------------------
  *  Teile-Inventar erzeugen (3 zufällige, passende Shapes)
  * ------------------------------------------------------------------ */
+/* --------------------------------------------------------------------
+ *  Teile-Inventar erzeugen – SCHWERE Version
+ *  – liefert nur Tripel, die garantiert in irgendeiner Reihenfolge
+ *    auf das aktuelle Spieler-Brett passen (inkl. Zwischenclearing)
+ * ------------------------------------------------------------------ */
 function generatePieces() {
-  const fits = (sh) => canPlaceSomewhere(sh);
-  const possible = ALL_POSSIBLE_SHAPES.filter(fits);
-  state.playerPieces = possible.length
-    ? Array.from({ length: 3 }, () => {
-        const shape = possible[Math.floor(Math.random() * possible.length)].map(
-          (c) => [...c]
-        );
-        // Jedes Piece bekommt eine zufällige Farbe
-        return {
-          shape,
-          color: getRandomRainbowColor(),
-        };
-      })
-    : []; // Brett voll → Game Over
+  // 0) Kopie des IST-Boards anlegen
+  const boardSnapshot = state.playerBoard.map((row) => [...row]);
+
+  /* ---------- interne Helfer ---------- */
+  const canPlace = (shape, brd, br, bc) => {
+    for (const [r, c] of shape) {
+      const rr = br + r,
+        cc = bc + c;
+      if (rr < 0 || rr >= 10 || cc < 0 || cc >= 10) return false;
+      if (brd[rr][cc] !== 0) return false;
+    }
+    return true;
+  };
+
+  const placeAndClear = (shape, brd, br, bc) => {
+    const nb = brd.map((r) => [...r]); // tiefe Kopie
+    shape.forEach(([r, c]) => (nb[br + r][bc + c] = 1));
+
+    // Reihen / Spalten identifizieren
+    const fullRows = [],
+      fullCols = [];
+    for (let r = 0; r < 10; r++)
+      if (nb[r].every((v) => v === 1)) fullRows.push(r);
+    for (let c = 0; c < 10; c++)
+      if (nb.every((row) => row[c] === 1)) fullCols.push(c);
+
+    // Leer räumen
+    fullRows.forEach((r) => nb[r].fill(0));
+    fullCols.forEach((c) => {
+      for (let r = 0; r < 10; r++) nb[r][c] = 0;
+    });
+    return nb;
+  };
+
+  const oneFitsSomewhere = (trip, brd) =>
+    trip.some((sh) => {
+      for (let r = 0; r < 10; r++)
+        for (let c = 0; c < 10; c++) if (canPlace(sh, brd, r, c)) return true;
+      return false;
+    });
+
+  const tripletFits = (trip, brd) => {
+    const perms = [
+      [0, 1, 2],
+      [0, 2, 1],
+      [1, 0, 2],
+      [1, 2, 0],
+      [2, 0, 1],
+      [2, 1, 0],
+    ];
+    const dfs = (order, idx, b) => {
+      if (idx === 3) return true;
+      const sh = trip[order[idx]];
+      for (let r = 0; r < 10; r++) {
+        for (let c = 0; c < 10; c++) {
+          if (canPlace(sh, b, r, c)) {
+            if (dfs(order, idx + 1, placeAndClear(sh, b, r, c))) return true;
+          }
+        }
+      }
+      return false;
+    };
+    return perms.some((p) => dfs(p, 0, brd));
+  };
+
+  /* ---------- Hauptschleife ---------- */
+  const tested = new Set(); // Tripel-Duplikate vermeiden
+  const MAX_ATTEMPTS = 5000; // Sicherheitsgrenze
+  let validSet = null,
+    tries = 0;
+
+  while (!validSet && tries++ < MAX_ATTEMPTS) {
+    // Drei Zufallsindices – Wiederholungen erlaubt
+    const a = Math.floor(Math.random() * ALL_POSSIBLE_SHAPES.length);
+    const b = Math.floor(Math.random() * ALL_POSSIBLE_SHAPES.length);
+    const c = Math.floor(Math.random() * ALL_POSSIBLE_SHAPES.length);
+    const trip = [
+      ALL_POSSIBLE_SHAPES[a],
+      ALL_POSSIBLE_SHAPES[b],
+      ALL_POSSIBLE_SHAPES[c],
+    ];
+
+    // Duplikat-Key (unabhängig von Reihenfolge)
+    const key = [a, b, c].sort((x, y) => x - y).join("-");
+    if (tested.has(key)) continue;
+    tested.add(key);
+
+    // Frühfilter: mindestens ein Shape muss *jetzt* irgendwo passen
+    if (!oneFitsSomewhere(trip, boardSnapshot)) continue;
+
+    // Vollständige Permutation-Prüfung
+    if (tripletFits(trip, boardSnapshot)) validSet = trip;
+  }
+
+  // Fallback (extrem selten)
+  if (!validSet) {
+    const one = ALL_POSSIBLE_SHAPES[0];
+    validSet = [one, one, one];
+  }
+
+  /* ---------- Rückgabe im alten Format ---------- */
+  state.playerPieces = validSet.map((sh) => ({
+    shape: sh.map((c) => [...c]), // tiefe Kopie
+    color: getRandomRainbowColor(),
+  }));
 }
 
 /* --------------------------------------------------------------------
