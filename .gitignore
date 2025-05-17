@@ -1,0 +1,5 @@
+# macOS-Systemdateien
+.DS_Store
+
+# Node.js-Abhängigkeiten
+node_modules/
