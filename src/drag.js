@@ -41,7 +41,7 @@ export const GridSnap = {
     let minC = Math.min(...shape.map(([, c]) => c));
     const firstBlock = this.cellMatrix[minR][minC].getBoundingClientRect();
     this.currentOffset = {
-      x: touch.clientX - firstBlock.left - firstBlock.width / 2 - 50,
+      x: touch.clientX - firstBlock.left - firstBlock.width / 2 - 120,
       y: touch.clientY - firstBlock.top - firstBlock.height / 2 - 200,
     };
     window.state.currentDragShape = shape;

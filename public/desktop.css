@@ -936,53 +936,140 @@ html {
     rainbow-flash 1.5s infinite alternate !important;
 }
 
-@keyframes rainbow-flash {
-  0% {
-    filter: brightness(1);
-  }
-  100% {
-    filter: brightness(1.5) saturate(1.2);
+@media (max-width: 600px) {
+  :root {
+    --js-block-size: 24px;
   }
 }
-
-@keyframes rainbow-swirl {
-  0% {
-    background-position: 0% 50%;
+@media (max-width: 600px) {
+  /* Spielbereiche anpassen */
+  #gameArea {
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    gap: 0;
+    justify-content: flex-start;
+    padding-top: 0px;
   }
-  50% {
-    background-position: 100% 50%;
+
+  #playerArea {
+    width: 100%;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
-  100% {
-    background-position: 0% 50%;
+
+  /* Gegnerbereich als elegantes Overlay */
+  #opponentArea {
+    position: absolute;
+    top: -50px !important;
+    right: 5px;
+    z-index: 10;
+    background: rgba(0, 210, 168, 0.15);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    padding: 5px;
+    border-radius: var(--border-radius-md);
+    box-shadow: 0 0 10px rgba(0, 210, 168, 0.3);
+    border: 1px solid rgba(0, 210, 168, 0.2);
+    opacity: 0.95;
+    transition: opacity var(--transition-med), transform var(--transition-med);
   }
-}
 
-/* Verhindern von unbeabsichtigtem Scrollen während des Drag-Vorgangs */
-html,
-body {
-  overscroll-behavior: none;
-  overflow: hidden !important;
-  position: fixed !important;
-  width: 100% !important;
-  height: 100% !important;
-  max-width: 100vw !important;
-  max-height: 100vh !important;
-}
+  #opponentArea:hover {
+    opacity: 1;
+    transform: scale(1.05);
+  }
 
-/* Verhindern von Scrollen auf allen Geräten */
-html,
-body {
-  overscroll-behavior: none !important;
-  overflow: hidden !important;
-  position: fixed !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  max-width: 100vw !important;
-  max-height: 100vh !important;
-  top: 0 !important;
-  left: 0 !important;
-}
+  /* Gegner-Board anpassen */
+  #opponentBoard {
+    grid-template-columns: repeat(10, 6px) !important;
+    grid-template-rows: repeat(10, 6px) !important;
+    gap: 0.5px !important;
+    padding: 1px !important;
+    border-radius: var(--border-radius-sm);
+    box-shadow: var(--shadow-sm), 0 0 8px rgba(0, 210, 168, 0.2);
+  }
 
+  .opponent-cell {
+    width: 6px !important;
+    height: 6px !important;
+    border-radius: 1px !important;
+  }
+
+  /* Gegner-Überschrift und Score anpassen */
+  #opponentArea h2 {
+    font-size: 0.7em;
+    margin-bottom: 2px;
+    color: var(--color-text);
+    text-shadow: 0 0 3px rgba(0, 210, 168, 0.8);
+  }
+
+  #opponentArea .scoreDisplay {
+    font-size: 0.7em;
+    margin-bottom: 3px;
+    color: var(--color-text);
+    background: rgba(0, 210, 168, 0.2);
+    border: 1px solid rgba(0, 210, 168, 0.3);
+    padding: 3px 6px;
+  }
+
+  /* Spielfeld Spieler */
+  #board {
+    padding: calc(var(--gap-size) * 2);
+  }
+
+  /* Inventar */
+  #pieces {
+    gap: 10px;
+    margin-top: 0px !important;
+    padding: 3px !important;
+  }
+
+  /* Spieler-Überschriften */
+  #playerArea h2 {
+    font-size: 1em;
+    margin-bottom: 3px;
+  }
+
+  /* Spieler-Score-Anzeige */
+  #playerArea .scoreDisplay {
+    font-size: 0.9em;
+    margin-bottom: 5px;
+    padding: 5px 10px;
+  }
+
+  /* Titelanpassung */
+  #gameTitleOverlay {
+    font-size: 0.9em;
+    padding: 4px 10px;
+    top: 5px;
+  }
+
+  /* Message-Position */
+  #message {
+    top: 35px;
+    font-size: 0.8em;
+    padding: 6px 10px;
+  }
+
+  /* Hauptmenü Anpassungen */
+  .menu-glass {
+    padding: 22px 7vw 22px 7vw;
+    max-width: 98vw;
+    margin-top: 30px;
+  }
+  .menu-glass h1 {
+    font-size: 1.1em;
+  }
+  .main-menu-btn {
+    font-size: 0.98em;
+    padding: 11px 0;
+  }
+
+  /* --- ENTFERNE JEGLICHEN BLUR UND FILTER AUS ALLEN RELEVANTEN CONTAINERN UND FIGUREN (verstärkt) --- */
+}
 @media (max-width: 600px) {
   #board,
   .piece {
@@ -1004,13 +1091,12 @@ body {
 
   /* Erlaubt Interaktion mit Spielteilen */
   .piece {
-    touch-action: manipulation !important;
-    cursor: grab !important;
+    touch-action: manipulation;
+    cursor: grab;
   }
 
   .piece:active {
-    cursor: grabbing !important;
-    transform: scale(1.05) !important;
+    cursor: grabbing;
   }
 
   /* Erlaubt Interaktionen mit UI-Elementen */
@@ -1023,13 +1109,101 @@ body {
     user-select: text;
   }
 
-  /* Verbesserte Leistung für Animationen */
-  .hover-preview,
-  .touch-ghost,
-  .preview-valid-cell,
-  .preview-invalid-cell {
-    will-change: transform, opacity;
-    transform: translateZ(0);
-    backface-visibility: hidden;
+  @keyframes rainbow-flash {
+    0% {
+      filter: brightness(1);
+    }
+    100% {
+      filter: brightness(1.5) saturate(1.2);
+    }
+  }
+
+  @keyframes rainbow-swirl {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  /* Verhindern von unbeabsichtigtem Scrollen während des Drag-Vorgangs */
+  html,
+  body {
+    overscroll-behavior: none;
+    overflow: hidden !important;
+    position: fixed !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+  }
+
+  /* Verhindern von Scrollen auf allen Geräten */
+  html,
+  body {
+    overscroll-behavior: none !important;
+    overflow: hidden !important;
+    position: fixed !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    top: 0 !important;
+    left: 0 !important;
+  }
+
+  @media (max-width: 600px) {
+    #board,
+    .piece {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      width: 100vw !important;
+      height: 100vh !important;
+      max-width: 100vw !important;
+      max-height: 100vh !important;
+      overflow: hidden !important;
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Erlaubt Interaktion mit Spielteilen */
+    .piece {
+      touch-action: manipulation !important;
+      cursor: grab !important;
+    }
+
+    .piece:active {
+      cursor: grabbing !important;
+      transform: scale(1.05) !important;
+    }
+
+    /* Erlaubt Interaktionen mit UI-Elementen */
+    button,
+    .menu-button,
+    input,
+    select,
+    textarea {
+      touch-action: manipulation;
+      user-select: text;
+    }
+
+    /* Verbesserte Leistung für Animationen */
+    .hover-preview,
+    .touch-ghost,
+    .preview-valid-cell,
+    .preview-invalid-cell {
+      will-change: transform, opacity;
+      transform: translateZ(0);
+      backface-visibility: hidden;
+    }
   }
 }
