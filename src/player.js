@@ -274,6 +274,20 @@ function canPlaceSomewhere(sh) {
 function checkGameOverCondition() {
   // CPU-Modus: Spielende wenn beide keine Züge mehr haben oder wenn Spieler CPU nach beendetem KI-Zug überholt
   if (state.currentMode === "cpu") {
+    // Wenn keine Pieces mehr, neue Pieces generieren (unabhängig von hasMoves)
+    if (state.playerPieces.length === 0) {
+      generatePieces();
+      renderPieces();
+      // Nach dem Generieren prüfen, ob jetzt noch Züge möglich sind
+      if (!hasMoves()) {
+        // Keine Züge mehr nach Nachschub → Spielende
+        if (!state.cpuGameActive) {
+          const playerWon = state.playerScore >= state.cpuScore;
+          finishGame(playerWon);
+        }
+      }
+      return;
+    }
     if (!state.cpuGameActive) {
       if (state.playerScore > state.cpuScore) {
         finishGame(true);

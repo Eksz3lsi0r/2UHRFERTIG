@@ -22,7 +22,9 @@ window.cpu = cpu;
  * ------------------------------------------------------------------ */
 window.addEventListener("DOMContentLoaded", () => {
   // sofort mit dem Server verbinden → Matchmaking funktioniert wieder
-  networkSocket.connect();
+  if (state.currentMode !== "cpu") {
+    networkSocket.connect();
+  }
 
   /* UI & Board erzeugen */
   ui.initUI();

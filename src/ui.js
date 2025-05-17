@@ -70,10 +70,13 @@ function showSettingsMenu() {
 }
 
 function showGameArea() {
-  const { mainMenu, settings, gameArea } = state.el;
+  const { mainMenu, settings, gameArea, message } = state.el;
   mainMenu.style.display = "none";
   settings.style.display = "none";
   gameArea.style.display = "flex";
+  if (message && state.currentMode === "cpu") {
+    message.style.display = "none";
+  }
   import("./audio.js").then((mod) => mod.startBg());
 }
 
