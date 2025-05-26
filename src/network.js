@@ -12,6 +12,9 @@ export const socket = window.io
   ? window.io({ autoConnect: false })
   : { on: () => {}, emit: () => {}, connect: () => {} };
 
+// Make socket globally available for chat functionality
+window.socket = socket;
+
 // Show waiting message when matchmaking
 socket.on("waiting", (data) => {
   ui.displayMessage(data.message, "info");
@@ -192,3 +195,65 @@ socket.on("waitingForRematchConfirm", () => {
     "info"
   );
 });
+
+// --- Chat Message Handling (PvP) ---
+window.sendChatMessage = function (msg) {
+  console.log("[Chat] sendChatMessage –", `"${msg}"`);
+  console.log("[Chat] Current mode:", state.currentMode);
+  console.log("[Chat] Socket exists:", !!window.socket);
+  console.log("[Chat] Socket emit function:", typeof window.socket?.emit);
+  console.log(
+    "[Chat] appendChatMessage function:",
+    typeof window.appendChatMessage
+  );
+
+  if (state.currentMode !== "player") {
+    console.warn("[Chat] Not in player mode, cannot send message");
+    return;
+  }
+
+  if (!window.socket) {
+    console.warn("[Chat] No socket connection available");
+    return;
+  }
+
+  if (typeof window.socket.emit !== "function") {
+    console.warn("[Chat] Socket emit is not a function");
+    return;
+  }
+
+  try {
+    window.socket.emit("chatMessage", { msg });
+    console.log("[Chat] Message sent to server successfully");
+
+    if (typeof window.appendChatMessage === "function") {
+      window.appendChatMessage("Du: " + msg, true);
+      console.log("[Chat] Message added to local chat");
+    } else {
+      console.warn("[Chat] appendChatMessage function not available");
+    }
+  } catch (error) {
+    console.error("[Chat] Error sending message:", error);
+  }
+};
+
+if (window.socket && typeof window.socket.on === "function") {
+  window.socket.on("chatMessage", (data) => {
+    console.log("[Chat] received chatMessage", data);
+    console.log(
+      "[Chat] appendChatMessage function available:",
+      typeof window.appendChatMessage
+    );
+
+    if (typeof window.appendChatMessage === "function") {
+      const displayName = data.fromSelf ? "Du" : state.opponentName || "Gegner";
+      const message = displayName + ": " + data.msg;
+      window.appendChatMessage(message, data.fromSelf);
+      console.log("[Chat] Message added to chat:", message);
+    } else {
+      console.warn(
+        "[Chat] appendChatMessage function not available for received message"
+      );
+    }
+  });
+}

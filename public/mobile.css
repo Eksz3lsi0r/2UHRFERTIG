@@ -134,3 +134,29 @@ body {
     overflow: hidden !important;
   }
 }
+
+/* Mobile-specific tweaks for chat bubble and chat modal */
+#chat-bubble {
+  top: 12px !important;
+  left: 12px !important;
+  width: 36px !important;
+  height: 36px !important;
+}
+#chat-modal {
+  top: 8px !important;
+  left: 8px !important;
+  min-width: 0 !important;
+  width: 96vw !important;
+  max-width: 98vw !important;
+  min-height: 120px !important;
+  max-height: 60vh !important;
+  border-radius: 10px !important;
+  padding: 0 !important;
+}
+#chat-messages {
+  max-height: 22vh !important;
+  font-size: 0.98em !important;
+}
+#chat-form {
+  padding: 8px 8px 10px 8px !important;
+}

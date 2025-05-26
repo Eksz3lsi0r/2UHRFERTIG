@@ -5,6 +5,40 @@ import { LANG } from "./constants.js";
 import { state } from "./state.js";
 
 /* --------------------------------------------------------------------
+ *  Chat Message Function (available globally early)
+ * ------------------------------------------------------------------ */
+// --- Make appendChatMessage globally available early ---
+window.appendChatMessage = function (msg, fromSelf = false) {
+  const chatMessages = document.getElementById("chat-messages");
+  console.log("[Chat] appendChatMessage called", {
+    msg,
+    fromSelf,
+    chatMessagesExists: !!chatMessages,
+  });
+
+  if (!chatMessages) {
+    console.warn("[Chat] chat-messages div not found!");
+    return;
+  }
+
+  try {
+    const div = document.createElement("div");
+    div.textContent = msg;
+    div.style.margin = "2px 0";
+    div.style.wordBreak = "break-word";
+    div.style.textAlign = fromSelf ? "right" : "left";
+    div.style.color = fromSelf ? "#a96cff" : "#fff";
+
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    console.log("[Chat] Message successfully appended to chat");
+  } catch (error) {
+    console.error("[Chat] Error appending message:", error);
+  }
+};
+
+/* --------------------------------------------------------------------
  *  Modul-Variablen
  * ------------------------------------------------------------------ */
 let currentLanguage = "de";
@@ -419,6 +453,112 @@ function showGameResultOverlay({ win, msg }) {
   };
 }
 
+// --- Chat UI Logic (PvP only) ---
+function setupChatUI() {
+  const chatBubble = document.getElementById("chat-bubble");
+  const chatModal = document.getElementById("chat-modal");
+  const chatClose = document.getElementById("chat-close");
+  const chatForm = document.getElementById("chat-form");
+  const chatInput = document.getElementById("chat-input");
+  const chatSend = document.getElementById("chat-send");
+  const chatMessages = document.getElementById("chat-messages");
+
+  if (
+    !chatBubble ||
+    !chatModal ||
+    !chatClose ||
+    !chatForm ||
+    !chatInput ||
+    !chatSend ||
+    !chatMessages
+  )
+    return;
+
+  // Show/hide chat bubble only in PvP mode
+  function updateChatVisibility() {
+    if (state.currentMode === "player") {
+      chatBubble.style.display = "block";
+    } else {
+      chatBubble.style.display = "none";
+      chatModal.style.display = "none";
+    }
+  }
+
+  // Open chat modal
+  function openChat() {
+    chatModal.style.display = "flex";
+    chatModal.classList.add("open");
+    chatInput.focus();
+    // Scroll to bottom
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  // Close chat modal
+  function closeChat() {
+    chatModal.style.display = "none";
+    chatModal.classList.remove("open");
+    chatInput.blur();
+  }
+
+  // Desktop: open chat on TAB
+  document.addEventListener("keydown", (e) => {
+    if (
+      state.currentMode === "player" &&
+      document.activeElement.tagName !== "INPUT" &&
+      document.activeElement.tagName !== "TEXTAREA"
+    ) {
+      if (e.key === "Tab") {
+        e.preventDefault();
+        if (chatModal.style.display === "flex") {
+          closeChat();
+        } else {
+          openChat();
+        }
+      }
+    }
+  });
+
+  // Open chat on bubble click/tap
+  chatBubble.onclick = openChat;
+  // Mobile: also allow touch
+  chatBubble.ontouchstart = (e) => {
+    e.preventDefault();
+    openChat();
+  };
+  // Close chat
+  chatClose.onclick = closeChat;
+
+  // Send message (desktop: Enter, mobile: button)
+  chatForm.onsubmit = (e) => {
+    e.preventDefault();
+    const msg = chatInput.value.trim();
+    if (msg.length > 0) {
+      window.sendChatMessage?.(msg);
+      chatInput.value = "";
+    }
+  };
+
+  // Update chat visibility on mode change
+  const origShowGameArea = ui.showGameArea;
+  ui.showGameArea = function () {
+    origShowGameArea.call(ui);
+    updateChatVisibility();
+  };
+  // Also update on main menu/settings
+  const origShowMainMenu = ui.showMainMenu;
+  ui.showMainMenu = function () {
+    origShowMainMenu.call(ui);
+    updateChatVisibility();
+  };
+  const origShowSettingsMenu = ui.showSettingsMenu;
+  ui.showSettingsMenu = function () {
+    origShowSettingsMenu.call(ui);
+    updateChatVisibility();
+  };
+  // Initial
+  updateChatVisibility();
+}
+
 /* --------------------------------------------------------------------
  *  Public API
  * ------------------------------------------------------------------ */
@@ -451,3 +591,10 @@ export const ui = {
     applyGraphicsQuality();
   },
 };
+
+// Call setupChatUI after ui is defined
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", setupChatUI);
+} else {
+  setupChatUI();
+}

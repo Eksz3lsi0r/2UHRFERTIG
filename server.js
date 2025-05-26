@@ -265,6 +265,26 @@ io.on("connection", async (socket) => {
     }
   });
 
+  // --- Chat relay for PvP ---
+  socket.on("chatMessage", (data) => {
+    const room = socket.gameRoom;
+    if (!room || !games[room]) return;
+    const game = games[room];
+    const opponentId = game.players.find((id) => id !== socket.id);
+    // Send to opponent
+    if (opponentId && io.sockets.sockets.get(opponentId)) {
+      io.to(opponentId).emit("chatMessage", {
+        msg: data.msg,
+        fromSelf: false,
+      });
+    }
+    // Echo to sender
+    socket.emit("chatMessage", {
+      msg: data.msg,
+      fromSelf: true,
+    });
+  });
+
   socket.on("disconnect", () => {
     console.log(
       `Spieler ${socket.id} (${
