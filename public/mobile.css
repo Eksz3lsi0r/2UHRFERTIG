@@ -160,3 +160,138 @@ body {
 #chat-form {
   padding: 8px 8px 10px 8px !important;
 }
+
+/* Mobile Menu Fixes */
+@media (max-width: 600px) {
+  /* Fix menu container sizing for mobile */
+  .menu-glass {
+    padding: 16px 12px 16px 12px !important;
+    max-width: 94vw !important;
+    margin-top: 20px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    width: 94vw !important;
+    box-sizing: border-box !important;
+  }
+
+  .menu-glass h1 {
+    font-size: 1em !important;
+    margin-bottom: 12px !important;
+  }
+
+  /* Fix menu items and input fields */
+  .menu-item {
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .menu-input {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 8px 10px !important;
+    font-size: 0.9em !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+  }
+
+  .main-menu-btn {
+    font-size: 0.9em !important;
+    padding: 10px 8px !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Settings menu mobile fixes */
+  #settingsMenuContainer {
+    background: rgba(15, 12, 41, 0.82) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4), 0 0 30px rgba(138, 43, 226, 0.18) !important;
+    border: 1.5px solid rgba(182, 125, 255, 0.18) !important;
+    padding: 16px 12px !important;
+    max-width: 94vw !important;
+    margin: 20px auto !important;
+    width: 94vw !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 16px !important;
+  }
+
+  #settingsMenuContainer h1 {
+    font-size: 1em !important;
+    margin-bottom: 8px !important;
+    margin-top: 0 !important;
+  }
+
+  #settingsMenuContainer .menu-item {
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  #settingsMenuContainer select {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 8px 10px !important;
+    font-size: 0.9em !important;
+    box-sizing: border-box !important;
+    border-radius: 8px !important;
+    border: 1.5px solid #b67dff !important;
+    background: rgba(30, 25, 50, 0.7) !important;
+    color: #ffffff !important;
+  }
+
+  .menu-button {
+    width: 100% !important;
+    padding: 10px 8px !important;
+    font-size: 0.9em !important;
+    box-sizing: border-box !important;
+    border-radius: 8px !important;
+    border: none !important;
+    background: linear-gradient(90deg, #8a2be2 60%, #00d2a8 100%) !important;
+    color: #ffffff !important;
+    cursor: pointer !important;
+    font-weight: 600 !important;
+  }
+}
+
+/* Extra small mobile devices */
+@media (max-width: 400px) {
+  .menu-glass {
+    padding: 12px 8px 12px 8px !important;
+    max-width: 96vw !important;
+    width: 96vw !important;
+  }
+
+  .menu-glass h1 {
+    font-size: 0.9em !important;
+  }
+
+  .menu-input {
+    padding: 6px 8px !important;
+    font-size: 0.85em !important;
+  }
+
+  .main-menu-btn {
+    font-size: 0.85em !important;
+    padding: 9px 6px !important;
+  }
+
+  #settingsMenuContainer {
+    padding: 12px 8px !important;
+    max-width: 96vw !important;
+    width: 96vw !important;
+    gap: 12px !important;
+  }
+
+  #settingsMenuContainer h1 {
+    font-size: 0.9em !important;
+  }
+
+  #settingsMenuContainer select,
+  .menu-button {
+    padding: 6px 8px !important;
+    font-size: 0.85em !important;
+  }
+}
