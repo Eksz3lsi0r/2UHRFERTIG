@@ -95,10 +95,18 @@ export const GridSnap = {
 
   updatePositions(pageX, pageY) {
     this.recalcMetrics(); // Immer aktuelle Werte!
+    // Begrenzung: Ghost und Preview dürfen Viewport nicht verlassen
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    let ghostX = pageX - this.currentOffset.x;
+    let ghostY = pageY - this.currentOffset.y;
+    // Begrenze Ghost auf Viewport
     if (this.ghostEl) {
-      this.ghostEl.style.transform = `translate3d(${
-        pageX - this.currentOffset.x
-      }px, ${pageY - this.currentOffset.y}px, 0)`;
+      const ghostW = this.ghostEl.offsetWidth;
+      const ghostH = this.ghostEl.offsetHeight;
+      ghostX = Math.max(0, Math.min(ghostX, vw - ghostW));
+      ghostY = Math.max(0, Math.min(ghostY, vh - ghostH));
+      this.ghostEl.style.transform = `translate3d(${ghostX}px, ${ghostY}px, 0)`;
     }
     // Exakte Berechnung der Zielzelle (Grid-Snap)
     const relX =
@@ -116,14 +124,19 @@ export const GridSnap = {
       9
     );
     if (this.previewEl) {
-      const xPos =
+      // Begrenze Preview auf Viewport
+      const previewW = this.previewEl.offsetWidth;
+      const previewH = this.previewEl.offsetHeight;
+      let xPos =
         this.boardRect.left +
         this.padding +
         this.previewCol * (this.cellSize + this.gap);
-      const yPos =
+      let yPos =
         this.boardRect.top +
         this.padding +
         this.previewRow * (this.cellSize + this.gap);
+      xPos = Math.max(0, Math.min(xPos, vw - previewW));
+      yPos = Math.max(0, Math.min(yPos, vh - previewH));
       this.previewEl.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
     }
   },

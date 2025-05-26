@@ -37,10 +37,15 @@ window.addEventListener("DOMContentLoaded", () => {
   /* Desktop-Drag-Drop (für Maus) ------------------------------------- */
   state.el.board.addEventListener("dragover", (e) => {
     e.preventDefault();
-    e.stopPropagation(); // Verhindert weitere Event-Bubbling
+    e.stopPropagation();
     // Verhindere Scrollen/Wackeln auf dem gesamten Dokument während Drag
     document.body.style.overflow = "hidden";
     document.documentElement.style.overflow = "hidden";
+    // Begrenze explizit die Größe auf 100vw/100vh
+    document.body.style.width = "100vw";
+    document.body.style.height = "100vh";
+    document.documentElement.style.width = "100vw";
+    document.documentElement.style.height = "100vh";
     if (state.currentDragShape) {
       const pos = getHoverPosition(e);
       renderPreview(state.currentDragShape, pos.row, pos.col);
@@ -48,15 +53,23 @@ window.addEventListener("DOMContentLoaded", () => {
   });
   state.el.board.addEventListener("dragleave", (e) => {
     clearPreview();
-    // Stelle Overflow zurück, wenn Drag vorbei
+    // Stelle Overflow und Größe zurück, wenn Drag vorbei
     document.body.style.overflow = "";
     document.documentElement.style.overflow = "";
+    document.body.style.width = "";
+    document.body.style.height = "";
+    document.documentElement.style.width = "";
+    document.documentElement.style.height = "";
   });
   state.el.board.addEventListener("drop", (e) => {
     onDropDesktop(e);
     clearPreview();
     document.body.style.overflow = "";
     document.documentElement.style.overflow = "";
+    document.body.style.width = "";
+    document.body.style.height = "";
+    document.documentElement.style.width = "";
+    document.documentElement.style.height = "";
   });
 
   /* Menü-Buttons ------------------------------------------------------ */
