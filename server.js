@@ -163,26 +163,42 @@ io.on("connection", async (socket) => {
     );
 
     if (!game.firstFinisher) {
+      // First player finishes: start 3-min catch-up for opponent
       game.firstFinisher = socket.id;
       game.firstScore = finalScore;
       const opponentId = game.players.find((id) => id !== socket.id);
-      if (opponentId && io.sockets.sockets.get(opponentId)) {
-        io.to(opponentId).emit("opponentFinished", {
-          score: finalScore,
-          playerName: game.playerNames[socket.id],
-        });
-        game.timeout = setTimeout(() => {
-          finish(room, game.firstFinisher);
-        }, 180000);
-      } else {
-        // Opponent disconnected, first finisher wins by default
-        finish(room, game.firstFinisher);
-      }
+      // Sende an beide Spieler das Timer-Event
+      [socket.id, opponentId].forEach((pid) => {
+        if (pid && io.sockets.sockets.get(pid)) {
+          io.to(pid).emit("opponentFinished", {
+            playerName: game.playerNames[socket.id],
+            score: finalScore,
+            isFirstFinisher: pid === socket.id,
+          });
+        }
+      });
+      // Start 3-min timer
+      if (game.timeout) clearTimeout(game.timeout);
+      game.timeout = setTimeout(() => {
+        // After 3 min, finish game with current scores
+        const oppScore = game.scores[opponentId] || 0;
+        const win = oppScore > finalScore ? opponentId : socket.id;
+        finish(room, win);
+      }, 180 * 1000);
     } else {
+      // Second player finishes: decide winner immediately
+      if (game.timeout) clearTimeout(game.timeout);
       const leader = game.firstFinisher;
-      if (finalScore > game.firstScore) finish(room, socket.id);
-      else if (finalScore < game.firstScore) finish(room, leader);
-      else finish(room, leader); // Tie goes to first finisher
+      const leaderScore = game.firstScore;
+      const challenger = socket.id;
+      const challengerScore = finalScore;
+      let win;
+      if (challengerScore > leaderScore) {
+        win = challenger;
+      } else {
+        win = leader;
+      }
+      finish(room, win);
     }
   });
 

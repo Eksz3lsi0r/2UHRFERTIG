@@ -62,6 +62,51 @@ function showMainMenu() {
   settings.style.display = "none";
   gameArea.style.display = "none";
   import("./audio.js").then((mod) => mod.stopBg());
+
+  // Spieler-Board und Inventar komplett leeren
+  if (state.boardCells?.length) {
+    for (let r = 0; r < 10; r++) {
+      for (let c = 0; c < 10; c++) {
+        state.boardCells[r][c].className = "cell";
+        state.boardCells[r][c].innerHTML = "";
+      }
+    }
+  }
+  if (state.el.score) state.el.score.textContent = "0";
+  if (state.el.pieces) state.el.pieces.innerHTML = "";
+  // Auch Opponent-Board leeren (optional, für Klarheit)
+  if (state.opponentBoardCells?.length) {
+    for (let r = 0; r < 10; r++) {
+      for (let c = 0; c < 10; c++) {
+        state.opponentBoardCells[r][c].className = "opponent-cell";
+      }
+    }
+  }
+  if (state.el.oppScore) state.el.oppScore.textContent = "0";
+
+  // Spieler-Board und Inventar auch im State leeren
+  state.playerBoard = Array(10)
+    .fill(0)
+    .map(() => Array(10).fill(0));
+  state.playerPieces = [];
+
+  // DOM-Grid mit leerem State synchronisieren
+  if (state.boardCells?.length) {
+    for (let r = 0; r < 10; r++) {
+      for (let c = 0; c < 10; c++) {
+        state.boardCells[r][c].className = "cell";
+        state.boardCells[r][c].innerHTML = "";
+        state.boardCells[r][c].style.background = "";
+        state.boardCells[r][c].classList.remove(
+          "filled",
+          "rainbow",
+          "preview-valid-cell",
+          "preview-invalid-cell",
+          "row-flash"
+        );
+      }
+    }
+  }
 }
 
 function showSettingsMenu() {
@@ -76,10 +121,7 @@ function showGameArea() {
   mainMenu.style.display = "none";
   settings.style.display = "none";
   gameArea.style.display = "flex";
-  // hide any message overlay
-  if (message) {
-    message.style.display = "none";
-  }
+  // Do NOT hide message overlay here, so timer/info is visible
   // update the board headings
   updateBoardTitles();
   import("./audio.js").then((mod) => mod.startBg());
@@ -204,20 +246,21 @@ function initUI() {
 function displayMessage(text, type = "info") {
   if (!state.el.message) return;
 
-  state.el.message.textContent = text;
+  // Use innerHTML to allow HTML (e.g. <span id="timer">)
+  state.el.message.innerHTML = text;
 
-  // Alle möglichen Klassen entfernen
+  // Remove all possible classes
   state.el.message.classList.remove("win", "lose", "info");
 
-  // Typ-Klasse hinzufügen
+  // Add type class
   if (type) {
     state.el.message.classList.add(type);
   }
 
-  // Sichtbarkeit sicherstellen
+  // Ensure visibility
   state.el.message.style.display = "block";
 
-  // Animation hinzufügen, falls notwendig
+  // Animation
   state.el.message.classList.remove("message-animated");
   void state.el.message.offsetWidth;
   state.el.message.classList.add("message-animated");
@@ -239,6 +282,136 @@ function updateBoardTitles() {
 }
 
 /* --------------------------------------------------------------------
+ *  Timer-Anzeige für Aufholjagd
+ * ------------------------------------------------------------------ */
+function showCatchupTimer({ playerName, score, isFirstFinisher, secondsLeft }) {
+  const catchupTimer = document.getElementById("catchup-timer");
+  if (!catchupTimer) return;
+
+  // Prüfe, ob auf Mobile (max-width: 600px)
+  if (window.matchMedia && window.matchMedia("(max-width: 600px)").matches) {
+    catchupTimer.classList.add("mobile-countdown");
+  } else {
+    catchupTimer.classList.remove("mobile-countdown");
+  }
+
+  let infoText;
+  if (isFirstFinisher) {
+    infoText = `${playerName} hat das Spiel mit ${score} Punkten beendet.<br>Warte auf den Gegner, der noch <span id='catchup-timer-value'></span> Minuten Zeit hat.`;
+  } else {
+    infoText = `${playerName} hat das Spiel mit ${score} Punkten beendet.<br>Du hast noch <span id='catchup-timer-value'></span> Minuten, um mehr Punkte zu erreichen!`;
+  }
+
+  catchupTimer.innerHTML = infoText;
+  catchupTimer.style.display = "block";
+
+  // Set initial time for both players
+  if (typeof secondsLeft === "number") {
+    const timerVal = document.getElementById("catchup-timer-value");
+    if (timerVal) {
+      const m = String(Math.floor(secondsLeft / 60)).padStart(2, "0");
+      const s = String(secondsLeft % 60).padStart(2, "0");
+      timerVal.textContent = `${m}:${s}`;
+    }
+  }
+}
+
+function updateCatchupTimer(secondsLeft) {
+  const timerVal = document.getElementById("catchup-timer-value");
+  if (timerVal) {
+    const m = String(Math.floor(secondsLeft / 60)).padStart(2, "0");
+    const s = String(secondsLeft % 60).padStart(2, "0");
+    timerVal.textContent = `${m}:${s}`;
+  }
+}
+
+function hideCatchupTimer() {
+  const catchupTimer = document.getElementById("catchup-timer");
+  if (catchupTimer) catchupTimer.style.display = "none";
+}
+
+/* --------------------------------------------------------------------
+ *  Game Result Overlay
+ * ------------------------------------------------------------------ */
+function showGameResultOverlay({ win, msg }) {
+  const overlay = document.getElementById("gameResultOverlay");
+  const title = document.getElementById("gameResultTitle");
+  const msgBox = document.getElementById("gameResultMsg");
+  const rematchBtn = document.getElementById("rematchButton");
+  const mainMenuBtn = document.getElementById("mainMenuButton");
+
+  if (!overlay || !title || !msgBox || !rematchBtn || !mainMenuBtn) return;
+
+  // Set title and color
+  if (win) {
+    title.textContent = "Gewonnen";
+    title.style.color = "#1fd655";
+  } else {
+    title.textContent = "Verloren";
+    title.style.color = "#e74c3c";
+  }
+  msgBox.innerHTML = msg || "";
+  overlay.style.display = "flex";
+
+  // Rematch click
+  rematchBtn.onclick = () => {
+    overlay.style.display = "none";
+    // PvP-Rematch: Spielfeld und State zurücksetzen
+    if (state.currentMode === "player") {
+      state.currentMode = "player"; // <--- sicherstellen, dass Modus gesetzt ist
+      if (state.countdownInterval) clearInterval(state.countdownInterval);
+      state.gameActive = false;
+      state.opponentFinished = false;
+      state.opponentFinalScore = 0;
+      state.timeLeft = 0;
+      // Reset Boards & UI
+      if (typeof window.player?.resetGame === "function") {
+        window.player.resetGame();
+      }
+      // Reset Opponent Board State & DOM
+      state.opponentBoardCells = [];
+      if (state.el.oppBoard) state.el.oppBoard.innerHTML = "";
+      // Neu aufbauen, damit keine alten Zellen übrig bleiben
+      if (typeof window.ui?.buildBoardDOM === "function") {
+        window.ui.buildBoardDOM();
+      } else if (typeof buildBoardDOM === "function") {
+        buildBoardDOM();
+      }
+      if (state.el.oppScore) state.el.oppScore.textContent = "0";
+      if (state.el.score) state.el.score.textContent = "0";
+    } else if (state.currentMode === "cpu") {
+      // Einzelspieler: CPU-Board komplett leeren
+      state.cpuBoard = Array(10)
+        .fill(0)
+        .map(() => Array(10).fill(0));
+      if (state.opponentBoardCells?.length) {
+        for (let r = 0; r < 10; r++) {
+          for (let c = 0; c < 10; c++) {
+            state.opponentBoardCells[r][c].className = "opponent-cell";
+          }
+        }
+      }
+      if (state.el.oppScore) state.el.oppScore.textContent = "0";
+    }
+    // Rematch-Request an Server
+    if (typeof window.requestRematch === "function") {
+      window.requestRematch();
+    } else if (window.socket && window.socket.emit) {
+      window.socket.emit("requestRematch");
+    }
+  };
+  // Main menu click
+  mainMenuBtn.onclick = () => {
+    overlay.style.display = "none";
+    if (typeof window.goToMainMenu === "function") {
+      window.goToMainMenu();
+    } else if (window.ui && window.ui.showMainMenu) {
+      window.ui.showMainMenu();
+    }
+  };
+}
+
+/* --------------------------------------------------------------------
  *  Public API
  * ------------------------------------------------------------------ */
 export const ui = {
@@ -249,6 +422,10 @@ export const ui = {
   showSettingsMenu,
   showGameArea,
   displayMessage,
+  showCatchupTimer,
+  updateCatchupTimer,
+  hideCatchupTimer,
+  showGameResultOverlay,
 
   /* Reactive Getter/Setter */
   get lang() {

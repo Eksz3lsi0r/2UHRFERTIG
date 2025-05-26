@@ -45,6 +45,19 @@ function resetGame() {
     for (let r = 0; r < 10; r++) {
       for (let c = 0; c < 10; c++) {
         state.boardCells[r][c].className = "cell";
+        // Board-Cell-Inhalt immer leeren (z.B. falls per innerHTML o.ä. befüllt)
+        state.boardCells[r][c].innerHTML = "";
+      }
+    }
+  }
+
+  // State-Board auch im DOM spiegeln (Sicherheit)
+  if (state.playerBoard?.length && state.boardCells?.length) {
+    for (let r = 0; r < 10; r++) {
+      for (let c = 0; c < 10; c++) {
+        if (state.playerBoard[r][c] === 0) {
+          state.boardCells[r][c].className = "cell";
+        }
       }
     }
   }
@@ -368,28 +381,40 @@ function canPlaceSomewhere(sh) {
  *  Game-Over-Erkennung (aufrufen nach jedem Zug)
  * ------------------------------------------------------------------ */
 function checkGameOverCondition() {
+  console.log("checkGameOverCondition aufgerufen");
+
   // CPU-Modus: Spielende wenn beide keine Züge mehr haben oder wenn Spieler CPU nach beendetem KI-Zug überholt
   if (state.currentMode === "cpu") {
+    console.log("CPU-Modus");
+
     // Wenn keine Pieces mehr, neue Pieces generieren (unabhängig von hasMoves)
     if (state.playerPieces.length === 0) {
+      console.log("Keine Player Pieces mehr, generiere neue");
       generatePieces();
       renderPieces();
-      // Nach dem Generieren prüfen, ob jetzt noch Züge möglich sind
-      if (!hasMoves()) {
-        // Keine Züge mehr nach Nachschub → Spielende
-        if (!state.cpuGameActive) {
-          const playerWon = state.playerScore >= state.cpuScore;
-          finishGame(playerWon);
-        }
+    }
+
+    // Nach dem Generieren prüfen, ob jetzt noch Züge möglich sind
+    if (!hasMoves()) {
+      console.log("Keine Züge mehr möglich");
+      // Keine Züge mehr nach Nachschub → Spielende
+      if (!state.cpuGameActive) {
+        console.log("CPU nicht aktiv, Spiel beenden");
+        const playerWon = state.playerScore >= state.cpuScore;
+        finishGame(playerWon);
       }
       return;
     }
+
     if (!state.cpuGameActive) {
+      console.log("CPU nicht aktiv");
       if (state.playerScore > state.cpuScore) {
+        console.log("Player Score höher als CPU Score, Spiel beenden");
         finishGame(true);
         return;
       }
       if (!hasMoves()) {
+        console.log("Keine Züge mehr möglich, Spiel beenden");
         const playerWon = state.playerScore >= state.cpuScore;
         finishGame(playerWon);
       }
@@ -398,18 +423,22 @@ function checkGameOverCondition() {
   }
 
   // PvP: nur Pieces nachfüllen, keine lokale Spielbeendigung (Server steuert Ende)
-  if (state.playerPieces.length === 0) {
-    generatePieces();
-    renderPieces();
-  }
-  // PvP: keine Züge mehr → Spielende an Server melden
-  if (state.currentMode === "player" && !hasMoves()) {
-    import("./network.js").then((mod) => {
-      if (mod.socket && typeof mod.socket.emit === "function") {
-        mod.socket.emit("gameOver", state.playerScore);
-      }
-    });
-    state.gameActive = false;
+  if (state.currentMode === "player") {
+    console.log("PvP-Modus");
+    if (state.playerPieces.length === 0) {
+      console.log("Keine Player Pieces mehr, generiere neue");
+      generatePieces();
+      renderPieces();
+    }
+    if (!hasMoves()) {
+      console.log("Keine Züge mehr möglich, Spielende an Server melden");
+      import("./network.js").then((mod) => {
+        if (mod.socket && typeof mod.socket.emit === "function") {
+          mod.socket.emit("gameOver", state.playerScore);
+        }
+      });
+      state.gameActive = false;
+    }
   }
 }
 
@@ -417,12 +446,14 @@ function checkGameOverCondition() {
  *  Spiel beenden – ruft ui.displayMessage und Game-Over-Buttons
  * ------------------------------------------------------------------ */
 function finishGame(playerWon, msgOverride) {
+  console.log("finishGame aufgerufen", { playerWon, msgOverride });
   state.gameActive = false;
   let msg = msgOverride;
   if (!msg) {
     msg = playerWon ? "Du hast gewonnen!" : "Game Over!";
   }
   ui.displayMessage?.(msg, playerWon ? "win" : "lose");
+  ui.showGameResultOverlay?.({ win: playerWon, msg });
   // PvP: Server über Spielende informieren
   if (state.currentMode === "player" && state.playerId) {
     import("./network.js").then((mod) => {
@@ -431,6 +462,7 @@ function finishGame(playerWon, msgOverride) {
   }
   // CPU: gameOver erst senden, wenn CPU auch fertig
   if (state.currentMode === "cpu") {
+    console.log("CPU-Modus: warte bis CPU fertig");
     // warte bis cpuGameActive false und player keine Züge mehr
     if (!state.cpuGameActive && !hasMoves()) {
       import("./network.js").then(() => {}); // keine Aktion für CPU offline

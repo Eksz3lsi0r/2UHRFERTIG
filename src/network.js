@@ -72,6 +72,21 @@ socket.on("playerInfo", (data) => {
 /* ---- Start des Spiels ---------------------------------------------- */
 socket.on("startGame", (data) => {
   if (state.currentMode !== "player") return;
+  // Reset PvP-Spiel komplett für Rematch/Neustart
+  if (typeof window.player?.resetGame === "function") {
+    window.player.resetGame();
+  }
+  if (state.el.oppScore) state.el.oppScore.textContent = "0";
+  if (state.el.score) state.el.score.textContent = "0";
+  state.opponentFinished = false;
+  state.opponentFinalScore = 0;
+  state.timeLeft = 0;
+  // Nach Reset GridSnap neu initialisieren (wichtig für Touch)
+  import("./drag.js").then(({ GridSnap }) => {
+    if (state.el.board && state.boardCells?.length) {
+      GridSnap.init(state.el.board, state.boardCells);
+    }
+  });
   // Initial board & score sync
   socket.emit("boardUpdate", state.playerBoard);
   socket.emit("scoreUpdate", state.playerScore);
@@ -103,31 +118,27 @@ socket.on("opponentScore", (score) => {
 
 /* ---- Gegner ist fertig --------------------------------------------- */
 socket.on("opponentFinished", (data) => {
-  // Gegner ist fertig: starte 3-Minuten-Catch-up-Timer
   state.opponentFinished = true;
   state.opponentFinalScore = data.score;
   state.timeLeft = 180; // in Sekunden
-  // Zeige Nachricht mit Timer-Platzhalter
-  if (ui.displayMessage) {
-    ui.displayMessage(
-      `${data.playerName || state.opponentName} hat das Spiel mit ${
-        data.score
-      } Punkten beendet. Du hast noch <span id=\"timer\">03:00</span> Minuten und Sekunden Zeit!`,
-      "info"
-    );
-  }
+
+  // Zeige neuen dedizierten Timer im UI für beide Spieler
+  ui.showCatchupTimer({
+    playerName: data.playerName,
+    score: data.score,
+    isFirstFinisher: state.playerId === data.playerId,
+    secondsLeft: state.timeLeft,
+  });
+
   // Countdown starten
   if (state.countdownInterval) clearInterval(state.countdownInterval);
   state.countdownInterval = setInterval(() => {
     state.timeLeft -= 1;
-    const timerEl = document.getElementById("timer");
-    if (timerEl) {
-      const m = String(Math.floor(state.timeLeft / 60)).padStart(2, "0");
-      const s = String(state.timeLeft % 60).padStart(2, "0");
-      timerEl.textContent = `${m}:${s}`;
-    }
+    ui.updateCatchupTimer(state.timeLeft); // Aktualisiere den Timer für beide Spieler
+    console.log("Timer: ", state.timeLeft);
     if (state.timeLeft <= 0) {
       clearInterval(state.countdownInterval);
+      ui.hideCatchupTimer(); // Verstecke den Timer, wenn die Zeit abgelaufen ist
       // Warten auf Server-Ende via gameEnd
     }
   }, 1000);
@@ -137,6 +148,8 @@ socket.on("opponentFinished", (data) => {
 socket.on("gameEnd", (data) => {
   if (state.countdownInterval) clearInterval(state.countdownInterval);
   state.gameActive = false;
+  const catchupTimer = document.getElementById("catchup-timer");
+  if (catchupTimer) catchupTimer.style.display = "none";
   const msg = data.win
     ? LANG[state.currentLanguage].gameWin(
         data.opponentName || state.opponentName,

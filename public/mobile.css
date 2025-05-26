@@ -1,0 +1,83 @@
+/* Countdown-Anzeige für mobile Nutzer oben links, klein und dezent */
+@media (max-width: 600px) {
+  #catchup-timer.mobile-countdown {
+    left: 10px !important;
+    top: 10px !important;
+    right: auto !important;
+    transform: none !important;
+    font-size: 0.85em !important;
+    padding: 6px 12px !important;
+    border-radius: 8px !important;
+    min-width: 0 !important;
+    max-width: 80vw !important;
+    box-shadow: 0 0 8px #00d2a8;
+    background: rgba(15, 12, 41, 0.92);
+    text-align: left;
+  }
+}
+
+#gameResultOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 100;
+  background: rgba(10, 10, 30, 0.92);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+#gameResultBox {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 18px;
+  box-shadow: 0 0 24px #00d2a8;
+  padding: 32px 24px 24px 24px;
+  min-width: 260px;
+  max-width: 90vw;
+  text-align: center;
+}
+
+#gameResultTitle {
+  font-size: 2.2em;
+  margin-bottom: 18px;
+}
+
+#gameResultMsg {
+  font-size: 1.1em;
+  margin-bottom: 24px;
+}
+
+#rematchButton,
+#mainMenuButton {
+  margin: 0 10px 0 0;
+  min-width: 120px;
+  font-size: 1.1em;
+}
+
+#mainMenuButton {
+  margin-right: 0;
+}
+
+@media (max-width: 600px) {
+  #gameResultBox {
+    min-width: 0;
+    padding: 18px 6vw 18px 6vw;
+  }
+
+  #gameResultTitle {
+    font-size: 1.3em;
+  }
+
+  #gameResultMsg {
+    font-size: 0.98em;
+  }
+
+  #rematchButton,
+  #mainMenuButton {
+    font-size: 1em;
+    min-width: 90px;
+  }
+}

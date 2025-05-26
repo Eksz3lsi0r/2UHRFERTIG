@@ -104,6 +104,10 @@ function startCpuMode() {
   state.currentMode = "cpu";
   state.playerName = state.el.playerNameInput.value || "Player";
   state.opponentName = "CPU";
+  // Board DOM komplett neu aufbauen
+  if (typeof window.ui?.buildBoardDOM === "function") {
+    window.ui.buildBoardDOM();
+  }
   ui.showGameArea();
 
   /* Spiel zurücksetzen */
@@ -122,6 +126,10 @@ function startCpuMode() {
 function startPvpMode() {
   state.currentMode = "player";
   state.playerName = state.el.playerNameInput.value || "Player";
+  // Board DOM komplett neu aufbauen
+  if (typeof window.ui?.buildBoardDOM === "function") {
+    window.ui.buildBoardDOM();
+  }
   ui.showGameArea();
 
   player.resetGame();
