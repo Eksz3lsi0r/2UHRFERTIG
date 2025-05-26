@@ -501,7 +501,7 @@ h2 {
 
 /* ───── Modernisiertes Inventar ───── */
 #pieces {
-  margin-top: 20px;
+  margin-top: 0px;
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
@@ -510,7 +510,7 @@ h2 {
   gap: 20px;
   min-height: calc(var(--cell-size) * 2.85);
   width: 100%;
-  padding: 15px;
+  padding: 5px;
   box-sizing: border-box;
   background: rgba(15, 12, 41, 0.5);
   backdrop-filter: blur(5px);
@@ -519,6 +519,84 @@ h2 {
   box-shadow: var(--shadow-sm);
   border: 1px solid rgba(182, 125, 255, 0.1);
   transform: scale(0.9); /* Verkleinert das Inventar um 10% */
+  position: relative;
+  overflow: hidden;
+}
+
+#pieces::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(138, 43, 226, 0.3) 50%,
+    transparent 100%
+  );
+  animation: violet-sweep 3s ease-in-out infinite;
+  z-index: 0;
+}
+
+#pieces::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(182, 125, 255, 0.15) 0%,
+    transparent 40%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 0;
+  pointer-events: none;
+}
+
+#pieces:hover::after {
+  opacity: 1;
+}
+
+@keyframes violet-sweep {
+  0% {
+    left: -100%;
+  }
+  50% {
+    left: 100%;
+  }
+  100% {
+    left: -100%;
+  }
+}
+
+.piece {
+  position: relative;
+  z-index: 1;
+}
+
+.piece:hover .block {
+  animation: violet-shine 0.8s ease-in-out infinite alternate;
+  box-shadow: 0 0 15px rgba(138, 43, 226, 0.8),
+    0 0 30px rgba(182, 125, 255, 0.6), inset 0 0 15px rgba(255, 255, 255, 0.2) !important;
+  filter: brightness(1.3) saturate(1.2);
+  transform: translate3d(0, -6px, 16px) rotateX(12deg) scale(1.05) !important;
+}
+
+@keyframes violet-shine {
+  0% {
+    box-shadow: 0 0 10px rgba(138, 43, 226, 0.6),
+      0 0 20px rgba(182, 125, 255, 0.4), inset 0 0 10px rgba(255, 255, 255, 0.1);
+  }
+  100% {
+    box-shadow: 0 0 25px rgba(138, 43, 226, 1),
+      0 0 40px rgba(182, 125, 255, 0.8), 0 0 60px rgba(138, 43, 226, 0.4),
+      inset 0 0 20px rgba(255, 255, 255, 0.3);
+  }
 }
 
 #pieces::-webkit-scrollbar {
