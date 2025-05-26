@@ -356,48 +356,48 @@ function showGameResultOverlay({ win, msg }) {
   // Rematch click
   rematchBtn.onclick = () => {
     overlay.style.display = "none";
-    // PvP-Rematch: Spielfeld und State zurücksetzen
-    if (state.currentMode === "player") {
-      state.currentMode = "player"; // <--- sicherstellen, dass Modus gesetzt ist
-      if (state.countdownInterval) clearInterval(state.countdownInterval);
-      state.gameActive = false;
-      state.opponentFinished = false;
-      state.opponentFinalScore = 0;
-      state.timeLeft = 0;
-      // Reset Boards & UI
-      if (typeof window.player?.resetGame === "function") {
-        window.player.resetGame();
-      }
-      // Reset Opponent Board State & DOM
-      state.opponentBoardCells = [];
-      if (state.el.oppBoard) state.el.oppBoard.innerHTML = "";
-      // Neu aufbauen, damit keine alten Zellen übrig bleiben
-      if (typeof window.ui?.buildBoardDOM === "function") {
-        window.ui.buildBoardDOM();
-      } else if (typeof buildBoardDOM === "function") {
-        buildBoardDOM();
-      }
-      if (state.el.oppScore) state.el.oppScore.textContent = "0";
-      if (state.el.score) state.el.score.textContent = "0";
-    } else if (state.currentMode === "cpu") {
-      // Einzelspieler: CPU-Board komplett leeren
-      state.cpuBoard = Array(10)
-        .fill(0)
-        .map(() => Array(10).fill(0));
-      if (state.opponentBoardCells?.length) {
-        for (let r = 0; r < 10; r++) {
-          for (let c = 0; c < 10; c++) {
-            state.opponentBoardCells[r][c].className = "opponent-cell";
+    // Rematch = wie Spieler-vs-Spieler-Button: alles zurücksetzen und PvP starten
+    if (typeof window.startPvpMode === "function") {
+      window.startPvpMode();
+    } else {
+      // Fallback: wie bisher
+      if (state.currentMode === "player") {
+        state.currentMode = "player";
+        if (state.countdownInterval) clearInterval(state.countdownInterval);
+        state.gameActive = false;
+        state.opponentFinished = false;
+        state.opponentFinalScore = 0;
+        state.timeLeft = 0;
+        if (typeof window.player?.resetGame === "function") {
+          window.player.resetGame();
+        }
+        state.opponentBoardCells = [];
+        if (state.el.oppBoard) state.el.oppBoard.innerHTML = "";
+        if (typeof window.ui?.buildBoardDOM === "function") {
+          window.ui.buildBoardDOM();
+        } else if (typeof buildBoardDOM === "function") {
+          buildBoardDOM();
+        }
+        if (state.el.oppScore) state.el.oppScore.textContent = "0";
+        if (state.el.score) state.el.score.textContent = "0";
+      } else if (state.currentMode === "cpu") {
+        state.cpuBoard = Array(10)
+          .fill(0)
+          .map(() => Array(10).fill(0));
+        if (state.opponentBoardCells?.length) {
+          for (let r = 0; r < 10; r++) {
+            for (let c = 0; c < 10; c++) {
+              state.opponentBoardCells[r][c].className = "opponent-cell";
+            }
           }
         }
+        if (state.el.oppScore) state.el.oppScore.textContent = "0";
       }
-      if (state.el.oppScore) state.el.oppScore.textContent = "0";
-    }
-    // Rematch-Request an Server
-    if (typeof window.requestRematch === "function") {
-      window.requestRematch();
-    } else if (window.socket && window.socket.emit) {
-      window.socket.emit("requestRematch");
+      if (typeof window.requestRematch === "function") {
+        window.requestRematch();
+      } else if (window.socket && window.socket.emit) {
+        window.socket.emit("requestRematch");
+      }
     }
   };
   // Main menu click

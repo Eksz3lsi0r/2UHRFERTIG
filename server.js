@@ -201,47 +201,67 @@ io.on("connection", async (socket) => {
       finish(room, win);
     }
   });
-
   socket.on("requestRematch", () => {
     const room = socket.gameRoom;
-    if (!room || !games[room] || !games[room].isFinished) return; // Can only request rematch if game is finished
-    const game = games[room];
-    game.rematchRequested[socket.id] = true;
-    const opponentId = game.players.find((id) => id !== socket.id);
+    if (!room || !games[room]) return;
 
-    io.to(opponentId).emit("rematchRequestedByOpponent", {
-      playerName: game.playerNames[socket.id],
-    });
-    console.log(
-      `Spiel ${room}: ${socket.id} (${
-        game.playerNames[socket.id]
-      }) hat Rematch angefordert.`
-    );
+    socket.gameRoom = null; // Clear the game room reference before finding a new game
 
-    if (game.rematchRequested[opponentId]) {
-      console.log(
-        `Spiel ${room}: Beide Spieler wollen Rematch. Starte neues Spiel.`
-      );
-      // Reset game state for rematch
-      const player1Id = game.players[0];
-      const player2Id = game.players[1];
-      const player1Name = game.playerNames[player1Id];
-      const player2Name = game.playerNames[player2Id];
+    // Handle like a new game request, exactly like findGame
+    if (
+      waitingPlayer &&
+      waitingPlayer.connected &&
+      waitingPlayer.id !== socket.id
+    ) {
+      const newRoom = `game-${++gameCount}`;
+      const player1 = waitingPlayer;
+      const player2 = socket;
 
-      initializeGameData(room, player1Id, player2Id, player1Name, player2Name); // Re-initialize game data
+      Promise.all([player1.join(newRoom), player2.join(newRoom)])
+        .then(() => {
+          player1.gameRoom = newRoom;
+          player2.gameRoom = newRoom;
 
-      io.to(room).emit("startGame", {
-        // Use existing startGame event
-        room: room,
-        players: {
-          [player1Id]: { name: player1Name },
-          [player2Id]: { name: player2Name },
-        },
-      });
+          initializeGameData(
+            newRoom,
+            player1.id,
+            player2.id,
+            player1.playerName,
+            player2.playerName
+          );
+
+          io.to(newRoom).emit("startGame", {
+            room: newRoom,
+            players: {
+              [player1.id]: { name: player1.playerName },
+              [player2.id]: { name: player2.playerName },
+            },
+          });
+          io.to(player1.id).emit("playerInfo", {
+            playerId: player1.id,
+            opponentId: player2.id,
+            opponentName: player2.playerName,
+            playerName: player1.playerName,
+          });
+          io.to(player2.id).emit("playerInfo", {
+            playerId: player2.id,
+            opponentId: player1.id,
+            opponentName: player1.playerName,
+            playerName: player2.playerName,
+          });
+
+          console.log(
+            `Neues Spiel ${newRoom} gestartet mit ${player1.id} (${player1.playerName}) und ${player2.id} (${player2.playerName}).`
+          );
+          waitingPlayer = null;
+        })
+        .catch((err) => {
+          console.error("Error joining room:", err);
+        });
     } else {
-      io.to(socket.id).emit("waitingForRematchConfirm", {
-        message: "Warte auf Bestätigung des Gegners für Rematch...",
-      });
+      waitingPlayer = socket;
+      socket.emit("waiting", { message: "Warte auf Gegner..." });
+      console.log(`${socket.id} (${socket.playerName}) wartet.`);
     }
   });
 
