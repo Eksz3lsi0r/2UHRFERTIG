@@ -900,6 +900,7 @@ h2 {
   margin-bottom: 18px;
   margin-top: 0;
   font-size: 1.5em;
+  font-family: "Trade Winds", cursive !important;
   text-shadow: 0 0 8px var(--color-text-shadow),
     0 0 15px var(--color-text-shadow);
   animation: float 3s ease-in-out infinite;

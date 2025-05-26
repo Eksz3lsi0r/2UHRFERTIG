@@ -147,6 +147,8 @@ function showSettingsMenu() {
   const { mainMenu, settings, gameArea } = state.el;
   mainMenu.style.display = "none";
   settings.style.display = "flex";
+  settings.style.flexDirection = "column";
+  settings.style.alignItems = "center";
   gameArea.style.display = "none";
 }
 

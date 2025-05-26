@@ -176,6 +176,7 @@ body {
 
   .menu-glass h1 {
     font-size: 1em !important;
+    font-family: "Trade Winds", cursive !important;
     margin-bottom: 12px !important;
   }
 
@@ -213,7 +214,6 @@ body {
     margin: 20px auto !important;
     width: 94vw !important;
     box-sizing: border-box !important;
-    display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
     gap: 16px !important;
@@ -221,6 +221,7 @@ body {
 
   #settingsMenuContainer h1 {
     font-size: 1em !important;
+    font-family: "Trade Winds", cursive !important;
     margin-bottom: 8px !important;
     margin-top: 0 !important;
   }
@@ -266,6 +267,7 @@ body {
 
   .menu-glass h1 {
     font-size: 0.9em !important;
+    font-family: "Trade Winds", cursive !important;
   }
 
   .menu-input {
@@ -287,6 +289,7 @@ body {
 
   #settingsMenuContainer h1 {
     font-size: 0.9em !important;
+    font-family: "Trade Winds", cursive !important;
   }
 
   #settingsMenuContainer select,
