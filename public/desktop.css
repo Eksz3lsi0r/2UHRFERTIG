@@ -191,8 +191,10 @@ body {
     var(--color-bg-mid),
     var(--color-bg-end)
   );
+  /* subtle irregular wave movement */
   background-size: 400% 400%;
-  animation: bg-pan 20s linear infinite;
+  animation: bg-wave 30s ease-in-out infinite;
+  /* remove any filters to avoid affecting child elements */
 }
 
 /* Korrigiere das Hauptmenü-Design: sorge für einen sichtbaren, animierten Hintergrund wie im Spiel */
@@ -332,6 +334,7 @@ h2 {
   flex-direction: column;
   align-items: center;
   transition: transform var(--transition-slow);
+  position: relative !important;
 }
 
 /* ────────── Verbesserte Score-Anzeige ────────── */
@@ -344,12 +347,21 @@ h2 {
   background: rgba(15, 12, 41, 0.6);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
-  padding: 6px 15px;
+  padding: 6px 12px;
   border-radius: var(--border-radius-md);
   box-shadow: var(--shadow-sm);
-  border: 1px solid rgba(182, 125, 255, 0.15);
+  border: 2px solid var(--color-secondary);
   text-shadow: 0 0 5px rgba(138, 43, 226, 0.5);
   transition: all 0.3s ease;
+  position: absolute !important;
+  top: 0 !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%) !important;
+  z-index: 10 !important;
 }
 
 /* Animation für die Score-Anzeige wenn der Spieler dabei ist, die CPU einzuholen */
@@ -761,6 +773,27 @@ h2 {
   }
   50% {
     transform: translateY(-5px);
+  }
+}
+
+@keyframes bg-wave {
+  0% {
+    background-position: 0% 50%;
+  }
+  20% {
+    background-position: 25% 10%;
+  }
+  40% {
+    background-position: 50% 70%;
+  }
+  60% {
+    background-position: 75% 30%;
+  }
+  80% {
+    background-position: 20% 80%;
+  }
+  100% {
+    background-position: 0% 50%;
   }
 }
 
@@ -1371,4 +1404,89 @@ body {
   #chat-form {
     padding: 8px 8px 10px 8px;
   }
+}
+
+/* Custom font for player and opponent names */
+#playerArea h2,
+#opponentArea h2 {
+  font-family: "Trade Winds", cursive !important;
+  font-size: 2em !important;
+  letter-spacing: normal !important;
+}
+
+@media (max-width: 600px) {
+  /* Mobile adjustment */
+  #playerArea h2,
+  #opponentArea h2 {
+    font-family: "Trade Winds", cursive !important;
+    font-size: 1.3em !important;
+  }
+}
+
+/* ScoreDisplay: attach top-center, trapezoid shape, star icon */
+#playerArea,
+#opponentArea {
+  position: relative !important;
+}
+#playerArea .scoreDisplay,
+#opponentArea .scoreDisplay {
+  position: absolute !important;
+  top: 0 !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 6px 12px !important;
+  background: rgba(15, 12, 41, 0.85) !important;
+  color: var(--color-text) !important;
+  clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%) !important;
+  z-index: 10 !important;
+  /* hide original label text */
+}
+#playerArea .scoreDisplay {
+  border: 2px solid rgba(15, 12, 41, 0.85) !important;
+}
+#opponentArea .scoreDisplay {
+  border: 2px solid rgba(15, 12, 41, 0.85) !important;
+}
+#playerArea .scoreDisplay span[data-lang-key="scoreLabel"],
+#opponentArea .scoreDisplay span[data-lang-key="scoreLabel"] {
+  display: none !important;
+}
+#playerArea .scoreDisplay::before,
+#opponentArea .scoreDisplay::before {
+  content: "⭐" !important;
+  margin-right: 4px !important;
+}
+
+/* Override: ScoreDisplay under h2, attach to board, wider & less tall trapezoid */
+#playerArea .scoreDisplay,
+#opponentArea .scoreDisplay {
+  position: static !important;
+  transform: none !important;
+  margin: 6px auto -4px !important;
+  padding: 4px 24px !important;
+  width: 140% !important;
+  clip-path: polygon(12% 0%, 88% 0%, 100% 100%, 0% 100%) !important;
+}
+#playerArea #board,
+#opponentArea #opponentBoard {
+  margin-top: 0 !important;
+}
+#playerArea .scoreDisplay,
+#opponentArea .scoreDisplay {
+  width: auto !important;
+  max-width: 60% !important;
+  padding: 2px 40px !important;
+  margin: -4px auto -4px !important;
+  clip-path: polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%) !important;
+}
+
+#opponentArea .scoreDisplay {
+  padding: 2px 26px !important;
+  width: auto !important;
+  max-width: 50% !important;
+  margin: -8px auto -2px !important;
+  clip-path: polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%) !important;
 }
