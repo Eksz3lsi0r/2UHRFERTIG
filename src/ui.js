@@ -356,9 +356,17 @@ function showGameResultOverlay({ win, msg }) {
   // Rematch click
   rematchBtn.onclick = () => {
     overlay.style.display = "none";
-    // Rematch = wie Spieler-vs-Spieler-Button: alles zurücksetzen und PvP starten
-    if (typeof window.startPvpMode === "function") {
+    // Rematch = wie die jeweiligen Hauptmenü-Buttons
+    if (
+      state.currentMode === "player" &&
+      typeof window.startPvpMode === "function"
+    ) {
       window.startPvpMode();
+    } else if (
+      state.currentMode === "cpu" &&
+      typeof window.startCpuMode === "function"
+    ) {
+      window.startCpuMode();
     } else {
       // Fallback: wie bisher
       if (state.currentMode === "player") {

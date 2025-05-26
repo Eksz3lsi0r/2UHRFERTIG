@@ -397,6 +397,17 @@ function checkGameOverCondition() {
     // Nach dem Generieren prüfen, ob jetzt noch Züge möglich sind
     if (!hasMoves()) {
       console.log("Keine Züge mehr möglich");
+      // Neue Game-Over-Bedingung: Spieler hat keine Züge mehr, CPU ist noch aktiv und hat mehr Punkte
+      if (state.cpuGameActive && state.cpuScore > state.playerScore) {
+        finishGame(
+          false,
+          LANG[state.currentLanguage]?.cpuWins(
+            state.playerScore,
+            state.cpuScore
+          ) || "Game Over!"
+        );
+        return;
+      }
       // Keine Züge mehr nach Nachschub → Spielende
       if (!state.cpuGameActive) {
         console.log("CPU nicht aktiv, Spiel beenden");

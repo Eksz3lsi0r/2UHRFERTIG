@@ -16,6 +16,7 @@ window.state = state;
 window.player = player;
 window.ui = ui;
 window.cpu = cpu;
+window.startCpuMode = startCpuMode;
 window.startPvpMode = startPvpMode;
 
 /* --------------------------------------------------------------------
@@ -105,6 +106,30 @@ function startCpuMode() {
   state.currentMode = "cpu";
   state.playerName = state.el.playerNameInput.value || "Player";
   state.opponentName = "CPU";
+
+  // Spieler-Board und Inventar komplett leeren (auch für Rematch)
+  state.playerBoard = Array(10)
+    .fill(0)
+    .map(() => Array(10).fill(0));
+  state.playerPieces = [];
+  if (state.boardCells?.length) {
+    for (let r = 0; r < 10; r++) {
+      for (let c = 0; c < 10; c++) {
+        state.boardCells[r][c].className = "cell";
+        state.boardCells[r][c].innerHTML = "";
+        state.boardCells[r][c].style.background = "";
+        state.boardCells[r][c].classList.remove(
+          "filled",
+          "rainbow",
+          "preview-valid-cell",
+          "preview-invalid-cell",
+          "row-flash"
+        );
+      }
+    }
+  }
+  if (state.el.pieces) state.el.pieces.innerHTML = "";
+
   // Board DOM komplett neu aufbauen
   if (typeof window.ui?.buildBoardDOM === "function") {
     window.ui.buildBoardDOM();
