@@ -1,0 +1,27 @@
+/* Notfall-Fix für das Gegner-Board auf mobilen Geräten */
+@media (max-width: 600px) {
+  #opponentArea {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    position: fixed !important;
+    top: 10px !important;
+    right: 10px !important;
+    z-index: 1000 !important; /* Überschreibt alles andere */
+    max-height: 35vh !important; /* Begrenzt die Höhe */
+    transform-origin: top right !important;
+  }
+
+  /* Aktiverer Hover-Effekt auf Touch-Geräten */
+  #opponentArea:active {
+    transform: scale(1.1) !important;
+  }
+
+  /* Sicherstellen, dass der Pieces-Bereich korrekt angezeigt wird */
+  #pieces {
+    margin-top: 10px !important;
+    margin-bottom: 10px !important;
+    z-index: 1 !important;
+    width: 95% !important;
+  }
+}
