@@ -57,32 +57,66 @@
   width: 100%;
   margin-top: 0;
   margin-bottom: 0;
-  padding: 13px 0;
+  padding: 15px 0;
   font-size: 1.08em;
   font-family: inherit;
   border-radius: var(--border-radius-md);
-  border: none;
+  border: 2px solid rgba(138, 43, 226, 0.3);
   background: linear-gradient(
-    90deg,
-    var(--color-primary) 60%,
+    135deg,
+    var(--color-primary) 0%,
     var(--color-secondary) 100%
   );
   color: #ffffff;
-  box-shadow: var(--shadow-md), 0 0 10px rgba(138, 43, 226, 0.13);
+  box-shadow: var(--shadow-md), 0 0 15px rgba(138, 43, 226, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
   cursor: pointer;
   font-weight: 600;
   letter-spacing: 0.5px;
-  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
+
+.main-menu-btn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.6s ease;
+}
+
+.main-menu-btn:hover::before {
+  left: 100%;
+}
+
 .main-menu-btn:hover,
 .main-menu-btn:focus {
   background: linear-gradient(
-    90deg,
-    var(--color-secondary) 40%,
+    135deg,
+    var(--color-secondary) 0%,
     var(--color-primary) 100%
   );
-  transform: scale(1.04);
-  box-shadow: var(--shadow-lg), 0 0 18px rgba(0, 210, 168, 0.18);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: var(--shadow-lg), 0 0 25px rgba(0, 210, 168, 0.4),
+    0 8px 16px rgba(138, 43, 226, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  border-color: rgba(0, 210, 168, 0.6);
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+}
+
+.main-menu-btn:active {
+  transform: translateY(-1px) scale(0.98);
+  box-shadow: var(--shadow-sm), 0 0 15px rgba(138, 43, 226, 0.3),
+    0 4px 8px rgba(138, 43, 226, 0.2);
 }
 
 /* Hauptmenü-Hintergrund wie das Spiel */
@@ -742,6 +776,57 @@
   padding: 13px 16px !important;
 }
 
+/* ───── Leaderboard Button Special Styling ───── */
+#leaderboardButton {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 215, 0, 0.25) 0%,
+    rgba(138, 43, 226, 0.8) 50%,
+    rgba(255, 215, 0, 0.25) 100%
+  ) !important;
+  border: 2px solid rgba(255, 215, 0, 0.4) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+#leaderboardButton::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent,
+    rgba(255, 215, 0, 0.1),
+    transparent
+  );
+  animation: leaderboard-shine 3s infinite linear;
+  pointer-events: none;
+}
+
+@keyframes leaderboard-shine {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+#leaderboardButton:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 215, 0, 0.4) 0%,
+    rgba(138, 43, 226, 0.9) 50%,
+    rgba(255, 215, 0, 0.4) 100%
+  ) !important;
+  border-color: rgba(255, 215, 0, 0.8) !important;
+  box-shadow: var(--shadow-lg), 0 0 30px rgba(255, 215, 0, 0.5),
+    0 8px 16px rgba(138, 43, 226, 0.4) !important;
+}
+
 .leaderboard-text {
   flex: 1;
   text-align: left;
@@ -753,17 +838,36 @@
   gap: 6px;
   font-size: 0.9em;
   color: #ffd700;
-  text-shadow: 0 0 6px rgba(255, 215, 0, 0.6);
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.8);
+  transition: all 0.3s ease;
+}
+
+#leaderboardButton:hover .player-ranking {
+  transform: scale(1.1);
+  text-shadow: 0 0 12px rgba(255, 215, 0, 1);
 }
 
 .crown-icon {
   font-size: 1.1em;
-  filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.8));
+  filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.8));
+  transition: all 0.3s ease;
+}
+
+#leaderboardButton:hover .crown-icon {
+  animation: crown-pulse 1s infinite ease-in-out;
+  filter: drop-shadow(0 0 10px rgba(255, 215, 0, 1));
 }
 
 /* ───── PvP Mode Selection ───── */
 #pvpModeContainer {
   max-width: 420px;
+}
+
+/* Enhanced PvP Button Base Styling */
+.difficulty-options .difficulty-btn {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 #normalPvPButton {
@@ -773,6 +877,28 @@
     rgba(138, 43, 226, 0.25),
     rgba(30, 25, 50, 0.8)
   ) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+#normalPvPButton::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(138, 43, 226, 0.2),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+#normalPvPButton:hover::before {
+  left: 100%;
 }
 
 #normalPvPButton:hover {
@@ -783,6 +909,47 @@
     rgba(30, 25, 50, 0.95)
   ) !important;
   box-shadow: var(--shadow-lg), 0 0 25px rgba(138, 43, 226, 0.6) !important;
+  transform: translateY(-5px) scale(1.02);
+}
+
+#normalPvPButton .difficulty-icon {
+  color: #8a2be2 !important;
+  animation: sword-pulse 2s infinite ease-in-out;
+  transition: all 0.3s ease;
+}
+
+@keyframes sword-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 8px rgba(138, 43, 226, 0.6));
+  }
+  50% {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 15px rgba(138, 43, 226, 0.9));
+  }
+}
+
+#normalPvPButton:hover .difficulty-icon {
+  color: #a96cff !important;
+  animation: sword-battle 0.6s infinite;
+  transform: scale(1.2);
+}
+
+@keyframes sword-battle {
+  0%,
+  100% {
+    transform: scale(1.2) rotate(0deg);
+    filter: drop-shadow(0 0 15px rgba(138, 43, 226, 1));
+  }
+  25% {
+    transform: scale(1.3) rotate(-10deg);
+    filter: drop-shadow(0 0 20px rgba(168, 108, 255, 1));
+  }
+  75% {
+    transform: scale(1.3) rotate(10deg);
+    filter: drop-shadow(0 0 20px rgba(138, 43, 226, 1));
+  }
 }
 
 #rankedPvPButton {
@@ -792,6 +959,28 @@
     rgba(255, 215, 0, 0.25),
     rgba(30, 25, 50, 0.8)
   ) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+#rankedPvPButton::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 215, 0, 0.2),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+#rankedPvPButton:hover::before {
+  left: 100%;
 }
 
 #rankedPvPButton:hover {
@@ -802,6 +991,47 @@
     rgba(30, 25, 50, 0.95)
   ) !important;
   box-shadow: var(--shadow-lg), 0 0 30px rgba(255, 215, 0, 0.7) !important;
+  transform: translateY(-5px) scale(1.02);
+}
+
+#rankedPvPButton .difficulty-icon {
+  color: #ffd700 !important;
+  animation: crown-glow 2s infinite ease-in-out;
+  transition: all 0.3s ease;
+}
+
+@keyframes crown-glow {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.8));
+  }
+  50% {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 15px rgba(255, 215, 0, 1));
+  }
+}
+
+#rankedPvPButton:hover .difficulty-icon {
+  color: #ffeb3b !important;
+  animation: crown-majesty 0.8s infinite;
+  transform: scale(1.2);
+}
+
+@keyframes crown-majesty {
+  0%,
+  100% {
+    transform: scale(1.2) translateY(0);
+    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 1)) brightness(1.3);
+  }
+  25% {
+    transform: scale(1.3) translateY(-3px);
+    filter: drop-shadow(0 0 25px rgba(255, 235, 59, 1)) brightness(1.5);
+  }
+  75% {
+    transform: scale(1.3) translateY(-1px);
+    filter: drop-shadow(0 0 25px rgba(255, 215, 0, 1)) brightness(1.4);
+  }
 }
 
 /* Disabled state for ranked PvP button (for guests) */
@@ -1109,3 +1339,1097 @@
   overflow: hidden !important;
   box-sizing: border-box !important;
 }
+
+/* ───── Enhanced Settings Menu Styling ───── */
+
+/* Enhanced Select Dropdowns */
+#languageSelect,
+#graphicsQualitySelect {
+  width: 100% !important;
+  padding: 12px 16px !important;
+  border-radius: 12px !important;
+  border: 2px solid rgba(138, 43, 226, 0.4) !important;
+  background: linear-gradient(
+    135deg,
+    rgba(30, 25, 50, 0.9),
+    rgba(45, 35, 70, 0.8)
+  ) !important;
+  color: #ffffff !important;
+  font-size: 1em !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+#languageSelect::before,
+#graphicsQualitySelect::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(138, 43, 226, 0.15),
+    transparent
+  );
+  transition: left 0.5s ease;
+  pointer-events: none;
+}
+
+#languageSelect:hover,
+#graphicsQualitySelect:hover {
+  border-color: rgba(138, 43, 226, 0.7) !important;
+  background: linear-gradient(
+    135deg,
+    rgba(138, 43, 226, 0.2),
+    rgba(45, 35, 70, 0.9)
+  ) !important;
+  transform: translateY(-2px) scale(1.01) !important;
+  box-shadow: 0 6px 16px rgba(138, 43, 226, 0.3),
+    0 0 20px rgba(138, 43, 226, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+#languageSelect:hover::before,
+#graphicsQualitySelect:hover::before {
+  left: 100%;
+}
+
+#languageSelect:focus,
+#graphicsQualitySelect:focus {
+  border-color: rgba(0, 210, 168, 0.6) !important;
+  box-shadow: 0 0 20px rgba(0, 210, 168, 0.4), 0 4px 8px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  outline: none !important;
+}
+
+/* Enhanced Settings Menu Buttons */
+#saveSettingsButton {
+  background: linear-gradient(
+    135deg,
+    rgba(0, 210, 168, 0.8),
+    rgba(0, 180, 140, 0.9)
+  ) !important;
+  border: 2px solid rgba(0, 210, 168, 0.6) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  font-size: 1.05em !important;
+  padding: 14px 24px !important;
+  border-radius: 12px !important;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+  position: relative !important;
+  overflow: hidden !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+  box-shadow: 0 4px 12px rgba(0, 210, 168, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+#saveSettingsButton::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.6s ease;
+}
+
+#saveSettingsButton:hover::before {
+  left: 100%;
+}
+
+#saveSettingsButton:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(0, 230, 185, 0.9),
+    rgba(0, 200, 160, 1)
+  ) !important;
+  border-color: rgba(0, 230, 185, 0.8) !important;
+  transform: translateY(-3px) scale(1.02) !important;
+  box-shadow: 0 8px 20px rgba(0, 210, 168, 0.5), 0 0 30px rgba(0, 210, 168, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.6) !important;
+}
+
+#saveSettingsButton:active {
+  transform: translateY(-1px) scale(0.98) !important;
+  box-shadow: 0 4px 8px rgba(0, 210, 168, 0.3) !important;
+}
+
+#backToMainMenuButton {
+  background: linear-gradient(
+    135deg,
+    rgba(108, 117, 125, 0.8),
+    rgba(52, 58, 64, 0.9)
+  ) !important;
+  border: 2px solid rgba(108, 117, 125, 0.6) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  font-size: 1em !important;
+  padding: 12px 24px !important;
+  border-radius: 12px !important;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+  position: relative !important;
+  overflow: hidden !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+#backToMainMenuButton::before {
+  content: "←";
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-right: 8px;
+  font-size: 1.2em;
+  transition: all 0.3s ease;
+}
+
+#backToMainMenuButton:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(138, 43, 226, 0.9),
+    rgba(75, 0, 130, 0.9)
+  ) !important;
+  border-color: rgba(138, 43, 226, 0.8) !important;
+  transform: translateY(-2px) scale(1.02) !important;
+  box-shadow: 0 6px 16px rgba(138, 43, 226, 0.3),
+    0 0 20px rgba(138, 43, 226, 0.2) !important;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.8) !important;
+}
+
+#backToMainMenuButton:hover::before {
+  transform: translateY(-50%) translateX(-3px);
+  text-shadow: 0 0 8px rgba(255, 255, 255, 1);
+}
+
+#backToMainMenuButton:active {
+  transform: translateY(0) scale(0.98) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* ───── Enhanced Game Result Overlay Buttons ───── */
+
+/* Enhanced Rematch Button */
+#rematchButton {
+  background: linear-gradient(
+    135deg,
+    rgba(138, 43, 226, 0.8),
+    rgba(169, 108, 255, 0.9)
+  ) !important;
+  border: 2px solid rgba(138, 43, 226, 0.6) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  font-size: 1.1em !important;
+  padding: 14px 24px !important;
+  border-radius: 12px !important;
+  min-width: 140px !important;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+  position: relative !important;
+  overflow: hidden !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+  box-shadow: 0 4px 12px rgba(138, 43, 226, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+#rematchButton::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.6s ease;
+}
+
+#rematchButton:hover::before {
+  left: 100%;
+}
+
+#rematchButton::after {
+  content: "⚔️";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.1em;
+  transition: all 0.3s ease;
+}
+
+#rematchButton:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(169, 108, 255, 0.9),
+    rgba(187, 127, 255, 1)
+  ) !important;
+  border-color: rgba(169, 108, 255, 0.8) !important;
+  transform: translateY(-3px) scale(1.02) !important;
+  box-shadow: 0 8px 20px rgba(138, 43, 226, 0.6),
+    0 0 30px rgba(138, 43, 226, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.6) !important;
+}
+
+#rematchButton:hover::after {
+  transform: translateY(-50%) scale(1.2);
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.8));
+}
+
+#rematchButton:active {
+  transform: translateY(-1px) scale(0.98) !important;
+  box-shadow: 0 4px 8px rgba(138, 43, 226, 0.4) !important;
+}
+
+/* Enhanced Main Menu Button (Game Results) */
+#mainMenuButton {
+  background: linear-gradient(
+    135deg,
+    rgba(108, 117, 125, 0.8),
+    rgba(52, 58, 64, 0.9)
+  ) !important;
+  border: 2px solid rgba(108, 117, 125, 0.6) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  font-size: 1.1em !important;
+  padding: 14px 24px !important;
+  border-radius: 12px !important;
+  min-width: 140px !important;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+  position: relative !important;
+  overflow: hidden !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+#mainMenuButton::before {
+  content: "🏠";
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.1em;
+  transition: all 0.3s ease;
+}
+
+#mainMenuButton:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(138, 43, 226, 0.9),
+    rgba(75, 0, 130, 0.9)
+  ) !important;
+  border-color: rgba(138, 43, 226, 0.8) !important;
+  transform: translateY(-2px) scale(1.02) !important;
+  box-shadow: 0 6px 16px rgba(138, 43, 226, 0.3),
+    0 0 20px rgba(138, 43, 226, 0.2) !important;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.8) !important;
+}
+
+#mainMenuButton:hover::before {
+  transform: translateY(-50%) scale(1.2);
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.8));
+}
+
+#mainMenuButton:active {
+  transform: translateY(0) scale(0.98) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* ───── Enhanced Ranked Game Result Buttons ───── */
+
+/* Enhanced Ranked Rematch Button */
+#rankedRematchButton {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 215, 0, 0.3),
+    rgba(138, 43, 226, 0.8)
+  ) !important;
+  border: 2px solid rgba(255, 215, 0, 0.6) !important;
+  color: #ffd700 !important;
+  font-weight: 700 !important;
+  font-size: 1.1em !important;
+  padding: 14px 24px !important;
+  border-radius: 12px !important;
+  min-width: 150px !important;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+  position: relative !important;
+  overflow: hidden !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+#rankedRematchButton::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 215, 0, 0.2),
+    transparent
+  );
+  transition: left 0.6s ease;
+}
+
+#rankedRematchButton:hover::before {
+  left: 100%;
+}
+
+#rankedRematchButton::after {
+  content: "👑";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.2em;
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.8));
+}
+
+#rankedRematchButton:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 215, 0, 0.5),
+    rgba(169, 108, 255, 0.9)
+  ) !important;
+  border-color: rgba(255, 215, 0, 0.9) !important;
+  transform: translateY(-3px) scale(1.02) !important;
+  box-shadow: 0 8px 20px rgba(255, 215, 0, 0.5), 0 0 30px rgba(255, 215, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.8) !important;
+}
+
+#rankedRematchButton:hover::after {
+  transform: translateY(-50%) scale(1.3);
+  filter: drop-shadow(0 0 12px rgba(255, 215, 0, 1));
+  animation: crown-pulse 1s infinite ease-in-out;
+}
+
+#rankedRematchButton:active {
+  transform: translateY(-1px) scale(0.98) !important;
+  box-shadow: 0 4px 8px rgba(255, 215, 0, 0.4) !important;
+}
+
+/* Enhanced Ranked Main Menu Button */
+#rankedMainMenuButton {
+  background: linear-gradient(
+    135deg,
+    rgba(85, 85, 85, 0.8),
+    rgba(119, 119, 119, 0.9)
+  ) !important;
+  border: 2px solid rgba(119, 119, 119, 0.6) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  font-size: 1.1em !important;
+  padding: 14px 24px !important;
+  border-radius: 12px !important;
+  min-width: 150px !important;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+  position: relative !important;
+  overflow: hidden !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+#rankedMainMenuButton::before {
+  content: "🏠";
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.1em;
+  transition: all 0.3s ease;
+}
+
+#rankedMainMenuButton:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(119, 119, 119, 0.9),
+    rgba(153, 153, 153, 1)
+  ) !important;
+  border-color: rgba(153, 153, 153, 0.8) !important;
+  transform: translateY(-2px) scale(1.02) !important;
+  box-shadow: 0 6px 16px rgba(85, 85, 85, 0.4), 0 0 20px rgba(85, 85, 85, 0.2) !important;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.6) !important;
+}
+
+#rankedMainMenuButton:hover::before {
+  transform: translateY(-50%) scale(1.2);
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.6));
+}
+
+#rankedMainMenuButton:active {
+  transform: translateY(0) scale(0.98) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* ───── Consistent Back Button Styling ───── */
+
+/* Enhanced styling for all back buttons to maintain consistency */
+.menu-button[id*="back"],
+.menu-button[id*="Back"] {
+  background: linear-gradient(
+    135deg,
+    rgba(108, 117, 125, 0.8),
+    rgba(52, 58, 64, 0.9)
+  ) !important;
+  border: 2px solid rgba(108, 117, 125, 0.6) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+  position: relative !important;
+  overflow: hidden !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+.menu-button[id*="back"]:hover,
+.menu-button[id*="Back"]:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(138, 43, 226, 0.9),
+    rgba(75, 0, 130, 0.9)
+  ) !important;
+  border-color: rgba(138, 43, 226, 0.8) !important;
+  transform: translateY(-2px) scale(1.02) !important;
+  box-shadow: 0 6px 16px rgba(138, 43, 226, 0.3),
+    0 0 20px rgba(138, 43, 226, 0.2) !important;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.8) !important;
+}
+
+.menu-button[id*="back"]:active,
+.menu-button[id*="Back"]:active {
+  transform: translateY(0) scale(0.98) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* ───── Enhanced Start/Register Menu Buttons ───── */
+
+/* Login and Register buttons enhancement */
+#loginButton,
+#registerButton,
+#registerConfirmButton,
+#guestButton {
+  background: linear-gradient(
+    135deg,
+    rgba(138, 43, 226, 0.8),
+    rgba(0, 210, 168, 0.8)
+  ) !important;
+  border: 2px solid rgba(138, 43, 226, 0.5) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  font-size: 1em !important;
+  padding: 12px 16px !important;
+  border-radius: 10px !important;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+  position: relative !important;
+  overflow: hidden !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+  box-shadow: 0 4px 8px rgba(138, 43, 226, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+#loginButton::before,
+#registerButton::before,
+#registerConfirmButton::before,
+#guestButton::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.15),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+#loginButton:hover::before,
+#registerButton:hover::before,
+#registerConfirmButton:hover::before,
+#guestButton:hover::before {
+  left: 100%;
+}
+
+#loginButton:hover,
+#registerButton:hover,
+#registerConfirmButton:hover,
+#guestButton:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(169, 108, 255, 0.9),
+    rgba(0, 230, 185, 0.9)
+  ) !important;
+  border-color: rgba(169, 108, 255, 0.7) !important;
+  transform: translateY(-2px) scale(1.02) !important;
+  box-shadow: 0 6px 16px rgba(138, 43, 226, 0.4),
+    0 0 20px rgba(0, 210, 168, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.6) !important;
+}
+
+#loginButton:active,
+#registerButton:active,
+#registerConfirmButton:active,
+#guestButton:active {
+  transform: translateY(-1px) scale(0.98) !important;
+  box-shadow: 0 3px 6px rgba(138, 43, 226, 0.3) !important;
+}
+
+/* Special styling for guest button */
+#guestButton {
+  background: linear-gradient(
+    135deg,
+    rgba(108, 117, 125, 0.7),
+    rgba(52, 58, 64, 0.8)
+  ) !important;
+  border-color: rgba(108, 117, 125, 0.5) !important;
+}
+
+#guestButton:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(138, 43, 226, 0.8),
+    rgba(108, 117, 125, 0.9)
+  ) !important;
+  border-color: rgba(138, 43, 226, 0.6) !important;
+}
+
+/* ───── Animation Keyframes for Enhanced Effects ───── */
+
+@keyframes settings-glow {
+  0%,
+  100% {
+    box-shadow: 0 4px 8px rgba(0, 210, 168, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+  50% {
+    box-shadow: 0 6px 16px rgba(0, 210, 168, 0.5),
+      0 0 20px rgba(0, 210, 168, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+}
+
+@keyframes result-button-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* ───── FINAL ENHANCEMENTS: Mobile Responsiveness & Accessibility ───── */
+
+/* ═══════════════════════════════════════════════════════════════════════════════════
+   MOBILE RESPONSIVENESS FOR ENHANCED BUTTON ANIMATIONS
+   ═══════════════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  /* Optimize main menu button animations for mobile */
+  .main-menu-btn {
+    transition: all 0.2s ease !important; /* Faster transitions for mobile */
+  }
+
+  .main-menu-btn:hover {
+    transform: translateY(-1px) scale(1.01) !important; /* Reduced hover effects */
+  }
+
+  /* Optimize shimmer effects for mobile performance */
+  .main-menu-btn::before,
+  .difficulty-btn::before,
+  #saveSettingsButton::before,
+  #rematchButton::before,
+  #rankedRematchButton::before {
+    animation-duration: 0.8s !important; /* Faster shimmer for mobile */
+  }
+
+  /* Reduce box-shadow complexity for mobile performance */
+  .main-menu-btn:hover,
+  .difficulty-btn:hover,
+  #saveSettingsButton:hover,
+  #rematchButton:hover,
+  #rankedRematchButton:hover {
+    box-shadow: 0 4px 12px rgba(138, 43, 226, 0.3) !important;
+  }
+
+  /* Optimize leaderboard button for mobile */
+  #leaderboardButton::after {
+    animation-duration: 4s !important; /* Slower rotation for mobile battery life */
+  }
+
+  /* Simplify PvP button animations on mobile */
+  #normalPvPButton .difficulty-icon,
+  #rankedPvPButton .difficulty-icon {
+    animation-duration: 3s !important; /* Slower animations for mobile */
+  }
+
+  #normalPvPButton:hover .difficulty-icon,
+  #rankedPvPButton:hover .difficulty-icon {
+    animation: none !important; /* Disable complex hover animations on mobile */
+    transform: scale(1.1) !important; /* Simple scale instead */
+  }
+}
+
+@media (max-width: 480px) {
+  /* Further optimizations for small mobile screens */
+  .main-menu-btn,
+  .difficulty-btn,
+  .menu-button {
+    transition: all 0.15s ease !important; /* Even faster for small screens */
+  }
+
+  /* Disable shimmer effects on very small screens to save battery */
+  .main-menu-btn::before,
+  .difficulty-btn::before,
+  #saveSettingsButton::before,
+  #rematchButton::before,
+  #rankedRematchButton::before,
+  #leaderboardButton::after {
+    display: none !important;
+  }
+
+  /* Simplify hover effects for touch devices */
+  .main-menu-btn:hover,
+  .difficulty-btn:hover {
+    transform: scale(1.02) !important;
+    transition: transform 0.1s ease !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════════
+   ACCESSIBILITY: REDUCED MOTION PREFERENCES
+   ═══════════════════════════════════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  /* Disable all animations for users who prefer reduced motion */
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+  }
+
+  /* Keep essential transforms but remove complex animations */
+  .main-menu-btn:hover,
+  .difficulty-btn:hover,
+  .menu-button:hover {
+    transform: none !important;
+    animation: none !important;
+  }
+
+  /* Remove shimmer effects for reduced motion */
+  .main-menu-btn::before,
+  .difficulty-btn::before,
+  #saveSettingsButton::before,
+  #rematchButton::before,
+  #rankedRematchButton::before,
+  #leaderboardButton::after {
+    display: none !important;
+  }
+
+  /* Keep color changes but remove movement */
+  .main-menu-btn:hover,
+  .difficulty-btn:hover {
+    background: linear-gradient(
+      135deg,
+      var(--color-secondary) 0%,
+      var(--color-primary) 100%
+    ) !important;
+    border-color: rgba(0, 210, 168, 0.6) !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════════
+   ACCESSIBILITY: ENHANCED FOCUS STATES
+   ═══════════════════════════════════════════════════════════════════════════════════ */
+
+/* Enhanced focus states for keyboard navigation */
+.main-menu-btn:focus,
+.difficulty-btn:focus,
+.menu-button:focus {
+  outline: 3px solid rgba(0, 210, 168, 0.6) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 4px rgba(0, 210, 168, 0.2) !important;
+}
+
+#leaderboardButton:focus {
+  outline: 3px solid rgba(255, 215, 0, 0.8) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 4px rgba(255, 215, 0, 0.2) !important;
+}
+
+#normalPvPButton:focus {
+  outline: 3px solid rgba(138, 43, 226, 0.8) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 4px rgba(138, 43, 226, 0.2) !important;
+}
+
+#rankedPvPButton:focus {
+  outline: 3px solid rgba(255, 215, 0, 0.8) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 4px rgba(255, 215, 0, 0.2) !important;
+}
+
+#saveSettingsButton:focus {
+  outline: 3px solid rgba(0, 210, 168, 0.8) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 4px rgba(0, 210, 168, 0.2) !important;
+}
+
+#rematchButton:focus,
+#rankedRematchButton:focus {
+  outline: 3px solid rgba(138, 43, 226, 0.8) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 4px rgba(138, 43, 226, 0.2) !important;
+}
+
+/* Focus states for back buttons */
+.menu-button[id*="back"]:focus,
+.menu-button[id*="Back"]:focus,
+#mainMenuButton:focus,
+#rankedMainMenuButton:focus {
+  outline: 3px solid rgba(108, 117, 125, 0.8) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 4px rgba(108, 117, 125, 0.2) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════════
+   PERFORMANCE OPTIMIZATIONS
+   ═══════════════════════════════════════════════════════════════════════════════════ */
+
+/* GPU acceleration for smooth animations */
+.main-menu-btn,
+.difficulty-btn,
+.menu-button,
+#leaderboardButton,
+#normalPvPButton,
+#rankedPvPButton,
+#saveSettingsButton,
+#rematchButton,
+#rankedRematchButton {
+  transform: translateZ(0); /* Force GPU acceleration */
+  backface-visibility: hidden; /* Optimize for animations */
+  perspective: 1000px; /* Enable 3D context */
+}
+
+/* Optimize pseudo-elements for better performance */
+.main-menu-btn::before,
+.difficulty-btn::before,
+#saveSettingsButton::before,
+#rematchButton::before,
+#rankedRematchButton::before {
+  will-change: transform; /* Hint browser for optimization */
+  transform: translateZ(0); /* GPU acceleration */
+}
+
+#leaderboardButton::after {
+  will-change: transform; /* Optimize rotating animation */
+  transform: translateZ(0); /* GPU acceleration */
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════════
+   CROSS-BROWSER COMPATIBILITY
+   ═══════════════════════════════════════════════════════════════════════════════════ */
+
+/* Webkit-specific optimizations for Safari/Chrome */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+  .main-menu-btn,
+  .difficulty-btn,
+  .menu-button {
+    -webkit-transform: translateZ(0);
+    -moz-transform: translateZ(0);
+    -ms-transform: translateZ(0);
+    -o-transform: translateZ(0);
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    -moz-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-perspective: 1000px;
+    -moz-perspective: 1000px;
+    -ms-perspective: 1000px;
+    perspective: 1000px;
+  }
+
+  .main-menu-btn::before,
+  .difficulty-btn::before {
+    -webkit-transform: translateZ(0);
+    -moz-transform: translateZ(0);
+    -ms-transform: translateZ(0);
+    -o-transform: translateZ(0);
+    transform: translateZ(0);
+  }
+}
+
+/* Firefox-specific optimizations */
+@-moz-document url-prefix() {
+  .main-menu-btn,
+  .difficulty-btn,
+  .menu-button {
+    -webkit-transform: translateZ(0);
+    -moz-transform: translateZ(0);
+    -ms-transform: translateZ(0);
+    -o-transform: translateZ(0);
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    -moz-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════════
+   HIGH CONTRAST MODE SUPPORT
+   ═══════════════════════════════════════════════════════════════════════════════════ */
+
+@media (prefers-contrast: high) {
+  .main-menu-btn,
+  .difficulty-btn,
+  .menu-button {
+    border-width: 3px !important;
+    font-weight: 700 !important;
+  }
+
+  .main-menu-btn:hover,
+  .difficulty-btn:hover,
+  .menu-button:hover {
+    border-width: 4px !important;
+  }
+
+  /* Enhanced contrast for text */
+  .main-menu-btn,
+  .difficulty-btn,
+  .menu-button {
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8) !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════════
+   DARK MODE OPTIMIZATIONS
+   ═══════════════════════════════════════════════════════════════════════════════════ */
+
+@media (prefers-color-scheme: dark) {
+  /* Enhance glow effects in dark mode */
+  .main-menu-btn:hover,
+  .difficulty-btn:hover {
+    box-shadow: 0 0 20px rgba(138, 43, 226, 0.5),
+      0 4px 16px rgba(0, 210, 168, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  }
+
+  #leaderboardButton:hover {
+    box-shadow: 0 0 25px rgba(255, 215, 0, 0.6),
+      0 4px 16px rgba(255, 215, 0, 0.3) !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════════
+   FINAL ANIMATION POLISH & REFINEMENTS
+   ═══════════════════════════════════════════════════════════════════════════════════ */
+
+/* Refined easing functions for premium feel */
+.main-menu-btn,
+.difficulty-btn,
+#saveSettingsButton,
+#rematchButton,
+#rankedRematchButton {
+  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1) !important; /* Material Design easing */
+}
+
+/* Enhanced stagger effect for menu buttons */
+.main-menu-btn:nth-child(1) {
+  animation-delay: 0ms;
+}
+.main-menu-btn:nth-child(2) {
+  animation-delay: 100ms;
+}
+.main-menu-btn:nth-child(3) {
+  animation-delay: 200ms;
+}
+.main-menu-btn:nth-child(4) {
+  animation-delay: 300ms;
+}
+.main-menu-btn:nth-child(5) {
+  animation-delay: 400ms;
+}
+
+.difficulty-btn:nth-child(1) {
+  animation-delay: 0ms;
+}
+.difficulty-btn:nth-child(2) {
+  animation-delay: 150ms;
+}
+.difficulty-btn:nth-child(3) {
+  animation-delay: 300ms;
+}
+
+/* Micro-interactions for enhanced feedback */
+.main-menu-btn:active,
+.difficulty-btn:active,
+.menu-button:active {
+  transform: translateY(1px) scale(0.98) !important;
+  transition-duration: 0.1s !important;
+}
+
+/* Enhanced ripple effect on click */
+@keyframes button-ripple {
+  from {
+    opacity: 1;
+    transform: scale(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(2);
+  }
+}
+
+.main-menu-btn:active::after,
+.difficulty-btn:active::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100px;
+  height: 100px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  animation: button-ripple 0.6s ease-out;
+  pointer-events: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════════
+   FINAL RESPONSIVE BREAKPOINTS
+   ═══════════════════════════════════════════════════════════════════════════════════ */
+
+/* Large tablets and small desktops */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .main-menu-btn,
+  .difficulty-btn {
+    font-size: 1.02em !important;
+    padding: 14px 20px !important;
+  }
+
+  .difficulty-icon {
+    font-size: 1.8em !important;
+  }
+}
+
+/* Large desktops */
+@media (min-width: 1400px) {
+  .main-menu-btn,
+  .difficulty-btn {
+    font-size: 1.12em !important;
+    padding: 16px 28px !important;
+  }
+
+  .difficulty-icon {
+    font-size: 2.2em !important;
+  }
+
+  /* Enhanced effects for larger screens */
+  .main-menu-btn:hover {
+    transform: translateY(-4px) scale(1.03) !important;
+  }
+
+  .difficulty-btn:hover {
+    transform: translateY(-10px) scale(1.03) !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════════
+   PRINT STYLES (ACCESSIBILITY)
+   ═══════════════════════════════════════════════════════════════════════════════════ */
+
+@media print {
+  .main-menu-btn,
+  .difficulty-btn,
+  .menu-button {
+    background: transparent !important;
+    border: 2px solid #000 !important;
+    color: #000 !important;
+    box-shadow: none !important;
+    animation: none !important;
+  }
+
+  .main-menu-btn::before,
+  .difficulty-btn::before,
+  #leaderboardButton::after {
+    display: none !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════════
+   FINAL QUALITY ASSURANCE & BROWSER COMPATIBILITY
+   ═══════════════════════════════════════════════════════════════════════════════════ */
+
+/* Ensure consistent rendering across browsers */
+.main-menu-btn,
+.difficulty-btn,
+.menu-button {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Fallback for older browsers */
+@supports not (backdrop-filter: blur(12px)) {
+  .menu-glass {
+    background: rgba(15, 12, 41, 0.95) !important;
+  }
+}
+
+@supports not (transform: translateZ(0)) {
+  .main-menu-btn,
+  .difficulty-btn,
+  .menu-button {
+    position: relative !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════════
+   COMPLETION MARKER - BUTTON ENHANCEMENT PROJECT FINALIZED
+   ═══════════════════════════════════════════════════════════════════════════════════ */
+
+/*
+  🎯 BUTTON ENHANCEMENT PROJECT COMPLETED! 🎯
+  
+  ✅ Enhanced Main Menu Buttons with shimmer effects
+  ✅ Enhanced Leaderboard Button with rotating crown animation
+  ✅ Enhanced PvP Mode Selection with sword/crown animations
+  ✅ Enhanced Settings Menu with gradient backgrounds
+  ✅ Enhanced Game Result/Overlay Buttons with themed styling
+  ✅ Enhanced Start/Register Menu Buttons with sophisticated effects
+  ✅ Added comprehensive mobile responsiveness
+  ✅ Added accessibility features (reduced motion, focus states)
+  ✅ Added performance optimizations (GPU acceleration)
+  ✅ Added cross-browser compatibility
+  ✅ Added high contrast and dark mode support
+  ✅ Added final animation polish and micro-interactions
+  
+  🚀 Desktop version button styling now matches Mobile version quality!
+*/
