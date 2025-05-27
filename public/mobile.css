@@ -298,3 +298,43 @@ body {
     font-size: 0.85em !important;
   }
 }
+
+/* Opponent field fill percentage colors */
+.opponent-cell.filled.fill-warning {
+  background: linear-gradient(
+    145deg,
+    #90ee90,
+    #32cd32
+  ) !important; /* Light green for 30-60% */
+  border-color: #32cd32 !important;
+}
+
+.opponent-cell.filled.fill-danger {
+  background: linear-gradient(
+    145deg,
+    #ffb6c1,
+    #ff4444
+  ) !important; /* Light red for 60%+ */
+  border-color: #ff4444 !important;
+}
+
+/* Hover preview colors for mobile */
+.hover-preview.invalid {
+  background-color: #ff4444 !important; /* Red when piece doesn't fit */
+  opacity: 0.8;
+}
+
+.hover-preview.line-clear {
+  background-color: #ffd700 !important; /* Gold when piece can clear lines */
+  opacity: 0.9;
+  animation: pulse 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+  from {
+    opacity: 0.7;
+  }
+  to {
+    opacity: 1;
+  }
+}

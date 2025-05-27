@@ -47,7 +47,19 @@ export const GridSnap = {
     window.state.currentDragShape = shape;
     window.state.currentDragOffset = this.currentOffset;
     this.createGhost(shape);
-    this.createPreview(shape);
+
+    // Create initial preview with proper assessment
+    const isValid = this.checkValidPlacement(shape, 0, 0);
+    const canClearLines = isValid
+      ? this.checkCanClearLines(shape, 0, 0)
+      : false;
+    const previewType = isValid
+      ? canClearLines
+        ? "line-clear"
+        : "valid"
+      : "invalid";
+    this.createPreview(shape, isValid, previewType);
+
     // Fix: gebundene Methoden verwenden
     document.addEventListener("touchmove", this._onTouchMove, {
       passive: false,
@@ -123,6 +135,31 @@ export const GridSnap = {
       0,
       9
     );
+    // Update preview with enhanced visual feedback
+    if (this.currentShape) {
+      const isValid = this.checkValidPlacement(
+        this.currentShape,
+        this.previewRow,
+        this.previewCol
+      );
+      const canClearLines = isValid
+        ? this.checkCanClearLines(
+            this.currentShape,
+            this.previewRow,
+            this.previewCol
+          )
+        : false;
+
+      // Determine preview type
+      let previewType = "invalid";
+      if (isValid) {
+        previewType = canClearLines ? "line-clear" : "valid";
+      }
+
+      // Recreate preview with correct styling
+      this.createPreview(this.currentShape, isValid, previewType);
+    }
+
     if (this.previewEl) {
       // Begrenze Preview auf Viewport
       const previewW = this.previewEl.offsetWidth;
@@ -160,7 +197,7 @@ export const GridSnap = {
     this.ghostEl?.remove();
     this.ghostEl = null;
   },
-  createPreview(shape, isValid = true) {
+  createPreview(shape, isValid = true, previewType = "valid") {
     this.removePreview();
     // minRow/minCol für korrekte Grid-Positionierung bestimmen
     let minRow = Infinity,
@@ -174,9 +211,18 @@ export const GridSnap = {
       if (c > maxCol) maxCol = c;
     });
     this.previewEl = document.createElement("div");
-    this.previewEl.className = isValid
-      ? "hover-preview valid"
-      : "hover-preview invalid";
+
+    // Set class names based on preview type
+    let className = "hover-preview";
+    if (previewType === "line-clear") {
+      className += " line-clear";
+    } else if (previewType === "invalid") {
+      className += " invalid";
+    } else {
+      className += " valid";
+    }
+
+    this.previewEl.className = className;
     this.previewEl.style.position = "fixed";
     this.previewEl.style.pointerEvents = "none";
     this.previewEl.style.zIndex = "9998";
@@ -198,20 +244,28 @@ export const GridSnap = {
       (maxRow - minRow + 1) * this.cellSize + (maxRow - minRow) * this.gap
     }px`;
     this.previewEl.style.gap = `${this.gap}px`;
+
     shape.forEach(([r, c]) => {
       const block = document.createElement("div");
       block.className = "block";
       block.style.gridRow = r - minRow + 1;
       block.style.gridColumn = c - minCol + 1;
-      block.style.backgroundColor = isValid
-        ? "rgba(0,210,168,0.4)"
-        : "rgba(255,70,118,0.4)";
-      block.style.border = isValid
-        ? "2px dashed #00d2a8"
-        : "2px dashed #ff4676";
-      block.style.boxShadow = isValid
-        ? "0 0 10px rgba(0,210,168,0.3)"
-        : "0 0 10px rgba(255,70,118,0.3)";
+
+      // Set colors based on preview type
+      if (previewType === "line-clear") {
+        block.style.backgroundColor = "rgba(255,215,0,0.6)"; // Gold with higher opacity
+        block.style.border = "2px dashed #FFD700";
+        block.style.boxShadow = "0 0 15px rgba(255,215,0,0.5)";
+      } else if (previewType === "invalid") {
+        block.style.backgroundColor = "rgba(255,70,118,0.4)";
+        block.style.border = "2px dashed #ff4676";
+        block.style.boxShadow = "0 0 10px rgba(255,70,118,0.3)";
+      } else {
+        block.style.backgroundColor = "rgba(0,210,168,0.4)";
+        block.style.border = "2px dashed #00d2a8";
+        block.style.boxShadow = "0 0 10px rgba(0,210,168,0.3)";
+      }
+
       block.style.transform = "scale(0.95)";
       this.previewEl.appendChild(block);
     });
@@ -286,5 +340,50 @@ export const GridSnap = {
   // Hilfsmethode für korrekt gebundenen TouchStart-Handler
   getTouchStartHandler(shape) {
     return (e) => this.onTouchStart(e, shape);
+  },
+
+  /* --------------------------------------------------------------------
+   *  Helper functions for enhanced preview
+   * ------------------------------------------------------------------ */
+  checkCanClearLines(shape, row, col) {
+    if (!window.state?.playerBoard) return false;
+
+    // Create a temporary board with the shape placed
+    const tempBoard = window.state.playerBoard.map((r) => [...r]);
+
+    // Place the shape in the temporary board
+    for (const [r, c] of shape) {
+      const rr = row + r;
+      const cc = col + c;
+      if (rr >= 0 && rr < 10 && cc >= 0 && cc < 10) {
+        tempBoard[rr][cc] = 1;
+      }
+    }
+
+    // Check for full rows
+    for (let r = 0; r < 10; r++) {
+      if (tempBoard[r].every((v) => v === 1)) {
+        return true;
+      }
+    }
+
+    // Check for full columns
+    for (let c = 0; c < 10; c++) {
+      let colFull = true;
+      for (let r = 0; r < 10; r++) {
+        if (tempBoard[r][c] !== 1) {
+          colFull = false;
+          break;
+        }
+      }
+      if (colFull) return true;
+    }
+
+    return false;
+  },
+
+  checkValidPlacement(shape, row, col) {
+    if (!window.player?.canPlace) return false;
+    return window.player.canPlace(shape, row, col);
   },
 };

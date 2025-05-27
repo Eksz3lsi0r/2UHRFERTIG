@@ -973,6 +973,25 @@ h2 {
   /* Kein weißer Hintergrund! */
 }
 
+/* Einstellungsmenü-Container mit gleichem Styling */
+#settingsMenuContainer {
+  background: rgba(15, 12, 41, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-lg), 0 0 30px rgba(138, 43, 226, 0.18);
+  border: 1.5px solid rgba(182, 125, 255, 0.18);
+  padding: 2rem;
+  max-width: 500px;
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  position: relative;
+  z-index: 10;
+}
+
 /* Hauptmenü-Container mittig auf ganzer Höhe */
 html,
 body {
@@ -1587,4 +1606,44 @@ body {
   max-width: 50% !important;
   margin: -8px auto -2px !important;
   clip-path: polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%) !important;
+}
+
+/* Opponent field fill percentage colors */
+.opponent-cell.filled.fill-warning {
+  background: linear-gradient(
+    145deg,
+    #ebe40a,
+    #fff700
+  ) !important; /* Yellow for 30-60% */
+  border-color: #fff700 !important;
+}
+
+.opponent-cell.filled.fill-danger {
+  background: linear-gradient(
+    145deg,
+    #b61919,
+    #ff4444
+  ) !important; /* Red for 60%+ */
+  border-color: #ff4444 !important;
+}
+
+/* Hover preview colors */
+.hover-preview.invalid {
+  background-color: #ff4444 !important; /* Red when piece doesn't fit */
+  opacity: 0.8;
+}
+
+.hover-preview.line-clear {
+  background-color: #ffd700 !important; /* Gold when piece can clear lines */
+  opacity: 0.9;
+  animation: pulse 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+  from {
+    opacity: 0.7;
+  }
+  to {
+    opacity: 1;
+  }
 }

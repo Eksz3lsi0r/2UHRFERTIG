@@ -165,12 +165,46 @@ function _canPlace(shape, br, bc) {
 /* ---------- Board-Rendering (zeigt CPU-Board im UI) ---------------- */
 function renderCpuBoard() {
   if (!state.opponentBoardCells?.length) return;
-  for (let r = 0; r < 10; r++)
-    for (let c = 0; c < 10; c++)
-      state.opponentBoardCells[r][c].classList.toggle(
-        "filled",
-        !!state.cpuBoard[r][c]
-      );
+
+  // Calculate fill percentage for color coding
+  let filledCells = 0;
+  for (let r = 0; r < 10; r++) {
+    for (let c = 0; c < 10; c++) {
+      if (state.cpuBoard[r][c]) {
+        filledCells++;
+      }
+    }
+  }
+
+  const fillPercentage = (filledCells / 100) * 100;
+  console.log(
+    `CPU Board fill percentage: ${fillPercentage}% (${filledCells} filled cells)`
+  );
+
+  // Update cells with fill state and color coding
+  for (let r = 0; r < 10; r++) {
+    for (let c = 0; c < 10; c++) {
+      const cell = state.opponentBoardCells[r][c];
+      if (!cell) continue;
+
+      const isFilled = !!state.cpuBoard[r][c];
+      cell.classList.toggle("filled", isFilled);
+
+      // Remove existing fill color classes
+      cell.classList.remove("fill-warning", "fill-danger");
+
+      // Apply fill percentage colors ONLY to filled cells
+      if (isFilled) {
+        if (fillPercentage >= 60) {
+          cell.classList.add("fill-danger"); // Red at 60+ cells
+          console.log(`Applied fill-danger to CPU cell [${r},${c}]`);
+        } else if (fillPercentage >= 30) {
+          cell.classList.add("fill-warning"); // Yellow at 30+ cells
+          console.log(`Applied fill-warning to CPU cell [${r},${c}]`);
+        }
+      }
+    }
+  }
 }
 
 /* ---------- Punkteanzeige ------------------------------------------ */

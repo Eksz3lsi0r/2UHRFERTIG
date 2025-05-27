@@ -99,6 +99,10 @@ socket.on("startGame", (data) => {
 socket.on("opponentBoardUpdate", (board) => {
   if (!state.opponentBoardCells?.length) return;
   try {
+    // Calculate fill percentage for color coding
+    const fillPercentage = calculateFillPercentage(board);
+
+    // Update board cells
     for (let r = 0; r < 10; r++) {
       for (let c = 0; c < 10; c++) {
         if (state.opponentBoardCells[r] && state.opponentBoardCells[r][c]) {
@@ -109,6 +113,9 @@ socket.on("opponentBoardUpdate", (board) => {
         }
       }
     }
+
+    // Apply fill percentage colors
+    applyFillColors(state.opponentBoardCells, fillPercentage);
   } catch (err) {
     console.error("Fehler beim Aktualisieren des Gegner-Boards:", err);
   }
@@ -256,4 +263,55 @@ if (window.socket && typeof window.socket.on === "function") {
       );
     }
   });
+}
+
+/* --------------------------------------------------------------------
+ *  Helper function to calculate board fill percentage
+ * ------------------------------------------------------------------ */
+function calculateFillPercentage(board) {
+  let filledCells = 0;
+  const totalCells = 100; // 10x10 grid
+
+  for (let r = 0; r < 10; r++) {
+    for (let c = 0; c < 10; c++) {
+      if (board[r] && board[r][c]) {
+        filledCells++;
+      }
+    }
+  }
+
+  return (filledCells / totalCells) * 100;
+}
+
+/* --------------------------------------------------------------------
+ *  Apply color based on fill percentage
+ * ------------------------------------------------------------------ */
+function applyFillColors(cells, fillPercentage) {
+  if (!cells || !cells.length) return;
+
+  console.log(`Applying fill colors for ${fillPercentage}% fill`);
+
+  // Apply colors only to filled cells
+  for (let r = 0; r < 10; r++) {
+    for (let c = 0; c < 10; c++) {
+      if (cells[r] && cells[r][c]) {
+        const cell = cells[r][c];
+
+        // Remove existing fill classes
+        cell.classList.remove("fill-warning", "fill-danger");
+
+        // Apply new color class based on number of filled cells
+        // ONLY if the cell is filled (has the "filled" class)
+        if (cell.classList.contains("filled")) {
+          if (fillPercentage >= 60) {
+            cell.classList.add("fill-danger"); // Red at 60+ cells
+            console.log(`Applied fill-danger to cell [${r},${c}]`);
+          } else if (fillPercentage >= 30) {
+            cell.classList.add("fill-warning"); // Yellow at 30+ cells
+            console.log(`Applied fill-warning to cell [${r},${c}]`);
+          }
+        }
+      }
+    }
+  }
 }
