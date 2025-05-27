@@ -868,19 +868,30 @@
   position: relative;
   overflow: hidden;
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transform: translateZ(0); /* GPU acceleration */
+  will-change: transform, box-shadow;
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════════════
+   NORMAL PVP BUTTON - EPIC BATTLE MODE
+   ═══════════════════════════════════════════════════════════════════════════════════ */
+
 #normalPvPButton {
-  border-color: rgba(138, 43, 226, 0.6) !important;
+  border: 3px solid rgba(138, 43, 226, 0.7) !important;
   background: linear-gradient(
     135deg,
-    rgba(138, 43, 226, 0.25),
-    rgba(30, 25, 50, 0.8)
+    rgba(138, 43, 226, 0.2) 0%,
+    rgba(75, 0, 130, 0.3) 25%,
+    rgba(30, 25, 50, 0.8) 75%,
+    rgba(138, 43, 226, 0.15) 100%
   ) !important;
   position: relative;
   overflow: hidden;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
+/* Multi-layered shimmer effects */
 #normalPvPButton::before {
   content: "";
   position: absolute;
@@ -890,79 +901,177 @@
   height: 100%;
   background: linear-gradient(
     90deg,
-    transparent,
-    rgba(138, 43, 226, 0.2),
-    transparent
+    transparent 0%,
+    rgba(138, 43, 226, 0.3) 30%,
+    rgba(169, 108, 255, 0.5) 50%,
+    rgba(138, 43, 226, 0.3) 70%,
+    transparent 100%
   );
-  transition: left 0.5s ease;
+  transition: left 0.8s ease;
+  z-index: 1;
+}
+
+#normalPvPButton::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(138, 43, 226, 0.1) 0%,
+    transparent 60%
+  );
+  animation: battle-pulse 3s infinite ease-in-out;
+  z-index: 0;
+}
+
+@keyframes battle-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.6;
+  }
 }
 
 #normalPvPButton:hover::before {
   left: 100%;
+  transition: left 0.6s ease;
 }
 
 #normalPvPButton:hover {
-  border-color: rgba(138, 43, 226, 0.9) !important;
+  border-color: rgba(138, 43, 226, 1) !important;
   background: linear-gradient(
     135deg,
-    rgba(138, 43, 226, 0.4),
-    rgba(30, 25, 50, 0.95)
+    rgba(138, 43, 226, 0.4) 0%,
+    rgba(169, 108, 255, 0.5) 25%,
+    rgba(75, 0, 130, 0.6) 50%,
+    rgba(30, 25, 50, 0.95) 100%
   ) !important;
-  box-shadow: var(--shadow-lg), 0 0 25px rgba(138, 43, 226, 0.6) !important;
-  transform: translateY(-5px) scale(1.02);
+  box-shadow: var(--shadow-lg), 0 0 30px rgba(138, 43, 226, 0.8),
+    0 0 60px rgba(138, 43, 226, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  transform: translateY(-8px) scale(1.03);
 }
 
-#normalPvPButton .difficulty-icon {
-  color: #8a2be2 !important;
-  animation: sword-pulse 2s infinite ease-in-out;
-  transition: all 0.3s ease;
+#normalPvPButton:hover::after {
+  animation: battle-energy 0.8s infinite ease-in-out;
 }
 
-@keyframes sword-pulse {
+@keyframes battle-energy {
   0%,
   100% {
-    transform: scale(1);
-    filter: drop-shadow(0 0 8px rgba(138, 43, 226, 0.6));
+    transform: scale(1) rotate(0deg);
+    opacity: 0.4;
+  }
+  25% {
+    transform: scale(1.1) rotate(90deg);
+    opacity: 0.8;
   }
   50% {
-    transform: scale(1.1);
-    filter: drop-shadow(0 0 15px rgba(138, 43, 226, 0.9));
+    transform: scale(1.2) rotate(180deg);
+    opacity: 1;
+  }
+  75% {
+    transform: scale(1.1) rotate(270deg);
+    opacity: 0.8;
+  }
+}
+
+/* Enhanced Sword Icon Animations */
+#normalPvPButton .difficulty-icon {
+  color: #8a2be2 !important;
+  animation: sword-energy-idle 2.5s infinite ease-in-out;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  z-index: 2;
+  text-shadow: 0 0 10px rgba(138, 43, 226, 0.8);
+  filter: drop-shadow(0 0 8px rgba(138, 43, 226, 0.6));
+}
+
+@keyframes sword-energy-idle {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+    filter: drop-shadow(0 0 8px rgba(138, 43, 226, 0.6)) brightness(1);
+  }
+  25% {
+    transform: scale(1.05) rotate(2deg);
+    filter: drop-shadow(0 0 12px rgba(138, 43, 226, 0.8)) brightness(1.1);
+  }
+  50% {
+    transform: scale(1.1) rotate(0deg);
+    filter: drop-shadow(0 0 16px rgba(138, 43, 226, 1)) brightness(1.2);
+  }
+  75% {
+    transform: scale(1.05) rotate(-2deg);
+    filter: drop-shadow(0 0 12px rgba(138, 43, 226, 0.8)) brightness(1.1);
   }
 }
 
 #normalPvPButton:hover .difficulty-icon {
-  color: #a96cff !important;
-  animation: sword-battle 0.6s infinite;
-  transform: scale(1.2);
+  color: #bb7fff !important;
+  animation: sword-epic-battle 0.7s infinite;
+  transform: scale(1.3);
+  text-shadow: 0 0 20px rgba(187, 127, 255, 1);
 }
 
-@keyframes sword-battle {
-  0%,
-  100% {
-    transform: scale(1.2) rotate(0deg);
-    filter: drop-shadow(0 0 15px rgba(138, 43, 226, 1));
+@keyframes sword-epic-battle {
+  0% {
+    transform: scale(1.3) rotate(0deg) translateY(0);
+    filter: drop-shadow(0 0 20px rgba(138, 43, 226, 1)) brightness(1.3);
   }
-  25% {
-    transform: scale(1.3) rotate(-10deg);
-    filter: drop-shadow(0 0 20px rgba(168, 108, 255, 1));
+  15% {
+    transform: scale(1.4) rotate(-15deg) translateY(-2px);
+    filter: drop-shadow(0 0 25px rgba(169, 108, 255, 1)) brightness(1.5);
+  }
+  30% {
+    transform: scale(1.35) rotate(10deg) translateY(-1px);
+    filter: drop-shadow(0 0 30px rgba(187, 127, 255, 1)) brightness(1.6);
+  }
+  45% {
+    transform: scale(1.4) rotate(-8deg) translateY(-3px);
+    filter: drop-shadow(0 0 25px rgba(138, 43, 226, 1)) brightness(1.4);
+  }
+  60% {
+    transform: scale(1.35) rotate(12deg) translateY(-1px);
+    filter: drop-shadow(0 0 35px rgba(169, 108, 255, 1)) brightness(1.7);
   }
   75% {
-    transform: scale(1.3) rotate(10deg);
-    filter: drop-shadow(0 0 20px rgba(138, 43, 226, 1));
+    transform: scale(1.4) rotate(-5deg) translateY(-2px);
+    filter: drop-shadow(0 0 30px rgba(187, 127, 255, 1)) brightness(1.5);
+  }
+  100% {
+    transform: scale(1.3) rotate(0deg) translateY(0);
+    filter: drop-shadow(0 0 20px rgba(138, 43, 226, 1)) brightness(1.3);
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════════════
+   RANKED PVP BUTTON - ROYAL MAJESTY MODE
+   ═══════════════════════════════════════════════════════════════════════════════════ */
+
 #rankedPvPButton {
-  border-color: rgba(255, 215, 0, 0.6) !important;
+  border: 3px solid rgba(255, 215, 0, 0.8) !important;
   background: linear-gradient(
     135deg,
-    rgba(255, 215, 0, 0.25),
-    rgba(30, 25, 50, 0.8)
+    rgba(255, 215, 0, 0.15) 0%,
+    rgba(255, 193, 7, 0.2) 25%,
+    rgba(255, 152, 0, 0.25) 50%,
+    rgba(30, 25, 50, 0.8) 75%,
+    rgba(255, 215, 0, 0.1) 100%
   ) !important;
   position: relative;
   overflow: hidden;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
+/* Royal sparkle effects */
 #rankedPvPButton::before {
   content: "";
   position: absolute;
@@ -972,89 +1081,335 @@
   height: 100%;
   background: linear-gradient(
     90deg,
-    transparent,
-    rgba(255, 215, 0, 0.2),
-    transparent
+    transparent 0%,
+    rgba(255, 215, 0, 0.2) 20%,
+    rgba(255, 235, 59, 0.4) 40%,
+    rgba(255, 193, 7, 0.6) 50%,
+    rgba(255, 235, 59, 0.4) 60%,
+    rgba(255, 215, 0, 0.2) 80%,
+    transparent 100%
   );
-  transition: left 0.5s ease;
+  transition: left 0.9s ease;
+  z-index: 1;
+}
+
+#rankedPvPButton::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+      circle at 30% 70%,
+      rgba(255, 215, 0, 0.3) 0%,
+      rgba(255, 235, 59, 0.2) 30%,
+      transparent 60%
+    ),
+    radial-gradient(
+      circle at 70% 30%,
+      rgba(255, 193, 7, 0.25) 0%,
+      rgba(255, 215, 0, 0.15) 40%,
+      transparent 70%
+    );
+  animation: royal-sparkle 4s infinite ease-in-out;
+  z-index: 0;
+}
+
+@keyframes royal-sparkle {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 0.4;
+  }
+  25% {
+    transform: scale(1.1) rotate(90deg);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.2) rotate(180deg);
+    opacity: 1;
+  }
+  75% {
+    transform: scale(1.1) rotate(270deg);
+    opacity: 0.7;
+  }
 }
 
 #rankedPvPButton:hover::before {
   left: 100%;
+  transition: left 0.7s ease;
 }
 
 #rankedPvPButton:hover {
-  border-color: rgba(255, 215, 0, 0.9) !important;
+  border-color: rgba(255, 215, 0, 1) !important;
   background: linear-gradient(
     135deg,
-    rgba(255, 215, 0, 0.4),
-    rgba(30, 25, 50, 0.95)
+    rgba(255, 215, 0, 0.3) 0%,
+    rgba(255, 193, 7, 0.4) 25%,
+    rgba(255, 152, 0, 0.5) 50%,
+    rgba(255, 235, 59, 0.3) 75%,
+    rgba(30, 25, 50, 0.95) 100%
   ) !important;
-  box-shadow: var(--shadow-lg), 0 0 30px rgba(255, 215, 0, 0.7) !important;
-  transform: translateY(-5px) scale(1.02);
+  box-shadow: var(--shadow-lg), 0 0 35px rgba(255, 215, 0, 0.9),
+    0 0 70px rgba(255, 215, 0, 0.5), 0 0 100px rgba(255, 193, 7, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+  transform: translateY(-8px) scale(1.03);
 }
 
-#rankedPvPButton .difficulty-icon {
-  color: #ffd700 !important;
-  animation: crown-glow 2s infinite ease-in-out;
-  transition: all 0.3s ease;
+#rankedPvPButton:hover::after {
+  animation: royal-majesty-aura 1s infinite ease-in-out;
 }
 
-@keyframes crown-glow {
+@keyframes royal-majesty-aura {
   0%,
   100% {
-    transform: scale(1);
-    filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.8));
+    transform: scale(1) rotate(0deg);
+    opacity: 0.5;
+  }
+  20% {
+    transform: scale(1.15) rotate(72deg);
+    opacity: 0.8;
+  }
+  40% {
+    transform: scale(1.3) rotate(144deg);
+    opacity: 1;
+  }
+  60% {
+    transform: scale(1.25) rotate(216deg);
+    opacity: 0.9;
+  }
+  80% {
+    transform: scale(1.1) rotate(288deg);
+    opacity: 0.7;
+  }
+}
+
+/* Enhanced Crown Icon Animations */
+#rankedPvPButton .difficulty-icon {
+  color: #ffd700 !important;
+  animation: crown-royal-idle 3s infinite ease-in-out;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  z-index: 2;
+  text-shadow: 0 0 15px rgba(255, 215, 0, 0.9);
+  filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
+}
+
+@keyframes crown-royal-idle {
+  0%,
+  100% {
+    transform: scale(1) translateY(0) rotate(0deg);
+    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8)) brightness(1);
+  }
+  25% {
+    transform: scale(1.05) translateY(-1px) rotate(1deg);
+    filter: drop-shadow(0 0 15px rgba(255, 215, 0, 1)) brightness(1.1);
   }
   50% {
-    transform: scale(1.1);
-    filter: drop-shadow(0 0 15px rgba(255, 215, 0, 1));
+    transform: scale(1.1) translateY(-2px) rotate(0deg);
+    filter: drop-shadow(0 0 20px rgba(255, 235, 59, 1)) brightness(1.2);
+  }
+  75% {
+    transform: scale(1.05) translateY(-1px) rotate(-1deg);
+    filter: drop-shadow(0 0 15px rgba(255, 215, 0, 1)) brightness(1.1);
   }
 }
 
 #rankedPvPButton:hover .difficulty-icon {
   color: #ffeb3b !important;
-  animation: crown-majesty 0.8s infinite;
-  transform: scale(1.2);
+  animation: crown-divine-majesty 0.9s infinite;
+  transform: scale(1.4);
+  text-shadow: 0 0 25px rgba(255, 235, 59, 1);
 }
 
-@keyframes crown-majesty {
-  0%,
-  100% {
-    transform: scale(1.2) translateY(0);
-    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 1)) brightness(1.3);
+@keyframes crown-divine-majesty {
+  0% {
+    transform: scale(1.4) translateY(0) rotate(0deg);
+    filter: drop-shadow(0 0 25px rgba(255, 215, 0, 1)) brightness(1.4);
+  }
+  12% {
+    transform: scale(1.5) translateY(-3px) rotate(3deg);
+    filter: drop-shadow(0 0 30px rgba(255, 235, 59, 1)) brightness(1.6);
   }
   25% {
-    transform: scale(1.3) translateY(-3px);
-    filter: drop-shadow(0 0 25px rgba(255, 235, 59, 1)) brightness(1.5);
+    transform: scale(1.45) translateY(-5px) rotate(0deg);
+    filter: drop-shadow(0 0 35px rgba(255, 193, 7, 1)) brightness(1.7);
+  }
+  37% {
+    transform: scale(1.5) translateY(-3px) rotate(-3deg);
+    filter: drop-shadow(0 0 30px rgba(255, 235, 59, 1)) brightness(1.6);
+  }
+  50% {
+    transform: scale(1.55) translateY(-6px) rotate(0deg);
+    filter: drop-shadow(0 0 40px rgba(255, 215, 0, 1)) brightness(1.8);
+  }
+  62% {
+    transform: scale(1.5) translateY(-4px) rotate(2deg);
+    filter: drop-shadow(0 0 35px rgba(255, 235, 59, 1)) brightness(1.7);
   }
   75% {
-    transform: scale(1.3) translateY(-1px);
+    transform: scale(1.45) translateY(-2px) rotate(0deg);
+    filter: drop-shadow(0 0 30px rgba(255, 193, 7, 1)) brightness(1.5);
+  }
+  87% {
+    transform: scale(1.5) translateY(-3px) rotate(-2deg);
+    filter: drop-shadow(0 0 35px rgba(255, 235, 59, 1)) brightness(1.6);
+  }
+  100% {
+    transform: scale(1.4) translateY(0) rotate(0deg);
     filter: drop-shadow(0 0 25px rgba(255, 215, 0, 1)) brightness(1.4);
   }
 }
 
-/* Disabled state for ranked PvP button (for guests) */
+/* ═══════════════════════════════════════════════════════════════════════════════════
+   ENHANCED PVP BUTTON STATES & INTERACTIONS
+   ═══════════════════════════════════════════════════════════════════════════════════ */
+
+/* Active/Click States */
+#normalPvPButton:active {
+  transform: translateY(-4px) scale(1.01) !important;
+  transition: all 0.1s ease !important;
+  box-shadow: 0 4px 12px rgba(138, 43, 226, 0.6),
+    0 0 20px rgba(138, 43, 226, 0.8) !important;
+}
+
+#rankedPvPButton:active {
+  transform: translateY(-4px) scale(1.01) !important;
+  transition: all 0.1s ease !important;
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.6), 0 0 25px rgba(255, 215, 0, 0.8) !important;
+}
+
+/* Enhanced Disabled State for Ranked PvP Button (Guests) */
 #rankedPvPButton:disabled {
-  opacity: 0.5 !important;
+  opacity: 0.4 !important;
   cursor: not-allowed !important;
-  border-color: rgba(128, 128, 128, 0.3) !important;
+  border: 3px solid rgba(128, 128, 128, 0.4) !important;
   background: linear-gradient(
     135deg,
-    rgba(128, 128, 128, 0.15),
-    rgba(30, 25, 50, 0.5)
+    rgba(128, 128, 128, 0.1) 0%,
+    rgba(64, 64, 64, 0.2) 25%,
+    rgba(30, 25, 50, 0.6) 75%,
+    rgba(128, 128, 128, 0.05) 100%
   ) !important;
-  color: rgba(255, 255, 255, 0.5) !important;
+  color: rgba(255, 255, 255, 0.4) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+#rankedPvPButton:disabled::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 8px,
+    rgba(255, 0, 0, 0.1) 8px,
+    rgba(255, 0, 0, 0.1) 16px
+  );
+  z-index: 3;
+}
+
+#rankedPvPButton:disabled::after {
+  content: "🔒";
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  font-size: 0.9em;
+  color: rgba(255, 255, 255, 0.5);
+  z-index: 4;
 }
 
 #rankedPvPButton:disabled:hover {
-  border-color: rgba(128, 128, 128, 0.3) !important;
+  border-color: rgba(128, 128, 128, 0.4) !important;
   background: linear-gradient(
     135deg,
-    rgba(128, 128, 128, 0.15),
-    rgba(30, 25, 50, 0.5)
+    rgba(128, 128, 128, 0.1) 0%,
+    rgba(64, 64, 64, 0.2) 25%,
+    rgba(30, 25, 50, 0.6) 75%,
+    rgba(128, 128, 128, 0.05) 100%
   ) !important;
   box-shadow: none !important;
+  transform: none !important;
+}
+
+#rankedPvPButton:disabled .difficulty-icon {
+  color: rgba(255, 215, 0, 0.3) !important;
+  animation: none !important;
+  filter: grayscale(80%) !important;
+}
+
+/* Loading/Processing States */
+#normalPvPButton.loading,
+#rankedPvPButton.loading {
+  pointer-events: none;
+  position: relative;
+}
+
+#normalPvPButton.loading::before,
+#rankedPvPButton.loading::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  animation: loading-sweep 1.5s infinite linear;
+  z-index: 5;
+}
+
+@keyframes loading-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+#normalPvPButton.loading .difficulty-icon,
+#rankedPvPButton.loading .difficulty-icon {
+  animation: loading-spin 1s infinite linear !important;
+}
+
+@keyframes loading-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Enhanced Focus States for Accessibility */
+#normalPvPButton:focus {
+  outline: 3px solid rgba(138, 43, 226, 0.8) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 4px rgba(138, 43, 226, 0.2), var(--shadow-lg),
+    0 0 25px rgba(138, 43, 226, 0.6) !important;
+}
+
+#rankedPvPButton:focus {
+  outline: 3px solid rgba(255, 215, 0, 0.8) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 4px rgba(255, 215, 0, 0.2), var(--shadow-lg),
+    0 0 30px rgba(255, 215, 0, 0.7) !important;
+}
+
+#rankedPvPButton:disabled:focus {
+  outline: 3px solid rgba(128, 128, 128, 0.5) !important;
+  box-shadow: 0 0 0 4px rgba(128, 128, 128, 0.1) !important;
 }
 
 .crown-pulse {
@@ -1982,16 +2337,55 @@
     animation-duration: 4s !important; /* Slower rotation for mobile battery life */
   }
 
-  /* Simplify PvP button animations on mobile */
+  /* Simplify PvP button animations on mobile for better performance */
   #normalPvPButton .difficulty-icon,
   #rankedPvPButton .difficulty-icon {
-    animation-duration: 3s !important; /* Slower animations for mobile */
+    animation-duration: 3s !important; /* Slower animations for mobile battery life */
   }
 
-  #normalPvPButton:hover .difficulty-icon,
+  #normalPvPButton:hover .difficulty-icon {
+    animation: sword-mobile-battle 1s infinite !important; /* Simplified mobile animation */
+  }
+
   #rankedPvPButton:hover .difficulty-icon {
-    animation: none !important; /* Disable complex hover animations on mobile */
-    transform: scale(1.1) !important; /* Simple scale instead */
+    animation: crown-mobile-majesty 1s infinite !important; /* Simplified mobile animation */
+  }
+
+  /* Simplified mobile animations */
+  @keyframes sword-mobile-battle {
+    0%,
+    100% {
+      transform: scale(1.2) rotate(0deg);
+      filter: drop-shadow(0 0 15px rgba(138, 43, 226, 0.8));
+    }
+    50% {
+      transform: scale(1.3) rotate(5deg);
+      filter: drop-shadow(0 0 20px rgba(169, 108, 255, 1));
+    }
+  }
+
+  @keyframes crown-mobile-majesty {
+    0%,
+    100% {
+      transform: scale(1.2) translateY(0);
+      filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.8));
+    }
+    50% {
+      transform: scale(1.3) translateY(-2px);
+      filter: drop-shadow(0 0 25px rgba(255, 235, 59, 1));
+    }
+  }
+
+  /* Reduce complex pseudo-element effects on mobile */
+  #normalPvPButton::after,
+  #rankedPvPButton::after {
+    animation-duration: 5s !important; /* Slower for battery optimization */
+  }
+
+  /* Simplify hover transforms on mobile */
+  #normalPvPButton:hover,
+  #rankedPvPButton:hover {
+    transform: translateY(-4px) scale(1.02) !important; /* Reduced movement */
   }
 }
 
@@ -2050,8 +2444,45 @@
   #saveSettingsButton::before,
   #rematchButton::before,
   #rankedRematchButton::before,
+  #normalPvPButton::before,
+  #normalPvPButton::after,
+  #rankedPvPButton::before,
+  #rankedPvPButton::after,
   #leaderboardButton::after {
     display: none !important;
+  }
+
+  /* Disable complex PvP button animations for reduced motion */
+  #normalPvPButton .difficulty-icon,
+  #rankedPvPButton .difficulty-icon {
+    animation: none !important;
+  }
+
+  #normalPvPButton:hover .difficulty-icon,
+  #rankedPvPButton:hover .difficulty-icon {
+    animation: none !important;
+    transform: scale(1.1) !important; /* Simple scale only */
+  }
+
+  /* Keep color changes but remove movement for PvP buttons */
+  #normalPvPButton:hover {
+    background: linear-gradient(
+      135deg,
+      rgba(138, 43, 226, 0.4),
+      rgba(30, 25, 50, 0.95)
+    ) !important;
+    border-color: rgba(138, 43, 226, 0.9) !important;
+    transform: none !important;
+  }
+
+  #rankedPvPButton:hover {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 215, 0, 0.4),
+      rgba(30, 25, 50, 0.95)
+    ) !important;
+    border-color: rgba(255, 215, 0, 0.9) !important;
+    transform: none !important;
   }
 
   /* Keep color changes but remove movement */
@@ -2137,6 +2568,7 @@
   transform: translateZ(0); /* Force GPU acceleration */
   backface-visibility: hidden; /* Optimize for animations */
   perspective: 1000px; /* Enable 3D context */
+  will-change: transform, box-shadow, filter; /* Hint browser for optimization */
 }
 
 /* Optimize pseudo-elements for better performance */
@@ -2144,9 +2576,14 @@
 .difficulty-btn::before,
 #saveSettingsButton::before,
 #rematchButton::before,
-#rankedRematchButton::before {
-  will-change: transform; /* Hint browser for optimization */
+#rankedRematchButton::before,
+#normalPvPButton::before,
+#normalPvPButton::after,
+#rankedPvPButton::before,
+#rankedPvPButton::after {
+  will-change: transform, opacity; /* Hint browser for optimization */
   transform: translateZ(0); /* GPU acceleration */
+  backface-visibility: hidden; /* Optimize for animations */
 }
 
 #leaderboardButton::after {
