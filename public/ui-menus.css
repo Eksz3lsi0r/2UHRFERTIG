@@ -872,6 +872,61 @@
   will-change: transform, box-shadow;
 }
 
+/* --- PvP Buttons: Harmonisiertes, modernes Design für Desktop & Mobile --- */
+#normalPvPButton,
+#rankedPvPButton {
+  font-size: 1.08em !important;
+  font-family: "Trade Winds", cursive, Arial, sans-serif !important;
+  font-weight: 700 !important;
+  border-radius: 14px !important;
+  padding: 16px 0 !important;
+  min-width: 180px !important;
+  width: 100%;
+  max-width: 340px;
+  margin: 0 auto 18px auto !important;
+  letter-spacing: 0.5px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.25;
+}
+
+#normalPvPButton .difficulty-icon,
+#rankedPvPButton .difficulty-icon {
+  font-size: 2.2em !important;
+  margin-bottom: 6px !important;
+}
+
+#normalPvPButton .difficulty-description,
+#rankedPvPButton .difficulty-description {
+  font-size: 0.95em !important;
+  max-width: 95%;
+  margin: 0 auto;
+  color: #eaeaea;
+  opacity: 0.85;
+  line-height: 1.3;
+}
+
+@media (max-width: 600px) {
+  #normalPvPButton,
+  #rankedPvPButton {
+    font-size: 1em !important;
+    border-radius: 12px !important;
+    padding: 13px 0 !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 98vw !important;
+  }
+  #normalPvPButton .difficulty-icon,
+  #rankedPvPButton .difficulty-icon {
+    font-size: 2em !important;
+    margin-bottom: 4px !important;
+  }
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════════════
    NORMAL PVP BUTTON - EPIC BATTLE MODE
    ═══════════════════════════════════════════════════════════════════════════════════ */
@@ -1260,439 +1315,6 @@
     transform: scale(1.4) translateY(0) rotate(0deg);
     filter: drop-shadow(0 0 25px rgba(255, 215, 0, 1)) brightness(1.4);
   }
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════════
-   ENHANCED PVP BUTTON STATES & INTERACTIONS
-   ═══════════════════════════════════════════════════════════════════════════════════ */
-
-/* Active/Click States */
-#normalPvPButton:active {
-  transform: translateY(-4px) scale(1.01) !important;
-  transition: all 0.1s ease !important;
-  box-shadow: 0 4px 12px rgba(138, 43, 226, 0.6),
-    0 0 20px rgba(138, 43, 226, 0.8) !important;
-}
-
-#rankedPvPButton:active {
-  transform: translateY(-4px) scale(1.01) !important;
-  transition: all 0.1s ease !important;
-  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.6), 0 0 25px rgba(255, 215, 0, 0.8) !important;
-}
-
-/* Enhanced Disabled State for Ranked PvP Button (Guests) */
-#rankedPvPButton:disabled {
-  opacity: 0.4 !important;
-  cursor: not-allowed !important;
-  border: 3px solid rgba(128, 128, 128, 0.4) !important;
-  background: linear-gradient(
-    135deg,
-    rgba(128, 128, 128, 0.1) 0%,
-    rgba(64, 64, 64, 0.2) 25%,
-    rgba(30, 25, 50, 0.6) 75%,
-    rgba(128, 128, 128, 0.05) 100%
-  ) !important;
-  color: rgba(255, 255, 255, 0.4) !important;
-  position: relative;
-  overflow: hidden;
-}
-
-#rankedPvPButton:disabled::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: repeating-linear-gradient(
-    45deg,
-    transparent,
-    transparent 8px,
-    rgba(255, 0, 0, 0.1) 8px,
-    rgba(255, 0, 0, 0.1) 16px
-  );
-  z-index: 3;
-}
-
-#rankedPvPButton:disabled::after {
-  content: "🔒";
-  position: absolute;
-  top: 50%;
-  right: 8px;
-  transform: translateY(-50%);
-  font-size: 0.9em;
-  color: rgba(255, 255, 255, 0.5);
-  z-index: 4;
-}
-
-#rankedPvPButton:disabled:hover {
-  border-color: rgba(128, 128, 128, 0.4) !important;
-  background: linear-gradient(
-    135deg,
-    rgba(128, 128, 128, 0.1) 0%,
-    rgba(64, 64, 64, 0.2) 25%,
-    rgba(30, 25, 50, 0.6) 75%,
-    rgba(128, 128, 128, 0.05) 100%
-  ) !important;
-  box-shadow: none !important;
-  transform: none !important;
-}
-
-#rankedPvPButton:disabled .difficulty-icon {
-  color: rgba(255, 215, 0, 0.3) !important;
-  animation: none !important;
-  filter: grayscale(80%) !important;
-}
-
-/* Loading/Processing States */
-#normalPvPButton.loading,
-#rankedPvPButton.loading {
-  pointer-events: none;
-  position: relative;
-}
-
-#normalPvPButton.loading::before,
-#rankedPvPButton.loading::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.2),
-    transparent
-  );
-  animation: loading-sweep 1.5s infinite linear;
-  z-index: 5;
-}
-
-@keyframes loading-sweep {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
-  }
-}
-
-#normalPvPButton.loading .difficulty-icon,
-#rankedPvPButton.loading .difficulty-icon {
-  animation: loading-spin 1s infinite linear !important;
-}
-
-@keyframes loading-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* Enhanced Focus States for Accessibility */
-#normalPvPButton:focus {
-  outline: 3px solid rgba(138, 43, 226, 0.8) !important;
-  outline-offset: 2px !important;
-  box-shadow: 0 0 0 4px rgba(138, 43, 226, 0.2), var(--shadow-lg),
-    0 0 25px rgba(138, 43, 226, 0.6) !important;
-}
-
-#rankedPvPButton:focus {
-  outline: 3px solid rgba(255, 215, 0, 0.8) !important;
-  outline-offset: 2px !important;
-  box-shadow: 0 0 0 4px rgba(255, 215, 0, 0.2), var(--shadow-lg),
-    0 0 30px rgba(255, 215, 0, 0.7) !important;
-}
-
-#rankedPvPButton:disabled:focus {
-  outline: 3px solid rgba(128, 128, 128, 0.5) !important;
-  box-shadow: 0 0 0 4px rgba(128, 128, 128, 0.1) !important;
-}
-
-.crown-pulse {
-  animation: crown-pulse 2s infinite ease-in-out;
-}
-
-@keyframes crown-pulse {
-  0%,
-  100% {
-    transform: scale(1);
-    filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.8));
-  }
-  50% {
-    transform: scale(1.1);
-    filter: drop-shadow(0 0 8px rgba(255, 215, 0, 1));
-  }
-}
-
-#backFromPvPModeButton {
-  background: linear-gradient(
-    135deg,
-    rgba(108, 117, 125, 0.9),
-    rgba(52, 58, 64, 0.9)
-  ) !important;
-  border: 2px solid rgba(108, 117, 125, 0.6) !important;
-  color: #ffffff !important;
-  font-weight: 600 !important;
-  font-size: 1em !important;
-  padding: 12px 24px !important;
-  border-radius: 12px !important;
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
-  position: relative !important;
-  overflow: hidden !important;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
-}
-
-#backFromPvPModeButton::before {
-  content: "←";
-  position: absolute;
-  left: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  margin-right: 8px;
-  font-size: 1.2em;
-  transition: all 0.3s ease;
-}
-
-#backFromPvPModeButton:hover {
-  background: linear-gradient(
-    135deg,
-    rgba(138, 43, 226, 0.9),
-    rgba(75, 0, 130, 0.9)
-  ) !important;
-  border-color: rgba(138, 43, 226, 0.8) !important;
-  transform: translateY(-2px) scale(1.02) !important;
-  box-shadow: 0 6px 16px rgba(138, 43, 226, 0.3),
-    0 0 20px rgba(138, 43, 226, 0.2) !important;
-  text-shadow: 0 0 8px rgba(255, 255, 255, 0.8) !important;
-}
-
-#backFromPvPModeButton:hover::before {
-  transform: translateY(-50%) translateX(-3px);
-  text-shadow: 0 0 8px rgba(255, 255, 255, 1);
-}
-
-#backFromPvPModeButton:active {
-  transform: translateY(0) scale(0.98) !important;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
-}
-
-/* ───── Ranked Game Summary Overlay ───── */
-#rankedGameSummaryOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 100;
-  background: rgba(10, 10, 30, 0.92);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-#rankedGameSummaryBox {
-  background: linear-gradient(
-    135deg,
-    rgba(15, 12, 41, 0.95),
-    rgba(30, 25, 50, 0.9)
-  );
-  border-radius: 20px;
-  box-shadow: 0 0 30px rgba(255, 215, 0, 0.4), 0 0 60px rgba(138, 43, 226, 0.2);
-  border: 2px solid rgba(255, 215, 0, 0.3);
-  padding: 32px 28px 28px 28px;
-  min-width: 320px;
-  max-width: 90vw;
-  text-align: center;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-
-.ranked-crown-icon {
-  font-size: 2.5em;
-  margin-bottom: 12px;
-  display: block;
-  filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.6));
-}
-
-#rankedGameResultTitle {
-  font-size: 2.2em;
-  margin-bottom: 24px;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
-}
-
-.ranked-final-scores {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 20px 0;
-  padding: 16px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.ranked-score-section {
-  flex: 1;
-  text-align: center;
-}
-
-.ranked-score-label {
-  font-size: 0.9em;
-  color: rgba(255, 255, 255, 0.7);
-  margin-bottom: 4px;
-}
-
-.ranked-final-score {
-  font-size: 2em;
-  font-weight: bold;
-  color: #00d2a8;
-  text-shadow: 0 0 8px rgba(0, 210, 168, 0.4);
-}
-
-.ranked-vs-divider {
-  margin: 0 16px;
-  font-size: 1.4em;
-  color: rgba(255, 255, 255, 0.6);
-  font-weight: bold;
-}
-
-.ranked-points-section {
-  margin: 24px 0;
-  padding: 20px;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 12px;
-  border: 1px solid rgba(255, 215, 0, 0.2);
-}
-
-.ranked-points-title {
-  font-size: 1.1em;
-  color: rgba(255, 215, 0, 0.9);
-  margin-bottom: 12px;
-  font-weight: bold;
-}
-
-.ranked-points-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 8px 0;
-  font-size: 1em;
-}
-
-.ranked-points-value {
-  font-weight: bold;
-  text-shadow: 0 0 6px rgba(255, 255, 255, 0.3);
-}
-
-#rankedPointsChange {
-  font-size: 1.1em;
-  font-weight: bold;
-  text-shadow: 0 0 8px currentColor;
-}
-
-#timeRemainingSection {
-  margin: 16px 0;
-  padding: 12px;
-  background: rgba(255, 165, 0, 0.1);
-  border-radius: 8px;
-  border: 1px solid rgba(255, 165, 0, 0.3);
-}
-
-.ranked-time-label {
-  font-size: 0.9em;
-  color: rgba(255, 165, 0, 0.8);
-  margin-bottom: 4px;
-}
-
-#rankedTimeRemaining {
-  font-size: 1.2em;
-  font-weight: bold;
-  color: #ffa500;
-  text-shadow: 0 0 6px rgba(255, 165, 0, 0.4);
-}
-
-.ranked-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 16px;
-  margin-top: 28px;
-}
-
-#rankedRematchButton,
-#rankedMainMenuButton {
-  min-width: 130px;
-  font-size: 1.1em;
-  padding: 12px 20px;
-  border-radius: 10px;
-  font-weight: bold;
-  transition: all 0.3s ease;
-  text-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
-}
-
-#rankedRematchButton {
-  background: linear-gradient(135deg, #8a2be2, #a96cff);
-  border: 2px solid rgba(169, 108, 255, 0.4);
-  box-shadow: 0 0 15px rgba(138, 43, 226, 0.3);
-}
-
-#rankedRematchButton:hover {
-  background: linear-gradient(135deg, #a96cff, #bb7fff);
-  box-shadow: 0 0 25px rgba(138, 43, 226, 0.5);
-  transform: translateY(-2px);
-}
-
-#rankedMainMenuButton {
-  background: linear-gradient(135deg, #555, #777);
-  border: 2px solid rgba(119, 119, 119, 0.4);
-  box-shadow: 0 0 15px rgba(85, 85, 85, 0.3);
-}
-
-#rankedMainMenuButton:hover {
-  background: linear-gradient(135deg, #777, #999);
-  box-shadow: 0 0 25px rgba(85, 85, 85, 0.5);
-  transform: translateY(-2px);
-}
-
-/* Responsive adjustments for ranked overlay */
-@media (max-width: 600px) {
-  #rankedGameSummaryBox {
-    margin: 20px;
-    padding: 24px 20px;
-    min-width: auto;
-  }
-
-  .ranked-final-scores {
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .ranked-vs-divider {
-    margin: 8px 0;
-  }
-
-  .ranked-buttons {
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  #rankedRematchButton,
-  #rankedMainMenuButton {
-    width: 100%;
-  }
-}
-
-#rankedGameSummaryOverlay,
-#rankedGameSummaryBox {
-  max-width: 100vw !important;
-  max-height: 100vh !important;
-  overflow: hidden !important;
-  box-sizing: border-box !important;
 }
 
 /* ───── Enhanced Settings Menu Styling ───── */
