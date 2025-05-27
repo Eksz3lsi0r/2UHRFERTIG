@@ -319,14 +319,14 @@ body {
 }
 
 /* Hover preview colors for mobile */
-.hover-preview.invalid {
+.hover-preview.invalid .block {
   background-color: #ff4444 !important; /* Red when piece doesn't fit */
-  opacity: 0.8;
+  opacity: 0.8 !important;
 }
 
-.hover-preview.line-clear {
+.hover-preview.line-clear .block {
   background-color: #ffd700 !important; /* Gold when piece can clear lines */
-  opacity: 0.9;
+  opacity: 0.9 !important;
   animation: pulse 0.5s ease-in-out infinite alternate;
 }
 

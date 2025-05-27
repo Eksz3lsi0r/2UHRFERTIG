@@ -50,37 +50,56 @@ let graphicsQuality = "medium";
 function loadSettings() {
   const savedLang = localStorage.getItem("gameLanguage");
   const savedGraphics = localStorage.getItem("gameGraphics");
+  console.log("Loading settings from localStorage:", {
+    savedLang,
+    savedGraphics,
+  });
+
   if (savedLang && LANG[savedLang]) currentLanguage = savedLang;
   if (savedGraphics) graphicsQuality = savedGraphics;
 
+  console.log("Settings loaded:", {
+    language: currentLanguage,
+    graphics: graphicsQuality,
+  });
   applyGraphicsQuality();
 }
 
 function saveSettings() {
+  console.log("Saving settings:", {
+    language: currentLanguage,
+    graphics: graphicsQuality,
+  });
   localStorage.setItem("gameLanguage", currentLanguage);
   localStorage.setItem("gameGraphics", graphicsQuality);
+  console.log("Settings saved to localStorage");
 }
 
 /* --------------------------------------------------------------------
  *  Grafikqualität
  * ------------------------------------------------------------------ */
 function applyGraphicsQuality() {
+  console.log("Applying graphics quality:", graphicsQuality);
   document.body.classList.remove(
     "graphics-low",
     "graphics-medium",
     "graphics-high"
   );
   document.body.classList.add(`graphics-${graphicsQuality}`);
+  console.log("Body class list:", document.body.className);
 }
 
 /* --------------------------------------------------------------------
  *  Übersetzung
  * ------------------------------------------------------------------ */
 function translateUI() {
+  // Synchronize state.currentLanguage with local currentLanguage
+  state.currentLanguage = currentLanguage;
+
   document.querySelectorAll("[data-lang-key]").forEach((el) => {
     const key = el.getAttribute("data-lang-key");
-    if (LANG[state.currentLanguage] && LANG[state.currentLanguage][key]) {
-      el.textContent = LANG[state.currentLanguage][key];
+    if (LANG[currentLanguage] && LANG[currentLanguage][key]) {
+      el.textContent = LANG[currentLanguage][key];
     }
   });
   // refresh headings with current player and opponent names
@@ -144,12 +163,33 @@ function showMainMenu() {
 }
 
 function showSettingsMenu() {
+  console.log("Showing settings menu with current values:", {
+    language: currentLanguage,
+    graphics: graphicsQuality,
+  });
+
   const { mainMenu, settings, gameArea } = state.el;
   mainMenu.style.display = "none";
   settings.style.display = "flex";
   settings.style.flexDirection = "column";
   settings.style.alignItems = "center";
   gameArea.style.display = "none";
+
+  // Update select elements to show current values
+  if (state.el.languageSelect) {
+    state.el.languageSelect.value = currentLanguage;
+    console.log("Set language select to:", currentLanguage);
+  }
+  if (state.el.graphicsQualitySelect) {
+    state.el.graphicsQualitySelect.value = graphicsQuality;
+    console.log("Set graphics quality select to:", graphicsQuality);
+  }
+
+  // Translate UI to reflect current language
+  translateUI();
+
+  // Apply current graphics quality
+  applyGraphicsQuality();
 }
 
 function showGameArea() {
@@ -248,20 +288,42 @@ function initUI() {
   };
 
   /* Button-Events */
-  state.el.saveSettingsButton.addEventListener("click", () => {
-    saveSettings();
-    showMainMenu();
-  });
-  state.el.backToMainMenuButton.addEventListener("click", showMainMenu);
-  state.el.languageSelect.addEventListener("change", (e) => {
-    currentLanguage = e.target.value;
-    translateUI();
-    updateBoardTitles();
-  });
-  state.el.graphicsQualitySelect.addEventListener("change", (e) => {
-    graphicsQuality = e.target.value;
-    applyGraphicsQuality();
-  });
+  if (state.el.saveSettingsButton) {
+    state.el.saveSettingsButton.addEventListener("click", () => {
+      console.log("Save settings button clicked");
+      saveSettings();
+      showMainMenu();
+    });
+  } else {
+    console.error("saveSettingsButton not found");
+  }
+
+  if (state.el.backToMainMenuButton) {
+    state.el.backToMainMenuButton.addEventListener("click", showMainMenu);
+  } else {
+    console.error("backToMainMenuButton not found");
+  }
+
+  if (state.el.languageSelect) {
+    state.el.languageSelect.addEventListener("change", (e) => {
+      console.log("Language changed to:", e.target.value);
+      currentLanguage = e.target.value;
+      translateUI();
+      updateBoardTitles();
+    });
+  } else {
+    console.error("languageSelect not found");
+  }
+
+  if (state.el.graphicsQualitySelect) {
+    state.el.graphicsQualitySelect.addEventListener("change", (e) => {
+      console.log("Graphics quality changed to:", e.target.value);
+      graphicsQuality = e.target.value;
+      applyGraphicsQuality();
+    });
+  } else {
+    console.error("graphicsQualitySelect not found");
+  }
 
   /* Initiale Abläufe */
   loadSettings(); // Werte aus localStorage
