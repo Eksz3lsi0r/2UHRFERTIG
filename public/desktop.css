@@ -1494,13 +1494,15 @@ body {
 }
 @media (max-width: 600px) {
   #chat-bubble {
-    top: 12px;
+    bottom: 80px;
     left: 12px;
+    top: auto;
     width: 36px;
     height: 36px;
   }
   #chat-modal {
-    top: 8px;
+    top: auto;
+    bottom: 8px;
     left: 8px;
     min-width: 0;
     width: 96vw;

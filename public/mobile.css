@@ -137,13 +137,15 @@ body {
 
 /* Mobile-specific tweaks for chat bubble and chat modal */
 #chat-bubble {
-  top: 12px !important;
+  bottom: 80px !important;
   left: 12px !important;
+  top: auto !important;
   width: 36px !important;
   height: 36px !important;
 }
 #chat-modal {
-  top: 8px !important;
+  top: auto !important;
+  bottom: 8px !important;
   left: 8px !important;
   min-width: 0 !important;
   width: 96vw !important;
@@ -159,6 +161,85 @@ body {
 }
 #chat-form {
   padding: 8px 8px 10px 8px !important;
+}
+
+/* Mobile Chat Styling - positioned at bottom to avoid opponent area */
+@media (max-width: 600px) {
+  /* Chat positioniert unten, um Überlappung mit Gegner-Spielfeld zu vermeiden */
+  #chat-bubble {
+    bottom: 80px !important;
+    left: 12px !important;
+    top: auto !important;
+    width: 36px !important;
+    height: 36px !important;
+    z-index: 60 !important;
+  }
+
+  #chat-modal {
+    top: auto !important;
+    bottom: 8px !important;
+    left: 8px !important;
+    right: 8px !important;
+    min-width: 0 !important;
+    width: auto !important;
+    max-width: none !important;
+    min-height: 120px !important;
+    max-height: 50vh !important;
+    border-radius: 10px !important;
+    padding: 0 !important;
+    z-index: 110 !important;
+  }
+
+  /* Chat-Header anpassen für mobile Nutzung */
+  #chat-modal .chat-header {
+    padding: 8px 12px 0 12px !important;
+  }
+
+  /* Schließen-Button deutlicher machen */
+  #chat-close {
+    font-size: 1.8em !important;
+    padding: 4px 8px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 50% !important;
+    background: rgba(255, 70, 118, 0.2) !important;
+    transition: all 0.2s ease !important;
+  }
+
+  #chat-close:hover,
+  #chat-close:active {
+    background: rgba(255, 70, 118, 0.4) !important;
+    transform: scale(1.1) !important;
+  }
+
+  /* Chat-Nachrichten-Bereich anpassen */
+  #chat-messages {
+    max-height: 20vh !important;
+    font-size: 0.95em !important;
+    padding: 8px 12px !important;
+  }
+
+  /* Chat-Eingabe-Bereich anpassen */
+  #chat-form {
+    padding: 6px 8px 8px 8px !important;
+    gap: 6px !important;
+  }
+
+  #chat-input {
+    padding: 8px 10px !important;
+    font-size: 16px !important; /* Verhindert Zoom auf iOS */
+    border-radius: 8px !important;
+  }
+
+  #chat-send {
+    padding: 8px 12px !important;
+    font-size: 0.9em !important;
+    border-radius: 8px !important;
+    min-width: 60px !important;
+  }
 }
 
 /* Mobile Menu Fixes */

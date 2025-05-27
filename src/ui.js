@@ -564,6 +564,23 @@ function setupChatUI() {
     chatInput.blur();
   }
 
+  // Check if device is mobile
+  function isMobile() {
+    return window.matchMedia && window.matchMedia("(max-width: 600px)").matches;
+  }
+
+  // Close chat when clicking outside (mobile only)
+  function handleClickOutside(e) {
+    if (isMobile() && chatModal.style.display === "flex") {
+      // Check if click is outside of chat modal
+      if (!chatModal.contains(e.target) && !chatBubble.contains(e.target)) {
+        e.preventDefault();
+        e.stopPropagation();
+        closeChat();
+      }
+    }
+  }
+
   // Desktop: open chat on TAB
   document.addEventListener("keydown", (e) => {
     if (
@@ -581,6 +598,12 @@ function setupChatUI() {
       }
     }
   });
+
+  // Add click outside listener for mobile
+  document.addEventListener("touchstart", handleClickOutside, {
+    capture: true,
+  });
+  document.addEventListener("click", handleClickOutside, { capture: true });
 
   // Open chat on bubble click/tap
   chatBubble.onclick = openChat;
