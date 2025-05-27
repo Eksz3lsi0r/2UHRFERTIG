@@ -1,0 +1,22 @@
+{
+  "accounts": {
+    "123": {
+      "username": "123",
+      "password": "456",
+      "createdAt": "2025-05-27T05:35:45.942Z",
+      "rankingPoints": 1000,
+      "wins": 0,
+      "losses": 0,
+      "totalGames": 0
+    },
+    "bhh": {
+      "username": "bhh",
+      "password": "667",
+      "createdAt": "2025-05-27T05:30:51.685Z",
+      "rankingPoints": 1000,
+      "wins": 0,
+      "losses": 0,
+      "totalGames": 0
+    }
+  }
+}

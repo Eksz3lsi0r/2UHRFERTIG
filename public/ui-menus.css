@@ -761,11 +761,6 @@
   filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.8));
 }
 
-.ranking-points {
-  font-weight: bold;
-  color: #ffd700;
-}
-
 /* ───── PvP Mode Selection ───── */
 #pvpModeContainer {
   max-width: 420px;
@@ -807,6 +802,29 @@
     rgba(30, 25, 50, 0.95)
   ) !important;
   box-shadow: var(--shadow-lg), 0 0 30px rgba(255, 215, 0, 0.7) !important;
+}
+
+/* Disabled state for ranked PvP button (for guests) */
+#rankedPvPButton:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+  border-color: rgba(128, 128, 128, 0.3) !important;
+  background: linear-gradient(
+    135deg,
+    rgba(128, 128, 128, 0.15),
+    rgba(30, 25, 50, 0.5)
+  ) !important;
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+#rankedPvPButton:disabled:hover {
+  border-color: rgba(128, 128, 128, 0.3) !important;
+  background: linear-gradient(
+    135deg,
+    rgba(128, 128, 128, 0.15),
+    rgba(30, 25, 50, 0.5)
+  ) !important;
+  box-shadow: none !important;
 }
 
 .crown-pulse {
@@ -876,4 +894,218 @@
 #backFromPvPModeButton:active {
   transform: translateY(0) scale(0.98) !important;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* ───── Ranked Game Summary Overlay ───── */
+#rankedGameSummaryOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 100;
+  background: rgba(10, 10, 30, 0.92);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+#rankedGameSummaryBox {
+  background: linear-gradient(
+    135deg,
+    rgba(15, 12, 41, 0.95),
+    rgba(30, 25, 50, 0.9)
+  );
+  border-radius: 20px;
+  box-shadow: 0 0 30px rgba(255, 215, 0, 0.4), 0 0 60px rgba(138, 43, 226, 0.2);
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  padding: 32px 28px 28px 28px;
+  min-width: 320px;
+  max-width: 90vw;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.ranked-crown-icon {
+  font-size: 2.5em;
+  margin-bottom: 12px;
+  display: block;
+  filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.6));
+}
+
+#rankedGameResultTitle {
+  font-size: 2.2em;
+  margin-bottom: 24px;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+.ranked-final-scores {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 20px 0;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.ranked-score-section {
+  flex: 1;
+  text-align: center;
+}
+
+.ranked-score-label {
+  font-size: 0.9em;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 4px;
+}
+
+.ranked-final-score {
+  font-size: 2em;
+  font-weight: bold;
+  color: #00d2a8;
+  text-shadow: 0 0 8px rgba(0, 210, 168, 0.4);
+}
+
+.ranked-vs-divider {
+  margin: 0 16px;
+  font-size: 1.4em;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: bold;
+}
+
+.ranked-points-section {
+  margin: 24px 0;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.ranked-points-title {
+  font-size: 1.1em;
+  color: rgba(255, 215, 0, 0.9);
+  margin-bottom: 12px;
+  font-weight: bold;
+}
+
+.ranked-points-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 8px 0;
+  font-size: 1em;
+}
+
+.ranked-points-value {
+  font-weight: bold;
+  text-shadow: 0 0 6px rgba(255, 255, 255, 0.3);
+}
+
+#rankedPointsChange {
+  font-size: 1.1em;
+  font-weight: bold;
+  text-shadow: 0 0 8px currentColor;
+}
+
+#timeRemainingSection {
+  margin: 16px 0;
+  padding: 12px;
+  background: rgba(255, 165, 0, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 165, 0, 0.3);
+}
+
+.ranked-time-label {
+  font-size: 0.9em;
+  color: rgba(255, 165, 0, 0.8);
+  margin-bottom: 4px;
+}
+
+#rankedTimeRemaining {
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #ffa500;
+  text-shadow: 0 0 6px rgba(255, 165, 0, 0.4);
+}
+
+.ranked-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 28px;
+}
+
+#rankedRematchButton,
+#rankedMainMenuButton {
+  min-width: 130px;
+  font-size: 1.1em;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
+}
+
+#rankedRematchButton {
+  background: linear-gradient(135deg, #8a2be2, #a96cff);
+  border: 2px solid rgba(169, 108, 255, 0.4);
+  box-shadow: 0 0 15px rgba(138, 43, 226, 0.3);
+}
+
+#rankedRematchButton:hover {
+  background: linear-gradient(135deg, #a96cff, #bb7fff);
+  box-shadow: 0 0 25px rgba(138, 43, 226, 0.5);
+  transform: translateY(-2px);
+}
+
+#rankedMainMenuButton {
+  background: linear-gradient(135deg, #555, #777);
+  border: 2px solid rgba(119, 119, 119, 0.4);
+  box-shadow: 0 0 15px rgba(85, 85, 85, 0.3);
+}
+
+#rankedMainMenuButton:hover {
+  background: linear-gradient(135deg, #777, #999);
+  box-shadow: 0 0 25px rgba(85, 85, 85, 0.5);
+  transform: translateY(-2px);
+}
+
+/* Responsive adjustments for ranked overlay */
+@media (max-width: 600px) {
+  #rankedGameSummaryBox {
+    margin: 20px;
+    padding: 24px 20px;
+    min-width: auto;
+  }
+
+  .ranked-final-scores {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .ranked-vs-divider {
+    margin: 8px 0;
+  }
+
+  .ranked-buttons {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  #rankedRematchButton,
+  #rankedMainMenuButton {
+    width: 100%;
+  }
+}
+
+#rankedGameSummaryOverlay,
+#rankedGameSummaryBox {
+  max-width: 100vw !important;
+  max-height: 100vh !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
 }

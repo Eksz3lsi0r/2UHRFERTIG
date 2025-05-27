@@ -282,6 +282,21 @@ export const LANG = {
       `Du hast gewonnen gegen ${oppName} – Endstand ${pScore}:${oScore}`,
     gameLose: (oppName, pScore, oScore) =>
       `Du hast verloren gegen ${oppName} – Endstand ${pScore}:${oScore}`,
+
+    // Ranked game summary constants
+    rankedGameWin: (oppName) => `Sieg gegen ${oppName}!`,
+    rankedGameLose: (oppName) => `Niederlage gegen ${oppName}`,
+    finalScoreTitle: "Endergebnis",
+    yourScore: "Deine Punkte",
+    opponentScore: "Gegner Punkte",
+    rankingPointsChangeTitle: "Ranglistenpunkte",
+    previousRanking: "Vorherige Punkte",
+    pointsChange: "Änderung",
+    newRanking: "Neue Punkte",
+    timeRemaining: "Verbleibende Zeit",
+    rankedPointsGained: (points) => `+${points}`,
+    rankedPointsLost: (points) => `${points}`,
+
     opponentLeftMsg: (oppName) => `${oppName} hat das Spiel verlassen.`,
     rematchRequestedMsg: (oppName) =>
       `${oppName} möchte ein Rematch! Klicke auf Rematch, um zu starten.`,
@@ -356,6 +371,21 @@ export const LANG = {
       `You won against ${oppName} – Final score ${pScore}:${oScore}`,
     gameLose: (oppName, pScore, oScore) =>
       `You lost against ${oppName} – Final score ${pScore}:${oScore}`,
+
+    // Ranked game summary constants
+    rankedGameWin: (oppName) => `Victory against ${oppName}!`,
+    rankedGameLose: (oppName) => `Defeat against ${oppName}`,
+    finalScoreTitle: "Final Score",
+    yourScore: "Your Points",
+    opponentScore: "Opponent Points",
+    rankingPointsChangeTitle: "Ranking Points",
+    previousRanking: "Previous Points",
+    pointsChange: "Change",
+    newRanking: "New Points",
+    timeRemaining: "Time Remaining",
+    rankedPointsGained: (points) => `+${points}`,
+    rankedPointsLost: (points) => `${points}`,
+
     opponentLeftMsg: (oppName) => `${oppName} left the game.`,
     rematchRequestedMsg: (oppName) =>
       `${oppName} wants a rematch! Click Rematch to start.`,
@@ -426,6 +456,21 @@ export const LANG = {
       `Vous avez gagné contre ${oppName} – Score final ${pScore}:${oScore}`,
     gameLose: (oppName, pScore, oScore) =>
       `Vous avez perdu contre ${oppName} – Score final ${pScore}:${oScore}`,
+
+    // Ranked game summary constants
+    rankedGameWin: (oppName) => `Victoire contre ${oppName}!`,
+    rankedGameLose: (oppName) => `Défaite contre ${oppName}`,
+    finalScoreTitle: "Score Final",
+    yourScore: "Vos Points",
+    opponentScore: "Points Adversaire",
+    rankingPointsChangeTitle: "Points de Classement",
+    previousRanking: "Points Précédents",
+    pointsChange: "Changement",
+    newRanking: "Nouveaux Points",
+    timeRemaining: "Temps Restant",
+    rankedPointsGained: (points) => `+${points}`,
+    rankedPointsLost: (points) => `${points}`,
+
     opponentLeftMsg: (oppName) => `${oppName} a quitté la partie.`,
     rematchRequestedMsg: (oppName) =>
       `${oppName} veut une revanche ! Cliquez sur Revanche pour commencer.`,

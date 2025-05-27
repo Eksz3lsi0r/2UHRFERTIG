@@ -37,14 +37,44 @@
     <!-- Hintergrundsterne -->
     <div class="nebula-bg"></div>
 
-    <!-- Hauptmenü -->
-    <div id="mainMenuContainer" class="menu-glass">
-      <h1 id="mainMenuTitle" data-lang-key="mainMenuTitle">Shape Smasher!</h1>
-
+    <!-- Startmenü (neu hinzugefügt) -->
+    <div id="startMenuContainer" class="menu-glass">
+      <h1>Willkommen!</h1>
       <div class="menu-item">
-        <label for="playerNameInput" data-lang-key="playerNameLabel">Spielername:</label>
-        <input type="text" id="playerNameInput" value="Player" class="menu-input">
+        <label for="startNameInput">Name:</label>
+        <input type="text" id="startNameInput" class="menu-input">
       </div>
+      <div class="menu-item">
+        <label for="startPasswordInput">Passwort:</label>
+        <input type="password" id="startPasswordInput" class="menu-input">
+      </div>
+      <div style="display:flex; gap:10px; margin-bottom:10px;">
+        <button id="loginButton" class="menu-button">Auf in den Kampf</button>
+        <button id="registerButton" class="menu-button">Neuer Champion</button>
+      </div>
+      <button id="guestButton" class="menu-button">Als Gast spielen</button>
+    </div>
+
+    <!-- Registrierungsmenü (neu hinzugefügt) -->
+    <div id="registerMenuContainer" class="menu-glass" style="display:none;">
+      <h1>Neuer Champion</h1>
+      <div class="menu-item">
+        <label for="registerNameInput">Champion Name:</label>
+        <input type="text" id="registerNameInput" class="menu-input">
+      </div>
+      <div class="menu-item">
+        <label for="registerPasswordInput">Passwort:</label>
+        <input type="password" id="registerPasswordInput" class="menu-input">
+      </div>
+      <div style="display:flex; gap:10px; margin-bottom:10px;">
+        <button id="registerConfirmButton" class="menu-button">Auf in den Kampf</button>
+        <button id="backToStartButton" class="menu-button">Zurück zum Startbildschirm</button>
+      </div>
+    </div>
+
+    <!-- Hauptmenü -->
+    <div id="mainMenuContainer" class="menu-glass" style="display:none;">
+      <h1 id="mainMenuTitle" data-lang-key="mainMenuTitle">Shape Smasher!</h1>
 
       <button id="playVsCpuButton" class="menu-button main-menu-btn" data-lang-key="playVsCpuButton">Spiel gegen
         Computer</button>
@@ -106,6 +136,12 @@
           <span class="difficulty-description visually-hidden" data-lang-key="rankedPvPDescription">Kämpfe um
             Ranglistenpunkte und steige in der Rangliste auf</span>
         </button>
+      </div>
+
+      <!-- Guest warning for ranked play -->
+      <div id="guestRankedWarning"
+        style="display:none; color:#ff4444; text-align:center; margin:10px 0; font-size:0.9em;">
+        Um Ranglistenspiele spielen zu können, müssen Sie ein Champion sein.
       </div>
 
       <button id="backFromPvPModeButton" class="menu-button" data-lang-key="backToMainMenuButton">Zurück zum
@@ -200,6 +236,78 @@
         <div id="gameResultMsg" style="font-size:1.1em; margin-bottom:24px;"></div>
         <button id="rematchButton" class="menu-button" style="margin:0 10px 0 0;">Rematch</button>
         <button id="mainMenuButton" class="menu-button">Hauptmenü</button>
+      </div>
+    </div>
+
+    <!-- Ranked Game Summary Overlay -->
+    <div id="rankedGameSummaryOverlay"
+      style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:100; background:rgba(10,10,30,0.92); flex-direction:column; align-items:center; justify-content:center;">
+      <div id="rankedGameSummaryBox"
+        style="background:rgba(255,255,255,0.04); border-radius:18px; box-shadow:0 0 30px #ffd700; border:2px solid rgba(255,215,0,0.3); padding:40px 32px 32px 32px; min-width:400px; max-width:90vw; text-align:center;">
+
+        <!-- Crown icon for ranked games -->
+        <div style="font-size:3em; margin-bottom:20px;">👑</div>
+
+        <!-- Game result title -->
+        <h1 id="rankedGameResultTitle"
+          style="font-size:2.4em; margin-bottom:20px; color:#ffd700; text-shadow:0 0 8px rgba(255,215,0,0.6);"></h1>
+
+        <!-- Score section -->
+        <div class="ranked-summary-section" style="margin-bottom:24px;">
+          <h3 data-lang-key="finalScoreTitle" style="color:#00d2a8; margin-bottom:12px;">Endergebnis</h3>
+          <div class="score-display"
+            style="display:flex; justify-content:space-around; align-items:center; background:rgba(0,0,0,0.3); padding:16px; border-radius:12px;">
+            <div class="player-score">
+              <div style="font-size:0.9em; color:#ccc; margin-bottom:4px;" data-lang-key="yourScore">Deine Punkte</div>
+              <div id="rankedYourFinalScore" style="font-size:2em; font-weight:bold; color:#00d2a8;">0</div>
+            </div>
+            <div style="font-size:2em; color:#666;">:</div>
+            <div class="opponent-score">
+              <div style="font-size:0.9em; color:#ccc; margin-bottom:4px;" data-lang-key="opponentScore">Gegner Punkte
+              </div>
+              <div id="rankedOpponentFinalScore" style="font-size:2em; font-weight:bold; color:#ff6b6b;">0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ranking points change section -->
+        <div id="rankingChangeSection" class="ranked-summary-section" style="margin-bottom:24px;">
+          <h3 data-lang-key="rankingPointsChangeTitle" style="color:#ffd700; margin-bottom:12px;">Ranglistenpunkte</h3>
+          <div class="ranking-change-display" style="background:rgba(0,0,0,0.3); padding:16px; border-radius:12px;">
+            <div class="ranking-change-row"
+              style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <span data-lang-key="previousRanking">Vorherige Punkte:</span>
+              <span id="rankedPreviousPoints" style="color:#ccc;">0</span>
+            </div>
+            <div class="ranking-change-row"
+              style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <span data-lang-key="pointsChange">Änderung:</span>
+              <span id="rankedPointsChange" style="font-weight:bold;">0</span>
+            </div>
+            <div class="ranking-change-row"
+              style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(255,255,255,0.1); padding-top:8px; margin-top:8px;">
+              <span data-lang-key="newRanking">Neue Punkte:</span>
+              <span id="rankedNewPoints" style="color:#ffd700; font-weight:bold; font-size:1.2em;">0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Time remaining section (if applicable) -->
+        <div id="timeRemainingSection" class="ranked-summary-section" style="margin-bottom:24px; display:none;">
+          <div style="color:#888; font-size:0.9em;">
+            <span data-lang-key="timeRemaining">Verbleibende Zeit:</span>
+            <span id="rankedTimeRemaining">0:00</span>
+          </div>
+        </div>
+
+        <!-- Action buttons -->
+        <div style="display:flex; gap:12px; justify-content:center;">
+          <button id="rankedRematchButton" class="menu-button"
+            style="background:linear-gradient(135deg, rgba(255,215,0,0.25), rgba(30,25,50,0.8)); border-color:rgba(255,215,0,0.6); color:#ffd700;">
+            <span data-lang-key="rematchButton">Rematch</span>
+          </button>
+          <button id="rankedMainMenuButton" class="menu-button" data-lang-key="mainMenuButton">Hauptmenü</button>
+        </div>
       </div>
     </div>
 

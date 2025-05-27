@@ -1,5 +1,13 @@
 // src/state.js
 export const state = {
+  // initial state for menus
+  hasLoadedOnce: false,
+
+  // Authentication state
+  isAuthenticated: false,
+  isGuest: false,
+  accountData: null,
+
   // Modus / Flags
   currentMode: null,
   gameActive: false,

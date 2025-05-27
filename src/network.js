@@ -25,7 +25,10 @@ socket.on("waiting", (data) => {
  * ------------------------------------------------------------------ */
 export function findGame(playerName) {
   if (!socket.connected) socket.connect();
-  socket.emit("findGame", { playerName });
+  socket.emit("findGame", {
+    playerName,
+    ranked: state.rankedPvP || false,
+  });
 }
 export function sendBoard() {
   socket.emit("boardUpdate", state.playerBoard);
@@ -160,19 +163,34 @@ socket.on("gameEnd", (data) => {
   state.gameActive = false;
   const catchupTimer = document.getElementById("catchup-timer");
   if (catchupTimer) catchupTimer.style.display = "none";
-  const msg = data.win
-    ? LANG[state.currentLanguage].gameWin(
-        data.opponentName || state.opponentName,
-        data.yourScore,
-        data.opponentScore
-      )
-    : LANG[state.currentLanguage].gameLose(
-        data.opponentName || state.opponentName,
-        data.yourScore,
-        data.opponentScore
-      );
 
-  player.finishGame(data.win, msg);
+  // Check if this is a ranked game
+  if (data.isRanked && data.rankingChange) {
+    // Show ranked game summary overlay
+    ui.showRankedGameSummaryOverlay({
+      win: data.win,
+      yourScore: data.yourScore,
+      opponentScore: data.opponentScore,
+      opponentName: data.opponentName || state.opponentName,
+      rankingChange: data.rankingChange,
+      timeRemaining: data.timeRemaining || 0,
+    });
+  } else {
+    // Show normal game result overlay
+    const msg = data.win
+      ? LANG[state.currentLanguage].gameWin(
+          data.opponentName || state.opponentName,
+          data.yourScore,
+          data.opponentScore
+        )
+      : LANG[state.currentLanguage].gameLose(
+          data.opponentName || state.opponentName,
+          data.yourScore,
+          data.opponentScore
+        );
+
+    player.finishGame(data.win, msg);
+  }
 });
 
 /* ---- Gegner bricht ab ---------------------------------------------- */

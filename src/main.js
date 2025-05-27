@@ -26,9 +26,125 @@ window.showLeaderboard = () => ui.showLeaderboard();
  *  DomContentLoaded  –  alles bereitstellen
  * ------------------------------------------------------------------ */
 window.addEventListener("DOMContentLoaded", () => {
-  // sofort mit dem Server verbinden → Matchmaking funktioniert wieder
-  if (state.currentMode !== "cpu") {
+  // Show start menu on initial load
+  document.getElementById("startMenuContainer").style.display = "flex";
+
+  // Hide main menu and others until user makes a choice
+  document.getElementById("mainMenuContainer").style.display = "none";
+  document.getElementById("registerMenuContainer").style.display = "none";
+  document.getElementById("cpuDifficultyContainer").style.display = "none";
+  document.getElementById("pvpModeContainer").style.display = "none";
+  document.getElementById("settingsMenuContainer").style.display = "none";
+  document.getElementById("leaderboardContainer").style.display = "none";
+
+  // Start menu button handlers
+  document.getElementById("loginButton").addEventListener("click", async () => {
+    await handleLogin();
+  });
+  document.getElementById("registerButton").addEventListener("click", () => {
+    document.getElementById("startMenuContainer").style.display = "none";
+    document.getElementById("registerMenuContainer").style.display = "flex";
+  });
+  document.getElementById("guestButton").addEventListener("click", () => {
+    handleGuestLogin();
+  });
+
+  // Registration menu button handlers
+  document
+    .getElementById("registerConfirmButton")
+    .addEventListener("click", async () => {
+      await handleRegistration();
+    });
+  document.getElementById("backToStartButton").addEventListener("click", () => {
+    document.getElementById("registerMenuContainer").style.display = "none";
+    document.getElementById("startMenuContainer").style.display = "flex";
+  });
+
+  // Authentication helper functions
+  async function handleLogin() {
+    const username = document.getElementById("startNameInput").value.trim();
+    const password = document.getElementById("startPasswordInput").value;
+
+    if (!username || !password) {
+      alert("Bitte Name und Passwort eingeben!");
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        state.isAuthenticated = true;
+        state.isGuest = false;
+        state.playerName = username;
+        state.accountData = data.account;
+
+        networkSocket.connect();
+        document.getElementById("startMenuContainer").style.display = "none";
+        document.getElementById("mainMenuContainer").style.display = "flex";
+        ui.updateMainMenuForUser();
+      } else {
+        alert("Login fehlgeschlagen: " + data.error);
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      alert("Verbindungsfehler beim Login!");
+    }
+  }
+
+  async function handleRegistration() {
+    const username = document.getElementById("registerNameInput").value.trim();
+    const password = document.getElementById("registerPasswordInput").value;
+
+    if (!username || !password) {
+      alert("Bitte Name und Passwort eingeben!");
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        state.isAuthenticated = true;
+        state.isGuest = false;
+        state.playerName = username;
+        state.accountData = data.account;
+
+        networkSocket.connect();
+        document.getElementById("registerMenuContainer").style.display = "none";
+        document.getElementById("mainMenuContainer").style.display = "flex";
+        ui.updateMainMenuForUser();
+      } else {
+        alert("Registrierung fehlgeschlagen: " + data.error);
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
+      alert("Verbindungsfehler bei der Registrierung!");
+    }
+  }
+
+  function handleGuestLogin() {
+    state.isAuthenticated = false;
+    state.isGuest = true;
+    state.playerName = "Gast";
+    state.accountData = null;
+
     networkSocket.connect();
+    document.getElementById("startMenuContainer").style.display = "none";
+    document.getElementById("mainMenuContainer").style.display = "flex";
+    ui.updateMainMenuForUser();
   }
 
   /* UI & Board erzeugen */
@@ -98,9 +214,15 @@ window.addEventListener("DOMContentLoaded", () => {
     );
   }
   if (state.el.rankedPvPButton) {
-    state.el.rankedPvPButton.addEventListener("click", () =>
-      startPvpMode(true)
-    );
+    state.el.rankedPvPButton.addEventListener("click", () => {
+      if (state.isGuest) {
+        alert(
+          "Um Ranglistenspiele spielen zu können, müssen Sie sich als Champion registrieren!"
+        );
+        return;
+      }
+      startPvpMode(true);
+    });
   }
   if (state.el.backFromPvPModeButton) {
     state.el.backFromPvPModeButton.addEventListener("click", ui.showMainMenu);
@@ -145,7 +267,8 @@ function startCpuGameWithDifficulty(difficulty) {
   cpu.setDifficulty(difficulty);
 
   state.currentMode = "cpu";
-  state.playerName = state.el.playerNameInput.value || "Player";
+  // Use name from start menu or fallback
+  state.playerName = state.playerName || "Player";
   state.opponentName = "CPU";
 
   // Spieler-Board und Inventar komplett leeren (auch für Rematch)
@@ -191,6 +314,8 @@ function startCpuGameWithDifficulty(difficulty) {
  *  PvP Modus Auswahl anzeigen
  * ------------------------------------------------------------------ */
 function showPvpModeSelection() {
+  // Allow both guests and authenticated users to access PvP menu
+  // Guests can play normal games, but ranked games are restricted
   ui.showPvpModeMenu();
 }
 
@@ -198,8 +323,15 @@ function showPvpModeSelection() {
  *  Mehrspieler (PvP) starten
  * ------------------------------------------------------------------ */
 function startPvpMode(ranked = false) {
+  // Double-check authentication for ranked games
+  if (ranked && state.isGuest) {
+    alert("Gäste können nicht an Ranglisten-Spielen teilnehmen!");
+    return;
+  }
+
   state.currentMode = "player";
-  state.playerName = state.el.playerNameInput.value || "Player";
+  // Use name from start menu or fallback
+  state.playerName = state.playerName || "Player";
   state.rankedPvP = ranked;
 
   // Board DOM komplett neu aufbauen und State leeren

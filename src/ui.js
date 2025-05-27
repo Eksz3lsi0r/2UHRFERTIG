@@ -115,9 +115,17 @@ function getLangText(key) {
  * ------------------------------------------------------------------ */
 function showMainMenu() {
   const { mainMenu, settings, gameArea, leaderboard, pvpMode } = state.el;
+  // ensure start menu is hidden
+  const startMenu = document.getElementById("startMenuContainer");
+  const registerMenu = document.getElementById("registerMenuContainer");
+  if (startMenu) startMenu.style.display = "none";
+  if (registerMenu) registerMenu.style.display = "none";
   const cpuDifficultyContainer = document.getElementById(
     "cpuDifficultyContainer"
   );
+
+  // Update UI based on authentication status
+  updateMainMenuForUser();
 
   mainMenu.style.display = "flex";
   settings.style.display = "none";
@@ -274,6 +282,9 @@ function showPvpModeMenu() {
     pvpMode.style.flexDirection = "column";
     pvpMode.style.alignItems = "center";
   }
+
+  // Update PvP menu based on user status
+  updatePvpMenuForUser();
 
   // Translate UI to reflect current language
   translateUI();
@@ -570,16 +581,6 @@ function initUI() {
     backFromLeaderboardButton.addEventListener("click", showMainMenu);
   }
 
-  // Player name input listener to update ranking points
-  if (state.el.playerNameInput) {
-    state.el.playerNameInput.addEventListener("input", () => {
-      updatePlayerRankingPoints();
-    });
-    state.el.playerNameInput.addEventListener("blur", () => {
-      updatePlayerRankingPoints();
-    });
-  }
-
   /* Initiale Abläufe */
   loadSettings(); // Werte aus localStorage
   translateUI(); // Texte einsetzen
@@ -772,6 +773,108 @@ function showGameResultOverlay({ win, msg }) {
   };
 }
 
+/* --------------------------------------------------------------------
+ *  Ranked Game Summary Overlay
+ * ------------------------------------------------------------------ */
+function showRankedGameSummaryOverlay({
+  win,
+  yourScore,
+  opponentScore,
+  opponentName,
+  rankingChange,
+  timeRemaining,
+}) {
+  const overlay = document.getElementById("rankedGameSummaryOverlay");
+  const title = document.getElementById("rankedGameResultTitle");
+  const yourFinalScore = document.getElementById("rankedYourFinalScore");
+  const opponentFinalScore = document.getElementById(
+    "rankedOpponentFinalScore"
+  );
+  const previousPoints = document.getElementById("rankedPreviousPoints");
+  const pointsChange = document.getElementById("rankedPointsChange");
+  const newPoints = document.getElementById("rankedNewPoints");
+  const timeRemainingSection = document.getElementById("timeRemainingSection");
+  const timeRemainingSpan = document.getElementById("rankedTimeRemaining");
+  const rematchBtn = document.getElementById("rankedRematchButton");
+  const mainMenuBtn = document.getElementById("rankedMainMenuButton");
+
+  if (
+    !overlay ||
+    !title ||
+    !yourFinalScore ||
+    !opponentFinalScore ||
+    !rematchBtn ||
+    !mainMenuBtn
+  )
+    return;
+
+  // Set title and scores
+  const lang = LANG[state.currentLanguage];
+  if (win) {
+    title.textContent = lang.rankedGameWin(opponentName);
+    title.style.color = "#1fd655";
+  } else {
+    title.textContent = lang.rankedGameLose(opponentName);
+    title.style.color = "#e74c3c";
+  }
+
+  // Set final scores
+  yourFinalScore.textContent = yourScore || 0;
+  opponentFinalScore.textContent = opponentScore || 0;
+
+  // Set ranking points change if available
+  if (rankingChange && previousPoints && pointsChange && newPoints) {
+    previousPoints.textContent = rankingChange.oldPoints || 0;
+    newPoints.textContent = rankingChange.newPoints || 0;
+
+    const change = rankingChange.change || 0;
+    if (change > 0) {
+      pointsChange.textContent = lang.rankedPointsGained(change);
+      pointsChange.style.color = "#1fd655";
+    } else {
+      pointsChange.textContent = lang.rankedPointsLost(change);
+      pointsChange.style.color = "#e74c3c";
+    }
+  }
+
+  // Set time remaining if applicable
+  if (timeRemaining > 0 && timeRemainingSection && timeRemainingSpan) {
+    const minutes = Math.floor(timeRemaining / 60);
+    const seconds = timeRemaining % 60;
+    timeRemainingSpan.textContent = `${minutes}:${seconds
+      .toString()
+      .padStart(2, "0")}`;
+    timeRemainingSection.style.display = "block";
+  } else if (timeRemainingSection) {
+    timeRemainingSection.style.display = "none";
+  }
+
+  // Show overlay
+  overlay.style.display = "flex";
+
+  // Set up button handlers
+  rematchBtn.onclick = () => {
+    overlay.style.display = "none";
+    if (typeof window.requestRematch === "function") {
+      window.requestRematch();
+    } else if (window.socket && window.socket.emit) {
+      window.socket.emit("requestRematch");
+    }
+  };
+
+  mainMenuBtn.onclick = () => {
+    overlay.style.display = "none";
+    if (typeof window.goToMainMenu === "function") {
+      window.goToMainMenu();
+    } else if (window.ui && window.ui.showMainMenu) {
+      window.ui.showMainMenu();
+    }
+  };
+
+  // Update player ranking points display for main menu
+  updatePlayerRankingPoints();
+}
+
 // --- Chat UI Logic (PvP only) ---
 function setupChatUI() {
   const chatBubble = document.getElementById("chat-bubble");
@@ -914,11 +1017,17 @@ export const ui = {
   showGameArea,
   showCpuDifficultyMenu,
   showLeaderboard,
+  buildBoardDOM,
   displayMessage,
+  getLangText,
+  updateBoardTitles,
+  updateMainMenuForUser,
+  updatePvpMenuForUser,
   showCatchupTimer,
   updateCatchupTimer,
   hideCatchupTimer,
   showGameResultOverlay,
+  showRankedGameSummaryOverlay,
 
   /* Reactive Getter/Setter */
   get lang() {
@@ -940,9 +1049,88 @@ export const ui = {
 /* --------------------------------------------------------------------
  *  Update Player Ranking Points Display
  * ------------------------------------------------------------------ */
+function updateMainMenuForUser() {
+  // Update leaderboard button behavior for guests
+  if (state.el.leaderboardButton) {
+    if (state.isGuest) {
+      // For guests, show a different message or disable ranked features
+      const rankingPoints =
+        state.el.leaderboardButton.querySelector(".ranking-points");
+      if (rankingPoints) {
+        rankingPoints.style.display = "none";
+      }
+    } else {
+      // For authenticated users, show their ranking
+      const rankingPoints =
+        state.el.leaderboardButton.querySelector(".ranking-points");
+      if (rankingPoints) {
+        rankingPoints.style.display = "flex";
+      }
+      updatePlayerRankingPoints();
+    }
+  }
+
+  // Note: Guests CAN access PvP mode (normal games), so no restrictions here
+  // The restriction is only for ranked games, handled in updatePvpMenuForUser
+}
+
+function updatePvpMenuForUser() {
+  const rankedButton = document.getElementById("rankedPvPButton");
+  const normalButton = document.getElementById("normalPvPButton");
+  const guestWarning = document.getElementById("guestRankedWarning");
+
+  if (state.isGuest) {
+    // For guests: normal PvP is available, ranked is restricted
+    if (normalButton) {
+      normalButton.disabled = false;
+      normalButton.style.opacity = "1";
+      normalButton.style.cursor = "pointer";
+      normalButton.title =
+        "Entspanntes Spiel ohne Auswirkung auf die Rangliste";
+    }
+
+    if (rankedButton) {
+      rankedButton.disabled = true;
+      rankedButton.style.opacity = "0.5";
+      rankedButton.style.cursor = "not-allowed";
+      rankedButton.title = "Nur für registrierte Champions verfügbar";
+      // Add visual strikethrough effect
+      rankedButton.style.textDecoration = "line-through";
+      rankedButton.style.position = "relative";
+    }
+
+    if (guestWarning) {
+      guestWarning.style.display = "block";
+    }
+  } else {
+    // For authenticated users: both modes available
+    if (normalButton) {
+      normalButton.disabled = false;
+      normalButton.style.opacity = "1";
+      normalButton.style.cursor = "pointer";
+      normalButton.title =
+        "Entspanntes Spiel ohne Auswirkung auf die Rangliste";
+    }
+
+    if (rankedButton) {
+      rankedButton.disabled = false;
+      rankedButton.style.opacity = "1";
+      rankedButton.style.cursor = "pointer";
+      rankedButton.style.textDecoration = "none";
+      rankedButton.title =
+        "Kämpfe um Ranglistenpunkte und steige in der Rangliste auf";
+    }
+
+    if (guestWarning) {
+      guestWarning.style.display = "none";
+    }
+  }
+}
+
 async function updatePlayerRankingPoints() {
   try {
-    const playerName = state.el.playerNameInput.value || "Player";
+    // Use playerName from state (set in start menu)
+    const playerName = state.playerName || "Player";
     const response = await fetch(
       `/api/player-ranking/${encodeURIComponent(playerName)}`
     );

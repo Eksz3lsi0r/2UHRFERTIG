@@ -1,11 +1,18 @@
 {
   "players": {
-    "Player": {
-      "name": "Player",
-      "rankingPoints": 1050,
-      "wins": 1,
+    "123": {
+      "name": "123",
+      "rankingPoints": 1104,
+      "wins": 2,
       "losses": 0,
-      "totalGames": 1
+      "totalGames": 2
+    },
+    "bhh": {
+      "name": "bhh",
+      "rankingPoints": 940,
+      "wins": 0,
+      "losses": 2,
+      "totalGames": 2
     }
   }
 }

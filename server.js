@@ -14,6 +14,8 @@ app.use(express.json());
 
 // Leaderboard storage file
 const LEADERBOARD_FILE = path.join(__dirname, "leaderboard.json");
+// Accounts storage file
+const ACCOUNTS_FILE = path.join(__dirname, "accounts.json");
 
 // Liefere Root-HTML abhängig vom User-Agent für Mobilgeräte
 app.get("/", (req, res, next) => {
@@ -30,6 +32,25 @@ app.use(express.static(path.join(__dirname, "public"))); // HTML, CSS, no-scroll
 app.use(express.static(path.join(__dirname, "upload"))); // (optional)
 app.use("/sounds", express.static(path.join(__dirname, "sounds"))); // alias für WAVs
 app.use("/src", express.static(path.join(__dirname, "src"))); //  ←  NEU
+
+// Accounts helper functions
+async function loadAccounts() {
+  try {
+    const data = await fs.readFile(ACCOUNTS_FILE, "utf8");
+    return JSON.parse(data);
+  } catch (error) {
+    // File doesn't exist or is invalid, return empty accounts
+    return { accounts: {} };
+  }
+}
+
+async function saveAccounts(accounts) {
+  try {
+    await fs.writeFile(ACCOUNTS_FILE, JSON.stringify(accounts, null, 2));
+  } catch (error) {
+    console.error("Failed to save accounts:", error);
+  }
+}
 
 // Leaderboard helper functions
 async function loadLeaderboard() {
@@ -64,25 +85,140 @@ async function updatePlayerRanking(playerName, won, score) {
   }
 
   const player = leaderboard.players[playerName];
+  const oldPoints = player.rankingPoints;
   player.totalGames++;
 
+  let pointChange = 0;
   if (won) {
     player.wins++;
     // Award points for winning (base 50 + score bonus)
-    const pointsGained = Math.min(100, 50 + Math.floor(score / 100));
-    player.rankingPoints += pointsGained;
+    pointChange = Math.min(100, 50 + Math.floor(score / 100));
+    player.rankingPoints += pointChange;
   } else {
     player.losses++;
     // Lose points for losing (base -30, but never go below 0)
-    const pointsLost = Math.min(player.rankingPoints, 30);
-    player.rankingPoints -= pointsLost;
+    pointChange = -Math.min(player.rankingPoints, 30);
+    player.rankingPoints += pointChange; // pointChange is negative
   }
 
   await saveLeaderboard(leaderboard);
-  return player;
+  return {
+    ...player,
+    oldPoints,
+    pointChange,
+  };
 }
 
 // API endpoints
+// Authentication endpoints
+app.post("/api/register", async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+      return res.status(400).json({
+        success: false,
+        error: "Username and password are required",
+      });
+    }
+
+    const accounts = await loadAccounts();
+
+    // Check if username already exists
+    if (accounts.accounts[username]) {
+      return res.status(409).json({
+        success: false,
+        error: "Username already exists",
+      });
+    }
+
+    // Create new account
+    accounts.accounts[username] = {
+      username: username,
+      password: password, // In production, this should be hashed!
+      createdAt: new Date().toISOString(),
+      rankingPoints: 1000,
+      wins: 0,
+      losses: 0,
+      totalGames: 0,
+    };
+
+    await saveAccounts(accounts);
+
+    // Also initialize in leaderboard
+    const leaderboard = await loadLeaderboard();
+    if (!leaderboard.players[username]) {
+      leaderboard.players[username] = {
+        name: username,
+        rankingPoints: 1000,
+        wins: 0,
+        losses: 0,
+        totalGames: 0,
+      };
+      await saveLeaderboard(leaderboard);
+    }
+
+    res.json({
+      success: true,
+      message: "Account created successfully",
+      account: {
+        username: username,
+        rankingPoints: 1000,
+        wins: 0,
+        losses: 0,
+        totalGames: 0,
+      },
+    });
+  } catch (error) {
+    console.error("Registration error:", error);
+    res.status(500).json({
+      success: false,
+      error: "Internal server error",
+    });
+  }
+});
+
+app.post("/api/login", async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+      return res.status(400).json({
+        success: false,
+        error: "Username and password are required",
+      });
+    }
+
+    const accounts = await loadAccounts();
+    const account = accounts.accounts[username];
+
+    if (!account || account.password !== password) {
+      return res.status(401).json({
+        success: false,
+        error: "Invalid username or password",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Login successful",
+      account: {
+        username: account.username,
+        rankingPoints: account.rankingPoints,
+        wins: account.wins,
+        losses: account.losses,
+        totalGames: account.totalGames,
+      },
+    });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({
+      success: false,
+      error: "Internal server error",
+    });
+  }
+});
+
 app.get("/api/leaderboard", async (req, res) => {
   try {
     const leaderboard = await loadLeaderboard();
@@ -148,7 +284,8 @@ function initializeGameData(
   player1Id,
   player2Id,
   player1Name,
-  player2Name
+  player2Name,
+  isRanked = false
 ) {
   const initialBoard = Array(10)
     .fill(0)
@@ -167,6 +304,8 @@ function initializeGameData(
     rematchRequested: { [player1Id]: false, [player2Id]: false },
     isFinished: false,
     finishedPlayers: [], // Track who sent gameOver
+    isRanked: isRanked, // Track if this is a ranked game
+    startTime: Date.now(), // Track when the game started
   };
 }
 
@@ -175,6 +314,7 @@ io.on("connection", async (socket) => {
 
   socket.on("findGame", (data) => {
     socket.playerName = data.playerName || "Anonymous";
+    socket.isRanked = data.ranked || false; // Track ranked status for this player
     if (
       waitingPlayer &&
       waitingPlayer.connected &&
@@ -183,6 +323,9 @@ io.on("connection", async (socket) => {
       const room = `game-${++gameCount}`;
       const player1 = waitingPlayer;
       const player2 = socket;
+
+      // Game is ranked if either player requested ranked play
+      const isRankedGame = player1.isRanked || player2.isRanked;
 
       Promise.all([player1.join(room), player2.join(room)])
         .then(() => {
@@ -194,7 +337,8 @@ io.on("connection", async (socket) => {
             player1.id,
             player2.id,
             player1.playerName,
-            player2.playerName
+            player2.playerName,
+            isRankedGame
           );
 
           io.to(room).emit("startGame", {
@@ -319,6 +463,8 @@ io.on("connection", async (socket) => {
     const room = socket.gameRoom;
     if (!room || !games[room]) return;
 
+    const oldGame = games[room];
+    const wasRanked = oldGame.isRanked; // Preserve ranked status for rematch
     socket.gameRoom = null; // Clear the game room reference before finding a new game
 
     // Handle like a new game request, exactly like findGame
@@ -341,7 +487,8 @@ io.on("connection", async (socket) => {
             player1.id,
             player2.id,
             player1.playerName,
-            player2.playerName
+            player2.playerName,
+            wasRanked // Use the ranked status from the previous game
           );
 
           io.to(newRoom).emit("startGame", {
@@ -464,7 +611,7 @@ io.on("connection", async (socket) => {
   });
 });
 
-function finish(room, winnerId) {
+async function finish(room, winnerId) {
   const game = games[room];
   if (!game || game.isFinished) return;
   game.isFinished = true;
@@ -473,28 +620,76 @@ function finish(room, winnerId) {
   );
   if (game.timeout) clearTimeout(game.timeout);
 
+  // Calculate time remaining for catchup games
+  let timeRemaining = 0;
+  if (game.firstFinisher) {
+    // If the game ended by timeout, timeRemaining is 0
+    // If the game ended by both players finishing, calculate how much time was left for the second player
+    if (game.finishedPlayers.length === 2 && game.timeout) {
+      // Game ended before timeout naturally
+      const now = Date.now();
+      const catchupStart = game.firstFinisherTime || game.startTime;
+      const elapsed = now - catchupStart;
+      const maxCatchup = 180 * 1000;
+      timeRemaining = Math.max(0, Math.floor((maxCatchup - elapsed) / 1000));
+    } else {
+      // Game ended by timeout or only one player finished
+      timeRemaining = 0;
+    }
+  }
+
   const loserId = game.players.find((id) => id !== winnerId);
   const winnerScore =
     game.scores[winnerId] !== undefined ? game.scores[winnerId] : 0;
   const loserScore =
     game.scores[loserId] !== undefined ? game.scores[loserId] : 0;
 
-  // Update player rankings for PvP games
-  if (winnerId && loserId) {
+  // Update player rankings for ranked PvP games only
+  let winnerRankingChange = null;
+  let loserRankingChange = null;
+
+  if (winnerId && loserId && game.isRanked) {
     const winnerName = game.playerNames[winnerId];
     const loserName = game.playerNames[loserId];
 
-    // Update rankings asynchronously
-    updatePlayerRanking(winnerName, true, winnerScore).catch((err) =>
-      console.error("Failed to update winner ranking:", err)
-    );
-    updatePlayerRanking(loserName, false, loserScore).catch((err) =>
-      console.error("Failed to update loser ranking:", err)
-    );
+    try {
+      // Update rankings and get the point changes
+      const winnerResult = await updatePlayerRanking(
+        winnerName,
+        true,
+        winnerScore
+      );
+      const loserResult = await updatePlayerRanking(
+        loserName,
+        false,
+        loserScore
+      );
 
-    console.log(
-      `Ranking updated: ${winnerName} (winner, ${winnerScore} pts) vs ${loserName} (loser, ${loserScore} pts)`
-    );
+      // Use the point changes from the update function
+      winnerRankingChange = {
+        oldPoints: winnerResult.oldPoints,
+        newPoints: winnerResult.rankingPoints,
+        change: winnerResult.pointChange,
+      };
+
+      loserRankingChange = {
+        oldPoints: loserResult.oldPoints,
+        newPoints: loserResult.rankingPoints,
+        change: loserResult.pointChange,
+      };
+
+      console.log(
+        `Ranking updated: ${winnerName} (winner, ${winnerScore} pts, ${
+          winnerRankingChange.change > 0 ? "+" : ""
+        }${
+          winnerRankingChange.change
+        }) vs ${loserName} (loser, ${loserScore} pts, ${
+          loserRankingChange.change
+        })`
+      );
+    } catch (err) {
+      console.error("Failed to update rankings:", err);
+    }
   }
 
   if (io.sockets.sockets.get(winnerId)) {
@@ -503,6 +698,9 @@ function finish(room, winnerId) {
       yourScore: winnerScore,
       opponentScore: loserScore,
       opponentName: game.playerNames[loserId],
+      isRanked: game.isRanked,
+      rankingChange: winnerRankingChange,
+      timeRemaining: timeRemaining,
     });
   }
   if (loserId && io.sockets.sockets.get(loserId)) {
@@ -511,6 +709,9 @@ function finish(room, winnerId) {
       yourScore: loserScore,
       opponentScore: winnerScore,
       opponentName: game.playerNames[winnerId],
+      isRanked: game.isRanked,
+      rankingChange: loserRankingChange,
+      timeRemaining: timeRemaining,
     });
   }
 
