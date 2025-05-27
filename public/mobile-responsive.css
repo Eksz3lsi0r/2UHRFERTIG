@@ -35,6 +35,10 @@
     font-size: 1em;
     min-width: 90px;
   }
+
+  #gameResultBox .button-container {
+    gap: 15px;
+  }
 }
 
 @media (max-width: 600px) {
