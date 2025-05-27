@@ -54,6 +54,38 @@
         data-lang-key="settingsButton">Einstellungen</button>
     </div>
 
+    <!-- CPU Schwierigkeitsauswahl -->
+    <div id="cpuDifficultyContainer" style="display:none;" class="menu-glass">
+      <h1 data-lang-key="cpuDifficultyTitle">Schwierigkeitsgrad wählen</h1>
+
+      <div class="difficulty-options">
+        <button id="easyModeButton" class="menu-button difficulty-btn" data-lang-key="difficultyEasy">
+          <div class="difficulty-icon easy-icon">🌱</div>
+          <span class="difficulty-title easy-title" style="font-family: 'Roboto', sans-serif !important;">Einfach</span>
+          <span class="difficulty-description" data-lang-key="easyDescription">Für Anfänger - KI macht einfache
+            Züge</span>
+        </button>
+
+        <button id="mediumModeButton" class="menu-button difficulty-btn" data-lang-key="difficultyMedium">
+          <div class="difficulty-icon medium-icon">⚡</div>
+          <span class="difficulty-title medium-title"
+            style="font-family: 'Roboto', sans-serif !important; text-transform: uppercase !important;">Mittel</span>
+          <span class="difficulty-description" data-lang-key="mediumDescription">Ausgewogen - KI denkt
+            strategisch</span>
+        </button>
+
+        <button id="hardModeButton" class="menu-button difficulty-btn" data-lang-key="difficultyHard">
+          <div class="difficulty-icon hard-icon">🔥</div>
+          <span class="difficulty-title hard-title"
+            style="font-family: 'Roboto', sans-serif !important; text-transform: uppercase !important; letter-spacing: 3px !important;">Schwer</span>
+          <span class="difficulty-description" data-lang-key="hardDescription">Herausfordernd - KI spielt optimal</span>
+        </button>
+      </div>
+
+      <button id="backFromDifficultyButton" class="menu-button" data-lang-key="backToMainMenuButton">Zurück zum
+        Hauptmenü</button>
+    </div>
+
     <!-- Einstellungsmenü -->
     <div id="settingsMenuContainer" style="display:none;">
       <h1 data-lang-key="settingsTitle">Einstellungen</h1>

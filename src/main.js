@@ -17,6 +17,7 @@ window.player = player;
 window.ui = ui;
 window.cpu = cpu;
 window.startCpuMode = startCpuMode;
+window.startCpuGameWithDifficulty = startCpuGameWithDifficulty;
 window.startPvpMode = startPvpMode;
 
 /* --------------------------------------------------------------------
@@ -113,9 +114,19 @@ function onDropDesktop(ev) {
 }
 
 /* --------------------------------------------------------------------
- *  Einzelspieler (CPU) starten
+ *  Schwierigkeitsauswahl anzeigen
  * ------------------------------------------------------------------ */
 function startCpuMode() {
+  ui.showCpuDifficultyMenu();
+}
+
+/* --------------------------------------------------------------------
+ *  Einzelspieler (CPU) mit gewählter Schwierigkeit starten
+ * ------------------------------------------------------------------ */
+function startCpuGameWithDifficulty(difficulty) {
+  // Schwierigkeit setzen
+  cpu.setDifficulty(difficulty);
+
   state.currentMode = "cpu";
   state.playerName = state.el.playerNameInput.value || "Player";
   state.opponentName = "CPU";

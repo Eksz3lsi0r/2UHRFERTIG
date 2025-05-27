@@ -40,6 +40,8 @@ export const state = {
 
   // Domänenübergreifende Sprache
   currentLanguage: "de",
+  // CPU-Schwierigkeitsgrad
+  cpuDifficulty: "easy", // "easy", "medium", "hard"
   // DOM-Referenzen (füllen wir später in ui.js)
   el: {},
 };

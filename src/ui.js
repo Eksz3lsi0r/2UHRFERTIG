@@ -111,9 +111,16 @@ function translateUI() {
  * ------------------------------------------------------------------ */
 function showMainMenu() {
   const { mainMenu, settings, gameArea } = state.el;
+  const cpuDifficultyContainer = document.getElementById(
+    "cpuDifficultyContainer"
+  );
+
   mainMenu.style.display = "flex";
   settings.style.display = "none";
   gameArea.style.display = "none";
+  if (cpuDifficultyContainer) {
+    cpuDifficultyContainer.style.display = "none";
+  }
   import("./audio.js").then((mod) => mod.stopBg());
 
   // Spieler-Board und Inventar komplett leeren
@@ -169,11 +176,18 @@ function showSettingsMenu() {
   });
 
   const { mainMenu, settings, gameArea } = state.el;
+  const cpuDifficultyContainer = document.getElementById(
+    "cpuDifficultyContainer"
+  );
+
   mainMenu.style.display = "none";
   settings.style.display = "flex";
   settings.style.flexDirection = "column";
   settings.style.alignItems = "center";
   gameArea.style.display = "none";
+  if (cpuDifficultyContainer) {
+    cpuDifficultyContainer.style.display = "none";
+  }
 
   // Update select elements to show current values
   if (state.el.languageSelect) {
@@ -194,13 +208,37 @@ function showSettingsMenu() {
 
 function showGameArea() {
   const { mainMenu, settings, gameArea, message } = state.el;
+  const cpuDifficultyContainer = document.getElementById(
+    "cpuDifficultyContainer"
+  );
+
   mainMenu.style.display = "none";
   settings.style.display = "none";
   gameArea.style.display = "flex";
+  if (cpuDifficultyContainer) {
+    cpuDifficultyContainer.style.display = "none";
+  }
   // Do NOT hide message overlay here, so timer/info is visible
   // update the board headings
   updateBoardTitles();
   import("./audio.js").then((mod) => mod.startBg());
+}
+
+function showCpuDifficultyMenu() {
+  const { mainMenu, settings, gameArea } = state.el;
+  const cpuDifficultyContainer = document.getElementById(
+    "cpuDifficultyContainer"
+  );
+
+  mainMenu.style.display = "none";
+  settings.style.display = "none";
+  gameArea.style.display = "none";
+  if (cpuDifficultyContainer) {
+    cpuDifficultyContainer.style.display = "flex";
+  }
+
+  // Translate UI to reflect current language
+  translateUI();
 }
 
 /* --------------------------------------------------------------------
@@ -323,6 +361,42 @@ function initUI() {
     });
   } else {
     console.error("graphicsQualitySelect not found");
+  }
+
+  // CPU Difficulty Selection Button Event Handlers
+  const easyModeButton = document.getElementById("easyModeButton");
+  const mediumModeButton = document.getElementById("mediumModeButton");
+  const hardModeButton = document.getElementById("hardModeButton");
+  const backFromDifficultyButton = document.getElementById(
+    "backFromDifficultyButton"
+  );
+
+  if (easyModeButton) {
+    easyModeButton.addEventListener("click", () => {
+      if (typeof window.startCpuGameWithDifficulty === "function") {
+        window.startCpuGameWithDifficulty("easy");
+      }
+    });
+  }
+
+  if (mediumModeButton) {
+    mediumModeButton.addEventListener("click", () => {
+      if (typeof window.startCpuGameWithDifficulty === "function") {
+        window.startCpuGameWithDifficulty("medium");
+      }
+    });
+  }
+
+  if (hardModeButton) {
+    hardModeButton.addEventListener("click", () => {
+      if (typeof window.startCpuGameWithDifficulty === "function") {
+        window.startCpuGameWithDifficulty("hard");
+      }
+    });
+  }
+
+  if (backFromDifficultyButton) {
+    backFromDifficultyButton.addEventListener("click", showMainMenu);
   }
 
   /* Initiale Abläufe */
@@ -656,6 +730,7 @@ export const ui = {
   showMainMenu,
   showSettingsMenu,
   showGameArea,
+  showCpuDifficultyMenu,
   displayMessage,
   showCatchupTimer,
   updateCatchupTimer,
