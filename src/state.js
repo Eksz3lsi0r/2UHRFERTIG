@@ -16,6 +16,17 @@ export const state = {
   cpuScore: 0,
   opponentScore: 0,
 
+  // Combo-System für Multiplikatoren (Spieler)
+  consecutiveClears: 0,
+  lastClearTurn: -1,
+  currentMultiplier: 1,
+
+  // Combo-System für CPU
+  cpuConsecutiveClears: 0,
+  cpuLastClearTurn: -1,
+  cpuCurrentMultiplier: 1,
+  cpuTurnCounter: 0,
+
   // Boards & DOM-Arrays
   playerBoard: Array(10)
     .fill(0)

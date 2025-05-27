@@ -735,14 +735,8 @@
   }
 
   .difficulty-icon {
-    font-size: 2em !important;
+    font-size: 2.5em !important;
     margin-bottom: 8px !important;
-  }
-
-  .difficulty-title {
-    font-size: 1.4em !important;
-    margin-bottom: 6px !important;
-    text-align: center !important;
   }
 
   .difficulty-description {
@@ -770,32 +764,21 @@
     margin-right: 6px !important;
   }
 
-  /* Mobile Schriftarten für Schwierigkeitsgrade beibehalten */
-  #easyModeButton .difficulty-title,
-  #easyModeButton .easy-title {
-    font-family: "Comic Sans MS", "Trebuchet MS", cursive !important;
-    font-weight: 600 !important;
+  #cpuDifficultyContainer #easyModeButton .difficulty-title,
+  #cpuDifficultyContainer #easyModeButton .easy-title,
+  #cpuDifficultyContainer #mediumModeButton .difficulty-title,
+  #cpuDifficultyContainer #mediumModeButton .medium-title,
+  #cpuDifficultyContainer #hardModeButton .difficulty-title,
+  #cpuDifficultyContainer #hardModeButton .hard-title {
+    font-family: "Trade Winds", cursive !important;
+    font-weight: 700 !important;
     font-size: 1.4em !important;
     text-transform: none !important;
-    letter-spacing: 0.5px !important;
-  }
-
-  #mediumModeButton .difficulty-title,
-  #mediumModeButton .medium-title {
-    font-family: "Arial Black", "Helvetica", sans-serif !important;
-    font-weight: 800 !important;
-    text-transform: uppercase !important;
-    font-size: 1.4em !important;
     letter-spacing: 1px !important;
   }
 
-  #hardModeButton .difficulty-title,
-  #hardModeButton .hard-title {
-    font-family: "Impact", "Arial Black", sans-serif !important;
-    font-weight: 900 !important;
-    text-transform: uppercase !important;
-    letter-spacing: 2px !important;
-    font-size: 1.4em !important;
+  .html-text-node {
+    font-family: Arial, sans-serif;
   }
 }
 
@@ -841,4 +824,15 @@
 #cpuDifficultyContainer #hardModeButton:hover .difficulty-title,
 #cpuDifficultyContainer #hardModeButton:hover .hard-title {
   color: #ef5350 !important;
+}
+#node_modules {
+  display: text !important;
+  font: tradewinds, cursive !important;
+  font-size: 1.2em !important;
+  text-align: center !important;
+}
+#node_modules:before {
+  content: text !important;
+  font: tradewinds, cursive !important;
+  font-size: 1.2em !important;
 }

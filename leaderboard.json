@@ -1,0 +1,11 @@
+{
+  "players": {
+    "Player": {
+      "name": "Player",
+      "rankingPoints": 1050,
+      "wins": 1,
+      "losses": 0,
+      "totalGames": 1
+    }
+  }
+}

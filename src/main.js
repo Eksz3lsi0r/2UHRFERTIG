@@ -19,6 +19,8 @@ window.cpu = cpu;
 window.startCpuMode = startCpuMode;
 window.startCpuGameWithDifficulty = startCpuGameWithDifficulty;
 window.startPvpMode = startPvpMode;
+window.showPvpModeSelection = showPvpModeSelection;
+window.showLeaderboard = () => ui.showLeaderboard();
 
 /* --------------------------------------------------------------------
  *  DomContentLoaded  –  alles bereitstellen
@@ -75,7 +77,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
   /* Menü-Buttons ------------------------------------------------------ */
   state.el.playVsCpuButton.addEventListener("click", startCpuMode);
-  state.el.playVsPlayerButton.addEventListener("click", startPvpMode);
+  state.el.playVsPlayerButton.addEventListener("click", showPvpModeSelection);
   state.el.settingsButton.addEventListener("click", ui.showSettingsMenu);
 
   /* Fenstergröße → GridSnap neu initialisieren ----------------------- */
@@ -88,6 +90,21 @@ window.addEventListener("DOMContentLoaded", () => {
   // state.el.board.addEventListener("touchend", touchEndHandler);
 
   // Touch-Drag & Drop erfolgt jetzt ausschließlich über GridSnap
+
+  // PvP Mode Selection Event Handlers
+  if (state.el.normalPvPButton) {
+    state.el.normalPvPButton.addEventListener("click", () =>
+      startPvpMode(false)
+    );
+  }
+  if (state.el.rankedPvPButton) {
+    state.el.rankedPvPButton.addEventListener("click", () =>
+      startPvpMode(true)
+    );
+  }
+  if (state.el.backFromPvPModeButton) {
+    state.el.backFromPvPModeButton.addEventListener("click", ui.showMainMenu);
+  }
 });
 
 /* --------------------------------------------------------------------
@@ -171,11 +188,19 @@ function startCpuGameWithDifficulty(difficulty) {
 }
 
 /* --------------------------------------------------------------------
+ *  PvP Modus Auswahl anzeigen
+ * ------------------------------------------------------------------ */
+function showPvpModeSelection() {
+  ui.showPvpModeMenu();
+}
+
+/* --------------------------------------------------------------------
  *  Mehrspieler (PvP) starten
  * ------------------------------------------------------------------ */
-function startPvpMode() {
+function startPvpMode(ranked = false) {
   state.currentMode = "player";
   state.playerName = state.el.playerNameInput.value || "Player";
+  state.rankedPvP = ranked;
 
   // Board DOM komplett neu aufbauen und State leeren
   state.playerBoard = Array(10)

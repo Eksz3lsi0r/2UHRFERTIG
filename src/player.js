@@ -297,7 +297,17 @@ function placeShape(shape, br, bc) {
   }
   state.playerScore += shape.length;
   updateScoreDisplay();
+
+  // Merke den Zustand vor dem Löschen für Combo-Logic
+  const hadLinesBeforeClearing = _hasFullLines();
   _clearLines();
+
+  // Falls keine Linien gelöscht wurden, Combo zurücksetzen
+  if (!hadLinesBeforeClearing) {
+    state.consecutiveClears = 0;
+    state.currentMultiplier = 1;
+  }
+
   // Entferne das platzte Piece aus dem Inventar
   const idx = state.playerPieces.findIndex(
     (sh) =>
@@ -309,7 +319,26 @@ function placeShape(shape, br, bc) {
 }
 
 /* --------------------------------------------------------------------
- *  Zeilen/Spalten räumen
+ *  Hilfsfunktion: Prüft ob es volle Linien gibt
+ * ------------------------------------------------------------------ */
+function _hasFullLines() {
+  // Prüfe Reihen
+  for (let r = 0; r < 10; r++) {
+    if (state.playerBoard[r].every((v) => v === 1)) return true;
+  }
+  // Prüfe Spalten
+  for (let c = 0; c < 10; c++) {
+    let colFull = true;
+    for (let r = 0; r < 10; r++) {
+      if (state.playerBoard[r][c] !== 1) colFull = false;
+    }
+    if (colFull) return true;
+  }
+  return false;
+}
+
+/* --------------------------------------------------------------------
+ *  Zeilen/Spalten räumen - mit erweitertem Punktesystem und Multiplikatoren
  * ------------------------------------------------------------------ */
 function _clearLines() {
   const fullRows = [],
@@ -324,9 +353,30 @@ function _clearLines() {
     }
     if (colFull) fullCols.push(c);
   }
-  if (fullRows.length === 0 && fullCols.length === 0) return;
+
+  if (fullRows.length === 0 && fullCols.length === 0) {
+    // Keine Linien gelöscht - kein Reset hier, wird in placeShape gehandhabt
+    return;
+  }
+
   // Animation & Sound
   import("./audio.js").then((mod) => mod.clearSound.play?.());
+
+  // Multi-Line Flash Animation für mehrfache Löschungen
+  if (
+    fullRows.length > 1 ||
+    fullCols.length > 1 ||
+    (fullRows.length && fullCols.length)
+  ) {
+    const boardElement = document.getElementById("board");
+    if (boardElement) {
+      boardElement.classList.add("multi-line-flash");
+      setTimeout(() => {
+        boardElement.classList.remove("multi-line-flash");
+      }, 1200);
+    }
+  }
+
   fullRows.forEach((r) => {
     state.playerBoard[r].fill(0);
     // Update UI: remove filled, rainbow and inline background
@@ -348,10 +398,237 @@ function _clearLines() {
       }
     }
   });
-  let bonus = fullRows.length + fullCols.length;
-  if (fullRows.length && fullCols.length) bonus++;
-  state.playerScore += bonus * 10;
+
+  // Erweiterte Punkteberechnung
+  let basePoints = fullRows.length + fullCols.length;
+
+  // Bonus für gleichzeitige Zeilen- und Spalten-Löschung
+  if (fullRows.length && fullCols.length) basePoints += 2;
+
+  // Multi-Line Bonus (mehr als eine Linie gleichzeitig)
+  if (fullRows.length > 1) basePoints += fullRows.length * 2;
+  if (fullCols.length > 1) basePoints += fullCols.length * 2;
+
+  // Combo-System: Aufeinanderfolgende Löschungen
+  state.consecutiveClears++;
+
+  // Multiplikator berechnen (steigt mit Combos)
+  if (state.consecutiveClears > 1) {
+    state.currentMultiplier = Math.min(state.consecutiveClears, 8); // Maximum 8x
+  } else {
+    state.currentMultiplier = 1;
+  }
+
+  // Finale Punkte mit Multiplikator
+  let finalPoints = basePoints * 10 * state.currentMultiplier;
+
+  // Berechne die Gesamtzahl der gelöschten Linien für die Animation
+  const totalLinesCleared = fullRows.length + fullCols.length;
+
+  // Animationen anzeigen
+  _showScoreAnimations(finalPoints, state.currentMultiplier, totalLinesCleared);
+
+  state.playerScore += finalPoints;
   updateScoreDisplay();
+}
+
+/* --------------------------------------------------------------------
+ *  Test-Funktion für Animationen (zur Debugging)
+ * ------------------------------------------------------------------ */
+function testAnimations() {
+  console.log("Testing animations...");
+  _showMultiplierAnimation(2, 2);
+  setTimeout(() => {
+    _showPointsAnimation(50);
+  }, 1000);
+}
+
+// Test-Funktion global verfügbar machen
+window.testAnimations = testAnimations;
+
+/* --------------------------------------------------------------------
+ *  Animationen für Punkte und Multiplikatoren anzeigen
+ * ------------------------------------------------------------------ */
+function _showScoreAnimations(points, multiplier, totalLinesCleared = 0) {
+  console.log("_showScoreAnimations called:", {
+    points,
+    multiplier,
+    totalLinesCleared,
+  });
+
+  // Multiplikator-Animation zeigen bei mehrfach-Linien oder Combos
+  const shouldShowMultiplier = multiplier > 1 || totalLinesCleared > 1;
+  console.log("shouldShowMultiplier:", shouldShowMultiplier);
+
+  if (shouldShowMultiplier) {
+    console.log("Calling _showMultiplierAnimation");
+    _showMultiplierAnimation(multiplier, totalLinesCleared);
+  }
+
+  // Punkte-Animation bei hohen Werten (> 10 Punkte)
+  if (points > 10) {
+    console.log("Calling _showPointsAnimation with points:", points);
+    // Kleine Verzögerung wenn auch Multiplikator-Animation läuft
+    const delay = shouldShowMultiplier ? 500 : 0;
+    setTimeout(() => {
+      _showPointsAnimation(points);
+    }, delay);
+  }
+
+  // Score-Display Combo-Animation
+  if (multiplier > 1 || points > 10) {
+    const scoreDisplay = document.querySelector("#playerArea .scoreDisplay");
+    if (scoreDisplay) {
+      scoreDisplay.classList.add("score-combo");
+      setTimeout(() => {
+        scoreDisplay.classList.remove("score-combo");
+      }, 1500);
+    }
+  }
+}
+
+function _showMultiplierAnimation(multiplier, totalLinesCleared = 0) {
+  console.log("_showMultiplierAnimation called:", {
+    multiplier,
+    totalLinesCleared,
+  });
+
+  // Stelle sicher, dass gameArea sichtbar ist
+  const gameArea = document.getElementById("gameArea");
+  if (!gameArea || gameArea.style.display === "none") {
+    console.log("gameArea not visible, skipping animation");
+    return;
+  }
+
+  let multiplierDisplay = document.getElementById("multiplierDisplay");
+  let multiplierText = multiplierDisplay?.querySelector(".multiplier-text");
+
+  // Falls Elemente nicht existieren, erstelle sie dynamisch
+  if (!multiplierDisplay) {
+    console.log("Creating multiplierDisplay dynamically");
+    const board = document.getElementById("board");
+    if (!board) {
+      console.error("Board element not found!");
+      return;
+    }
+
+    multiplierDisplay = document.createElement("div");
+    multiplierDisplay.id = "multiplierDisplay";
+    multiplierDisplay.className = "multiplier-display";
+    multiplierDisplay.style.display = "none";
+
+    multiplierText = document.createElement("div");
+    multiplierText.className = "multiplier-text";
+    multiplierDisplay.appendChild(multiplierText);
+
+    board.appendChild(multiplierDisplay);
+  }
+
+  if (!multiplierText) {
+    multiplierText = multiplierDisplay.querySelector(".multiplier-text");
+  }
+
+  console.log("DOM elements found:", {
+    multiplierDisplay: !!multiplierDisplay,
+    multiplierText: !!multiplierText,
+  });
+
+  if (!multiplierDisplay || !multiplierText) {
+    console.error("Animation elements still not found after creation!");
+    return;
+  }
+
+  let displayText = "";
+
+  // Zeige entsprechende Animation je nach Situation
+  if (totalLinesCleared >= 2 && multiplier > 1) {
+    // Mehrfach-Linien UND Combo - kürzer und prägnanter
+    displayText = `X${totalLinesCleared} + X${multiplier} COMBO!`;
+  } else if (totalLinesCleared >= 2) {
+    // Nur mehrfach-Linien - einfacher X2, X3, etc.
+    displayText = `X${totalLinesCleared} MULTI!`;
+  } else if (multiplier > 1) {
+    // Nur Combo
+    displayText = `X${multiplier} COMBO!`;
+  }
+
+  multiplierText.textContent = displayText;
+  multiplierDisplay.style.display = "block";
+
+  console.log("Animation started with text:", displayText);
+  console.log(
+    "multiplierDisplay style.display set to:",
+    multiplierDisplay.style.display
+  );
+
+  setTimeout(() => {
+    multiplierDisplay.style.display = "none";
+    console.log("Animation ended, display set to none");
+  }, 2500);
+}
+
+function _showPointsAnimation(points) {
+  console.log("_showPointsAnimation called with points:", points);
+
+  // Stelle sicher, dass gameArea sichtbar ist
+  const gameArea = document.getElementById("gameArea");
+  if (!gameArea || gameArea.style.display === "none") {
+    console.log("gameArea not visible, skipping points animation");
+    return;
+  }
+
+  let pointsAnimation = document.getElementById("pointsAnimation");
+  let pointsText = pointsAnimation?.querySelector(".points-text");
+
+  // Falls Elemente nicht existieren, erstelle sie dynamisch
+  if (!pointsAnimation) {
+    console.log("Creating pointsAnimation dynamically");
+    const board = document.getElementById("board");
+    if (!board) {
+      console.error("Board element not found!");
+      return;
+    }
+
+    pointsAnimation = document.createElement("div");
+    pointsAnimation.id = "pointsAnimation";
+    pointsAnimation.className = "points-animation";
+    pointsAnimation.style.display = "none";
+
+    pointsText = document.createElement("div");
+    pointsText.className = "points-text";
+    pointsAnimation.appendChild(pointsText);
+
+    board.appendChild(pointsAnimation);
+  }
+
+  if (!pointsText) {
+    pointsText = pointsAnimation.querySelector(".points-text");
+  }
+
+  console.log("Points animation DOM elements:", {
+    pointsAnimation: !!pointsAnimation,
+    pointsText: !!pointsText,
+  });
+
+  if (!pointsAnimation || !pointsText) {
+    console.error("Points animation elements still not found after creation!");
+    return;
+  }
+
+  pointsText.textContent = `+${points}`;
+
+  // Reset animation by briefly hiding and showing the element
+  pointsAnimation.style.display = "none";
+  // Force reflow to ensure the style change takes effect
+  pointsAnimation.offsetHeight;
+  pointsAnimation.style.display = "block";
+
+  console.log("Points animation started with text:", `+${points}`);
+
+  setTimeout(() => {
+    pointsAnimation.style.display = "none";
+    console.log("Points animation ended");
+  }, 2000);
 }
 
 /* --------------------------------------------------------------------

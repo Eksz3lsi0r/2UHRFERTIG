@@ -106,11 +106,15 @@ function translateUI() {
   updateBoardTitles();
 }
 
+function getLangText(key) {
+  return (LANG[currentLanguage] && LANG[currentLanguage][key]) || key;
+}
+
 /* --------------------------------------------------------------------
  *  Menü-Anzeigen
  * ------------------------------------------------------------------ */
 function showMainMenu() {
-  const { mainMenu, settings, gameArea } = state.el;
+  const { mainMenu, settings, gameArea, leaderboard, pvpMode } = state.el;
   const cpuDifficultyContainer = document.getElementById(
     "cpuDifficultyContainer"
   );
@@ -118,6 +122,8 @@ function showMainMenu() {
   mainMenu.style.display = "flex";
   settings.style.display = "none";
   gameArea.style.display = "none";
+  if (leaderboard) leaderboard.style.display = "none";
+  if (pvpMode) pvpMode.style.display = "none";
   if (cpuDifficultyContainer) {
     cpuDifficultyContainer.style.display = "none";
   }
@@ -167,6 +173,9 @@ function showMainMenu() {
       }
     }
   }
+
+  // Update player ranking points display
+  updatePlayerRankingPoints();
 }
 
 function showSettingsMenu() {
@@ -175,7 +184,7 @@ function showSettingsMenu() {
     graphics: graphicsQuality,
   });
 
-  const { mainMenu, settings, gameArea } = state.el;
+  const { mainMenu, settings, gameArea, leaderboard } = state.el;
   const cpuDifficultyContainer = document.getElementById(
     "cpuDifficultyContainer"
   );
@@ -185,6 +194,7 @@ function showSettingsMenu() {
   settings.style.flexDirection = "column";
   settings.style.alignItems = "center";
   gameArea.style.display = "none";
+  if (leaderboard) leaderboard.style.display = "none";
   if (cpuDifficultyContainer) {
     cpuDifficultyContainer.style.display = "none";
   }
@@ -207,7 +217,8 @@ function showSettingsMenu() {
 }
 
 function showGameArea() {
-  const { mainMenu, settings, gameArea, message } = state.el;
+  const { mainMenu, settings, gameArea, message, leaderboard, pvpMode } =
+    state.el;
   const cpuDifficultyContainer = document.getElementById(
     "cpuDifficultyContainer"
   );
@@ -215,6 +226,8 @@ function showGameArea() {
   mainMenu.style.display = "none";
   settings.style.display = "none";
   gameArea.style.display = "flex";
+  if (leaderboard) leaderboard.style.display = "none";
+  if (pvpMode) pvpMode.style.display = "none";
   if (cpuDifficultyContainer) {
     cpuDifficultyContainer.style.display = "none";
   }
@@ -225,7 +238,49 @@ function showGameArea() {
 }
 
 function showCpuDifficultyMenu() {
-  const { mainMenu, settings, gameArea } = state.el;
+  const { mainMenu, settings, gameArea, leaderboard, pvpMode } = state.el;
+  const cpuDifficultyContainer = document.getElementById(
+    "cpuDifficultyContainer"
+  );
+
+  mainMenu.style.display = "none";
+  settings.style.display = "none";
+  gameArea.style.display = "none";
+  if (leaderboard) leaderboard.style.display = "none";
+  if (pvpMode) pvpMode.style.display = "none";
+  if (cpuDifficultyContainer) {
+    cpuDifficultyContainer.style.display = "flex";
+  }
+
+  // Translate UI to reflect current language
+  translateUI();
+}
+
+function showPvpModeMenu() {
+  const { mainMenu, settings, gameArea, leaderboard, pvpMode } = state.el;
+  const cpuDifficultyContainer = document.getElementById(
+    "cpuDifficultyContainer"
+  );
+
+  mainMenu.style.display = "none";
+  settings.style.display = "none";
+  gameArea.style.display = "none";
+  if (leaderboard) leaderboard.style.display = "none";
+  if (cpuDifficultyContainer) {
+    cpuDifficultyContainer.style.display = "none";
+  }
+  if (pvpMode) {
+    pvpMode.style.display = "flex";
+    pvpMode.style.flexDirection = "column";
+    pvpMode.style.alignItems = "center";
+  }
+
+  // Translate UI to reflect current language
+  translateUI();
+}
+
+function showLeaderboard() {
+  const { mainMenu, settings, gameArea, leaderboard, pvpMode } = state.el;
   const cpuDifficultyContainer = document.getElementById(
     "cpuDifficultyContainer"
   );
@@ -234,11 +289,108 @@ function showCpuDifficultyMenu() {
   settings.style.display = "none";
   gameArea.style.display = "none";
   if (cpuDifficultyContainer) {
-    cpuDifficultyContainer.style.display = "flex";
+    cpuDifficultyContainer.style.display = "none";
   }
+  if (leaderboard) {
+    leaderboard.style.display = "flex";
+    leaderboard.style.flexDirection = "column";
+    leaderboard.style.alignItems = "center";
+  }
+  if (pvpMode) pvpMode.style.display = "none";
 
-  // Translate UI to reflect current language
-  translateUI();
+  // Load leaderboard data
+  loadLeaderboardData();
+}
+
+async function loadLeaderboardData() {
+  const loadingElement = document.getElementById("leaderboardLoading");
+  const emptyElement = document.getElementById("leaderboardEmpty");
+  const listElement = document.getElementById("leaderboardList");
+
+  // Show loading state
+  if (loadingElement) loadingElement.style.display = "block";
+  if (emptyElement) emptyElement.style.display = "none";
+  if (listElement) listElement.style.display = "none";
+
+  try {
+    const response = await fetch("/api/leaderboard");
+    const leaderboardData = await response.json();
+
+    // Hide loading state
+    if (loadingElement) loadingElement.style.display = "none";
+
+    if (
+      leaderboardData.success &&
+      leaderboardData.players &&
+      leaderboardData.players.length > 0
+    ) {
+      // Show leaderboard list
+      if (listElement) {
+        listElement.style.display = "block";
+        renderLeaderboard(leaderboardData.players);
+      }
+      if (emptyElement) emptyElement.style.display = "none";
+    } else {
+      // Show empty state
+      if (emptyElement) emptyElement.style.display = "block";
+      if (listElement) listElement.style.display = "none";
+    }
+  } catch (error) {
+    console.error("Failed to load leaderboard:", error);
+    // Hide loading state and show empty state on error
+    if (loadingElement) loadingElement.style.display = "none";
+    if (emptyElement) emptyElement.style.display = "block";
+    if (listElement) listElement.style.display = "none";
+  }
+}
+
+function renderLeaderboard(players) {
+  const listElement = document.getElementById("leaderboardList");
+  if (!listElement) return;
+
+  // Sort players by ranking points (highest first)
+  const sortedPlayers = players.sort(
+    (a, b) => b.rankingPoints - a.rankingPoints
+  );
+
+  // Generate HTML for leaderboard items
+  const leaderboardHTML = sortedPlayers
+    .map((player, index) => {
+      const rank = index + 1;
+      const rankClass = rank <= 3 ? `rank-${rank}` : "";
+
+      return `
+      <div class="leaderboard-item">
+        <div class="leaderboard-rank ${rankClass}">#${rank}</div>
+        <div class="leaderboard-player-info">
+          <div class="leaderboard-player-name">${escapeHtml(player.name)}</div>
+          <div class="leaderboard-player-stats">
+            <span data-lang-key="wins">${getLangText("wins")}</span>: ${
+        player.wins || 0
+      } • 
+            <span data-lang-key="losses">${getLangText("losses")}</span>: ${
+        player.losses || 0
+      }
+          </div>
+        </div>
+        <div class="leaderboard-points">
+          ${player.rankingPoints}
+          <div class="leaderboard-points-label" data-lang-key="rankingPoints">${getLangText(
+            "rankingPoints"
+          )}</div>
+        </div>
+      </div>
+    `;
+    })
+    .join("");
+
+  listElement.innerHTML = leaderboardHTML;
+}
+
+function escapeHtml(text) {
+  const div = document.createElement("div");
+  div.textContent = text;
+  return div.innerHTML;
 }
 
 /* --------------------------------------------------------------------
@@ -304,12 +456,18 @@ function initUI() {
     /* Menüs & Container */
     mainMenu: $("mainMenuContainer"),
     settings: $("settingsMenuContainer"),
+    leaderboard: $("leaderboardContainer"),
+    pvpMode: $("pvpModeContainer"),
     gameArea: $("gameArea"),
 
     /* Eingaben & Buttons */
     playerNameInput: $("playerNameInput"),
     playVsCpuButton: $("playVsCpuButton"),
     playVsPlayerButton: $("playVsPlayerButton"),
+    normalPvPButton: $("normalPvPButton"),
+    rankedPvPButton: $("rankedPvPButton"),
+    backFromPvPModeButton: $("backFromPvPModeButton"),
+    leaderboardButton: $("leaderboardButton"),
     settingsButton: $("settingsButton"),
     saveSettingsButton: $("saveSettingsButton"),
     backToMainMenuButton: $("backToMainMenuButton"),
@@ -397,6 +555,29 @@ function initUI() {
 
   if (backFromDifficultyButton) {
     backFromDifficultyButton.addEventListener("click", showMainMenu);
+  }
+
+  // Leaderboard button event handler
+  if (state.el.leaderboardButton) {
+    state.el.leaderboardButton.addEventListener("click", showLeaderboard);
+  }
+
+  // Back from leaderboard button event handler
+  const backFromLeaderboardButton = document.getElementById(
+    "backFromLeaderboardButton"
+  );
+  if (backFromLeaderboardButton) {
+    backFromLeaderboardButton.addEventListener("click", showMainMenu);
+  }
+
+  // Player name input listener to update ranking points
+  if (state.el.playerNameInput) {
+    state.el.playerNameInput.addEventListener("input", () => {
+      updatePlayerRankingPoints();
+    });
+    state.el.playerNameInput.addEventListener("blur", () => {
+      updatePlayerRankingPoints();
+    });
   }
 
   /* Initiale Abläufe */
@@ -729,8 +910,10 @@ export const ui = {
   translateUI,
   showMainMenu,
   showSettingsMenu,
+  showPvpModeMenu,
   showGameArea,
   showCpuDifficultyMenu,
+  showLeaderboard,
   displayMessage,
   showCatchupTimer,
   updateCatchupTimer,
@@ -753,6 +936,31 @@ export const ui = {
     applyGraphicsQuality();
   },
 };
+
+/* --------------------------------------------------------------------
+ *  Update Player Ranking Points Display
+ * ------------------------------------------------------------------ */
+async function updatePlayerRankingPoints() {
+  try {
+    const playerName = state.el.playerNameInput.value || "Player";
+    const response = await fetch(
+      `/api/player-ranking/${encodeURIComponent(playerName)}`
+    );
+    const data = await response.json();
+
+    const rankingPointsElement = document.getElementById("playerRankingPoints");
+    if (rankingPointsElement) {
+      rankingPointsElement.textContent = data.rankingPoints || 1000;
+    }
+  } catch (error) {
+    console.log("Could not fetch player ranking:", error);
+    // Default to 1000 if fetch fails
+    const rankingPointsElement = document.getElementById("playerRankingPoints");
+    if (rankingPointsElement) {
+      rankingPointsElement.textContent = "1000";
+    }
+  }
+}
 
 // Call setupChatUI after ui is defined
 if (document.readyState === "loading") {

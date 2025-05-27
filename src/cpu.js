@@ -39,6 +39,12 @@ function initGame() {
   state.cpuPieces = [];
   state.cpuGameActive = true;
 
+  // Initialize CPU combo system
+  state.cpuConsecutiveClears = 0;
+  state.cpuLastClearTurn = -1;
+  state.cpuCurrentMultiplier = 1;
+  state.cpuTurnCounter = 0;
+
   renderCpuBoard(); // zeigt leeres Board
   updateScore(); // setzt 0
   _generatePieces(); // erste 3 Teile
@@ -49,6 +55,9 @@ function initGame() {
  * ------------------------------------------------------------------ */
 function takeTurn() {
   if (!state.cpuGameActive) return;
+
+  // Increment turn counter for combo tracking
+  state.cpuTurnCounter++;
 
   /* Nachschub besorgen */
   if (state.cpuPieces.length === 0) _generatePieces();
@@ -373,36 +382,71 @@ function _placeShape(shape, br, bc) {
       col = bc + c;
     state.cpuBoard[row][col] = 1;
   });
-  state.cpuScore += shape.length;
+  // Points are now awarded only through _clearLines() with enhanced scoring
 }
 
-/* ---------- Zeilen/Spalten leeren ----------------------------------- */
+/* ---------- Zeilen/Spalten leeren - mit erweitertem Punktesystem und Multiplikatoren ----------------------------------- */
 function _clearLines() {
   const fullRows = [],
     fullCols = [];
-  for (let r = 0; r < 10; r++)
+  for (let r = 0; r < 10; r++) {
     if (state.cpuBoard[r].every((v) => v === 1)) fullRows.push(r);
-  for (let c = 0; c < 10; c++) {
-    let full = true;
-    for (let r = 0; r < 10; r++)
-      if (state.cpuBoard[r][c] !== 1) {
-        full = false;
-        break;
-      }
-    if (full) fullCols.push(c);
   }
-  if (fullRows.length === 0 && fullCols.length === 0) return;
-  clearSound.play?.(); // optional Klang
+  for (let c = 0; c < 10; c++) {
+    let colFull = true;
+    for (let r = 0; r < 10; r++) {
+      if (state.cpuBoard[r][c] !== 1) colFull = false;
+    }
+    if (colFull) fullCols.push(c);
+  }
 
+  if (fullRows.length === 0 && fullCols.length === 0) {
+    // Keine Linien gelöscht - Combo zurücksetzen
+    state.cpuConsecutiveClears = 0;
+    state.cpuCurrentMultiplier = 1;
+    return;
+  }
+
+  // Sound (optional)
+  clearSound.play?.();
+
+  // Linien löschen
   fullRows.forEach((r) => state.cpuBoard[r].fill(0));
   fullCols.forEach((c) => {
     for (let r = 0; r < 10; r++) state.cpuBoard[r][c] = 0;
   });
 
-  let bonus = fullRows.length + fullCols.length;
-  if (fullRows.length && fullCols.length)
-    bonus += fullRows.length * fullCols.length;
-  state.cpuScore += bonus * 10;
+  // Erweiterte Punkteberechnung
+  let basePoints = fullRows.length + fullCols.length;
+
+  // Bonus für gleichzeitige Zeilen- und Spalten-Löschung
+  if (fullRows.length && fullCols.length) basePoints += 2;
+
+  // Multi-Line Bonus (mehr als eine Linie gleichzeitig)
+  if (fullRows.length > 1) basePoints += fullRows.length * 2;
+  if (fullCols.length > 1) basePoints += fullCols.length * 2;
+
+  // Combo-System: Aufeinanderfolgende Löschungen
+  if (state.cpuLastClearTurn === state.cpuTurnCounter - 1) {
+    // Consecutive clear
+    state.cpuConsecutiveClears++;
+  } else {
+    // New combo starts
+    state.cpuConsecutiveClears = 1;
+  }
+  state.cpuLastClearTurn = state.cpuTurnCounter;
+
+  // Multiplikator berechnen (steigt mit Combos)
+  if (state.cpuConsecutiveClears > 1) {
+    state.cpuCurrentMultiplier = Math.min(state.cpuConsecutiveClears, 8); // Maximum 8x
+  } else {
+    state.cpuCurrentMultiplier = 1;
+  }
+
+  // Finale Punkte mit Multiplikator
+  let finalPoints = basePoints * 10 * state.cpuCurrentMultiplier;
+
+  state.cpuScore += finalPoints;
 }
 
 /* ---------- Shapes erzeugen ---------------------------------------- */

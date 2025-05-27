@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="mobile-responsive.css">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:wght@300;400;500;700&display=swap"
       rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Trade+Winds&display=swap" rel="stylesheet">
 
     <!-- Mobile / PWA Meta -->
     <meta name="viewport"
@@ -49,6 +50,13 @@
         Computer</button>
       <button id="playVsPlayerButton" class="menu-button main-menu-btn" data-lang-key="playVsPlayerButton">Spieler gegen
         Spieler</button>
+      <button id="leaderboardButton" class="menu-button main-menu-btn" data-lang-key="leaderboardButton">
+        <span class="leaderboard-text">Rangliste</span>
+        <span class="player-ranking">
+          <span class="crown-icon">👑</span>
+          <span class="ranking-points" id="playerRankingPoints">1000</span>
+        </span>
+      </button>
       <button id="settingsButton" class="menu-button main-menu-btn"
         data-lang-key="settingsButton">Einstellungen</button>
     </div>
@@ -58,30 +66,49 @@
       <h1 data-lang-key="cpuDifficultyTitle">Schwierigkeitsgrad wählen</h1>
 
       <div class="difficulty-options">
-        <button id="easyModeButton" class="menu-button difficulty-btn" data-lang-key="difficultyEasy">
+        <button id="easyModeButton" class="menu-button difficulty-btn" data-lang-key="Einfach">
           <div class="difficulty-icon easy-icon">🌱</div>
-          <span class="difficulty-title easy-title" style="font-family: 'Roboto', sans-serif !important;">Einfach</span>
-          <span class="difficulty-description" data-lang-key="easyDescription">Für Anfänger - KI macht einfache
+          <span class="difficulty-description visually-hidden" data-lang-key="easyDescription">Für Anfänger - KI macht
+            einfache
             Züge</span>
         </button>
 
-        <button id="mediumModeButton" class="menu-button difficulty-btn" data-lang-key="difficultyMedium">
+        <button id="mediumModeButton" class="menu-button difficulty-btn" data-lang-key="Mittel">
           <div class="difficulty-icon medium-icon">⚡</div>
-          <span class="difficulty-title medium-title"
-            style="font-family: 'Roboto', sans-serif !important; text-transform: uppercase !important;">Mittel</span>
-          <span class="difficulty-description" data-lang-key="mediumDescription">Ausgewogen - KI denkt
+          <span class="difficulty-description visually-hidden" data-lang-key="mediumDescription">Ausgewogen - KI denkt
             strategisch</span>
         </button>
 
-        <button id="hardModeButton" class="menu-button difficulty-btn" data-lang-key="difficultyHard">
+        <button id="hardModeButton" class="menu-button difficulty-btn" data-lang-key="Schwierig">
           <div class="difficulty-icon hard-icon">🔥</div>
-          <span class="difficulty-title hard-title"
-            style="font-family: 'Roboto', sans-serif !important; text-transform: uppercase !important; letter-spacing: 3px !important;">Schwer</span>
-          <span class="difficulty-description" data-lang-key="hardDescription">Herausfordernd - KI spielt optimal</span>
+          <span class="difficulty-description visually-hidden" data-lang-key="hardDescription">Herausfordernd - KI
+            spielt optimal</span>
         </button>
       </div>
 
       <button id="backFromDifficultyButton" class="menu-button" data-lang-key="backToMainMenuButton">Zurück zum
+        Hauptmenü</button>
+    </div>
+
+    <!-- PvP Modus Auswahl -->
+    <div id="pvpModeContainer" style="display:none;" class="menu-glass">
+      <h1 data-lang-key="pvpModeTitle">Spielmodus wählen</h1>
+
+      <div class="difficulty-options">
+        <button id="normalPvPButton" class="menu-button difficulty-btn" data-lang-key="normalPvP">
+          <div class="difficulty-icon easy-icon">⚔️</div>
+          <span class="difficulty-description visually-hidden" data-lang-key="normalPvPDescription">Entspanntes Spiel
+            ohne Auswirkung auf die Rangliste</span>
+        </button>
+
+        <button id="rankedPvPButton" class="menu-button difficulty-btn" data-lang-key="rankedPvP">
+          <div class="difficulty-icon hard-icon">👑</div>
+          <span class="difficulty-description visually-hidden" data-lang-key="rankedPvPDescription">Kämpfe um
+            Ranglistenpunkte und steige in der Rangliste auf</span>
+        </button>
+      </div>
+
+      <button id="backFromPvPModeButton" class="menu-button" data-lang-key="backToMainMenuButton">Zurück zum
         Hauptmenü</button>
     </div>
 
@@ -112,12 +139,44 @@
         Hauptmenü</button>
     </div>
 
+    <!-- Leaderboard/Rangliste -->
+    <div id="leaderboardContainer" style="display:none;" class="menu-glass">
+      <h1 data-lang-key="leaderboardTitle">Rangliste</h1>
+
+      <div id="leaderboardContent">
+        <div id="leaderboardLoading" class="leaderboard-loading" style="display:none;">
+          <span data-lang-key="loadingLeaderboard">Lade Rangliste...</span>
+        </div>
+
+        <div id="leaderboardList" class="leaderboard-list">
+          <!-- Dynamisch gefüllt -->
+        </div>
+
+        <div id="leaderboardEmpty" class="leaderboard-empty" style="display:none;">
+          <span data-lang-key="noRankingPlayers">Noch keine Spieler in der Rangliste.</span>
+          <p data-lang-key="playRankedToJoin">Spiele im Ranglistenmodus, um hier zu erscheinen!</p>
+        </div>
+      </div>
+
+      <button id="backFromLeaderboardButton" class="menu-button" data-lang-key="backToMainMenuButton">Zurück zum
+        Hauptmenü</button>
+    </div>
+
     <!-- Spielbereich -->
     <div id="gameArea" style="display:none;">
       <div id="playerArea">
         <h2 data-lang-key="yourBoard">Dein Spielfeld</h2>
         <div class="scoreDisplay"><span data-lang-key="scoreLabel">Score</span>: <span id="score">0</span></div>
-        <div id="board"></div>
+        <div id="board">
+          <!-- Multiplikator-Anzeige in der Mitte des Spielfelds -->
+          <div id="multiplierDisplay" class="multiplier-display" style="display: none;">
+            <div class="multiplier-text"></div>
+          </div>
+          <!-- Punkte-Animation für hohe Werte -->
+          <div id="pointsAnimation" class="points-animation" style="display: none;">
+            <div class="points-text"></div>
+          </div>
+        </div>
         <div id="pieces"></div>
       </div>
 

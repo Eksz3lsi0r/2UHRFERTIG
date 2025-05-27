@@ -3,10 +3,17 @@ const express = require("express");
 const http = require("http");
 const path = require("path");
 const socketIo = require("socket.io");
+const fs = require("fs").promises;
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
+
+// Middleware for JSON parsing
+app.use(express.json());
+
+// Leaderboard storage file
+const LEADERBOARD_FILE = path.join(__dirname, "leaderboard.json");
 
 // Liefere Root-HTML abhängig vom User-Agent für Mobilgeräte
 app.get("/", (req, res, next) => {
@@ -23,6 +30,113 @@ app.use(express.static(path.join(__dirname, "public"))); // HTML, CSS, no-scroll
 app.use(express.static(path.join(__dirname, "upload"))); // (optional)
 app.use("/sounds", express.static(path.join(__dirname, "sounds"))); // alias für WAVs
 app.use("/src", express.static(path.join(__dirname, "src"))); //  ←  NEU
+
+// Leaderboard helper functions
+async function loadLeaderboard() {
+  try {
+    const data = await fs.readFile(LEADERBOARD_FILE, "utf8");
+    return JSON.parse(data);
+  } catch (error) {
+    // File doesn't exist or is invalid, return empty leaderboard
+    return { players: {} };
+  }
+}
+
+async function saveLeaderboard(leaderboard) {
+  try {
+    await fs.writeFile(LEADERBOARD_FILE, JSON.stringify(leaderboard, null, 2));
+  } catch (error) {
+    console.error("Failed to save leaderboard:", error);
+  }
+}
+
+async function updatePlayerRanking(playerName, won, score) {
+  const leaderboard = await loadLeaderboard();
+
+  if (!leaderboard.players[playerName]) {
+    leaderboard.players[playerName] = {
+      name: playerName,
+      rankingPoints: 1000, // Starting rating (like ELO)
+      wins: 0,
+      losses: 0,
+      totalGames: 0,
+    };
+  }
+
+  const player = leaderboard.players[playerName];
+  player.totalGames++;
+
+  if (won) {
+    player.wins++;
+    // Award points for winning (base 50 + score bonus)
+    const pointsGained = Math.min(100, 50 + Math.floor(score / 100));
+    player.rankingPoints += pointsGained;
+  } else {
+    player.losses++;
+    // Lose points for losing (base -30, but never go below 0)
+    const pointsLost = Math.min(player.rankingPoints, 30);
+    player.rankingPoints -= pointsLost;
+  }
+
+  await saveLeaderboard(leaderboard);
+  return player;
+}
+
+// API endpoints
+app.get("/api/leaderboard", async (req, res) => {
+  try {
+    const leaderboard = await loadLeaderboard();
+    const players = Object.values(leaderboard.players)
+      .filter((p) => p.totalGames > 0) // Only show players who have played games
+      .sort((a, b) => b.rankingPoints - a.rankingPoints); // Sort by ranking points descending
+
+    res.json({
+      success: true,
+      players: players,
+    });
+  } catch (error) {
+    console.error("Failed to load leaderboard:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to load leaderboard",
+    });
+  }
+});
+
+app.get("/api/player-ranking/:playerName", async (req, res) => {
+  try {
+    const playerName = req.params.playerName;
+    const leaderboard = await loadLeaderboard();
+    const player = leaderboard.players[playerName];
+
+    if (!player) {
+      // Return default values for new players
+      res.json({
+        success: true,
+        playerName: playerName,
+        rankingPoints: 1000,
+        wins: 0,
+        losses: 0,
+        totalGames: 0,
+      });
+    } else {
+      res.json({
+        success: true,
+        playerName: playerName,
+        rankingPoints: player.rankingPoints,
+        wins: player.wins,
+        losses: player.losses,
+        totalGames: player.totalGames,
+      });
+    }
+  } catch (error) {
+    console.error("Failed to get player ranking:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to get player ranking",
+    });
+  }
+});
 
 // Matchmaking / Spielzustand
 let waitingPlayer = null;
@@ -364,6 +478,24 @@ function finish(room, winnerId) {
     game.scores[winnerId] !== undefined ? game.scores[winnerId] : 0;
   const loserScore =
     game.scores[loserId] !== undefined ? game.scores[loserId] : 0;
+
+  // Update player rankings for PvP games
+  if (winnerId && loserId) {
+    const winnerName = game.playerNames[winnerId];
+    const loserName = game.playerNames[loserId];
+
+    // Update rankings asynchronously
+    updatePlayerRanking(winnerName, true, winnerScore).catch((err) =>
+      console.error("Failed to update winner ranking:", err)
+    );
+    updatePlayerRanking(loserName, false, loserScore).catch((err) =>
+      console.error("Failed to update loser ranking:", err)
+    );
+
+    console.log(
+      `Ranking updated: ${winnerName} (winner, ${winnerScore} pts) vs ${loserName} (loser, ${loserScore} pts)`
+    );
+  }
 
   if (io.sockets.sockets.get(winnerId)) {
     io.to(winnerId).emit("gameEnd", {
