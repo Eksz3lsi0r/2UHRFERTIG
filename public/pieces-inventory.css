@@ -1,0 +1,257 @@
+/* Verbesserte Grid-Layout für Pieces */
+.piece {
+  display: grid !important;
+  grid-auto-rows: var(--cell-size) !important;
+  grid-auto-columns: var(--cell-size) !important;
+  gap: 2px !important;
+  padding: 4px !important;
+  position: relative !important;
+  min-height: unset !important;
+  height: auto !important;
+  width: auto !important;
+}
+
+.piece .block {
+  position: relative !important;
+  left: unset !important;
+  top: unset !important;
+  width: 100% !important;
+  height: 100% !important;
+  /* Hintergrundfarbe entfernt, wird jetzt per JS gesetzt */
+  touch-action: true !important;
+  -ms-touch-action: true !important;
+  pointer-events: true !important;
+}
+
+/* ───── Modernisiertes Inventar ───── */
+#pieces {
+  margin-top: 0px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  min-height: calc(var(--cell-size) * 2.85);
+  width: 100%;
+  padding: 5px;
+  box-sizing: border-box;
+  background: rgba(15, 12, 41, 0.5);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(182, 125, 255, 0.1);
+  transform: scale(0.9); /* Verkleinert das Inventar um 10% */
+  position: relative;
+  overflow: hidden;
+}
+
+#pieces::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(138, 43, 226, 0.3) 50%,
+    transparent 100%
+  );
+  animation: violet-sweep 3s ease-in-out infinite;
+  z-index: 0;
+}
+
+#pieces::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(182, 125, 255, 0.15) 0%,
+    transparent 40%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 0;
+  pointer-events: none;
+}
+
+#pieces:hover::after {
+  opacity: 1;
+}
+
+.piece {
+  position: relative;
+  z-index: 1;
+}
+
+.piece:hover .block {
+  animation: violet-shine 0.8s ease-in-out infinite alternate;
+  box-shadow: 0 0 15px rgba(138, 43, 226, 0.8),
+    0 0 30px rgba(182, 125, 255, 0.6), inset 0 0 15px rgba(255, 255, 255, 0.2) !important;
+  filter: brightness(1.3) saturate(1.2);
+  transform: translate3d(0, -6px, 16px) rotateX(12deg) scale(1.05) !important;
+}
+
+#pieces::-webkit-scrollbar {
+  height: 8px;
+}
+
+#pieces::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+#pieces::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border-radius: 4px;
+  border: 2px solid rgba(138, 43, 226, 0.1);
+}
+
+/* ───── Verbesserte Piece-Container ───── */
+.piece {
+  position: relative;
+  cursor: grab;
+  transition: transform var(--transition-med);
+  transform-origin: center center;
+  filter: brightness(1);
+  margin: 5px;
+}
+
+.piece:active {
+  cursor: grabbing;
+  transform: scale(1.05);
+}
+
+.piece:hover {
+  transform: scale(1.05);
+}
+
+.piece:hover .block {
+  /* Voluminous 3D light-touch on hover */
+  transform: translate3d(0, -6px, 16px) rotateX(12deg) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1),
+    inset 0 2px 6px rgba(255, 255, 255, 0.1) !important;
+}
+
+/* ───── Touch-Ghost Element für mobile Geräte ───── */
+.touch-ghost {
+  position: relative; /* fixed statt absolute für bessere Positionierung */
+  pointer-events: none;
+  z-index: 9999; /* Sehr hoher z-index, um über allem zu liegen */
+  opacity: 0.9; /* Etwas mehr Transparenz */
+  filter: drop-shadow(0 0 15px rgba(138, 43, 226, 0.9));
+  border: none; /* Kein Rand mehr um das Ghost-Element */
+  background-color: transparent; /* Kein Hintergrund */
+}
+
+/* Touch Ghost - verbesserte Darstellung */
+.touch-ghost {
+  position: fixed !important;
+  z-index: 9999 !important;
+  pointer-events: none !important;
+  opacity: 0.85 !important;
+  display: grid !important;
+  gap: 2px !important;
+}
+
+.touch-ghost .block {
+  background-color: var(--color-primary-light) !important;
+  border: 2px solid var(--color-primary-light) !important;
+  box-shadow: var(--glow-md) !important;
+}
+
+/* Hover-Preview für Touch-Drag (wie im alten Projekt) */
+.hover-preview {
+  position: relative;
+  pointer-events: none;
+  z-index: 9998;
+  opacity: 0.7;
+  display: grid;
+  will-change: left, top;
+}
+.hover-preview.valid .block {
+  background-color: rgba(0, 210, 168, 0.4) !important;
+  border: 2px dashed #00d2a8 !important;
+  box-shadow: 0 0 10px rgba(0, 210, 168, 0.3) !important;
+}
+.hover-preview.invalid .block {
+  background-color: rgba(255, 70, 118, 0.4) !important;
+  border: 2px dashed #ff4676 !important;
+  box-shadow: 0 0 10px rgba(255, 70, 118, 0.3) !important;
+}
+
+/* Hover-Zellen-Vorschau mit Validitäts- und Reihen-Flash-Effekten */
+.hover-preview .cell {
+  /* überschreibt Standard Preview */
+  background: transparent;
+}
+.hover-preview.valid .cell {
+  /* Platzierbar: grün */
+  background-color: rgba(0, 210, 168, 0.4);
+  border: 2px dashed #00d2a8;
+}
+.hover-preview.invalid .cell {
+  /* Nicht platzierbar: rot */
+  background-color: rgba(255, 70, 118, 0.4);
+  border: 2px dashed #ff4676;
+}
+.hover-preview .row-full {
+  /* Ganze Reihe gelöscht: gelber Puls */
+  animation: row-flash 0.8s ease-in-out infinite alternate;
+}
+
+/* ───── Block mit 3D-Effekten ───── */
+.piece .block {
+  width: 100%;
+  height: 100%;
+  /* Hintergrundfarbe entfernt, wird jetzt per JS gesetzt */
+  border-radius: var(--border-radius-sm);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  /* pointer-events: none; entfernt, damit Touch funktioniert */
+  transition: all var(--transition-med);
+  position: relative;
+}
+
+.piece .block::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40%;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.25) 0%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  border-radius: var(--border-radius-sm) var(--border-radius-sm) 0 0;
+  pointer-events: none;
+}
+
+/* Vorschau-Zellen für Hover-Element */
+.preview-valid-cell,
+.preview-invalid-cell {
+  /* transform entfernt, border entfernt */
+  box-shadow: 0 0 12px 2px #00d2a8 !important;
+}
+
+.preview-valid-cell {
+  box-shadow: var(--glow-sm) !important;
+  background-color: var(--color-secondary) !important;
+}
+
+.preview-invalid-cell {
+  box-shadow: var(--glow-sm) !important;
+  background-color: var(--color-accent) !important;
+}

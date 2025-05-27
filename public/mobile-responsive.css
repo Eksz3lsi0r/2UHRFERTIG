@@ -1,0 +1,703 @@
+/* Countdown-Anzeige für mobile Nutzer oben links, klein und dezent */
+@media (max-width: 600px) {
+  #catchup-timer.mobile-countdown {
+    left: 10px !important;
+    top: 10px !important;
+    right: auto !important;
+    transform: none !important;
+    font-size: 0.85em !important;
+    padding: 6px 12px !important;
+    border-radius: 8px !important;
+    min-width: 0 !important;
+    max-width: 80vw !important;
+    box-shadow: 0 0 8px #00d2a8;
+    background: rgba(15, 12, 41, 0.92);
+    text-align: left;
+  }
+}
+
+@media (max-width: 600px) {
+  #gameResultBox {
+    min-width: 0;
+    padding: 18px 6vw 18px 6vw;
+  }
+
+  #gameResultTitle {
+    font-size: 1.3em;
+  }
+
+  #gameResultMsg {
+    font-size: 0.98em;
+  }
+
+  #rematchButton,
+  #mainMenuButton {
+    font-size: 1em;
+    min-width: 90px;
+  }
+}
+
+@media (max-width: 600px) {
+  html,
+  body {
+    overflow: hidden !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    min-width: 100vw !important;
+    min-height: 100vh !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  #gameResultOverlay,
+  #gameResultBox {
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    overflow: hidden !important;
+  }
+}
+
+/* Mobile-specific tweaks for chat bubble and chat modal */
+#chat-bubble {
+  bottom: 80px !important;
+  left: 12px !important;
+  top: auto !important;
+  width: 36px !important;
+  height: 36px !important;
+}
+#chat-modal {
+  top: auto !important;
+  bottom: 8px !important;
+  left: 8px !important;
+  min-width: 0 !important;
+  width: 96vw !important;
+  max-width: 98vw !important;
+  min-height: 120px !important;
+  max-height: 60vh !important;
+  border-radius: 10px !important;
+  padding: 0 !important;
+}
+#chat-messages {
+  max-height: 22vh !important;
+  font-size: 0.98em !important;
+}
+#chat-form {
+  padding: 8px 8px 10px 8px !important;
+}
+
+/* Mobile Chat Styling - positioned at bottom to avoid opponent area */
+@media (max-width: 600px) {
+  /* Chat positioniert unten, um Überlappung mit Gegner-Spielfeld zu vermeiden */
+  #chat-bubble {
+    bottom: 80px !important;
+    left: 12px !important;
+    top: auto !important;
+    width: 36px !important;
+    height: 36px !important;
+    z-index: 60 !important;
+  }
+
+  #chat-modal {
+    top: auto !important;
+    bottom: 8px !important;
+    left: 8px !important;
+    right: 8px !important;
+    min-width: 0 !important;
+    width: auto !important;
+    max-width: none !important;
+    min-height: 120px !important;
+    max-height: 50vh !important;
+    border-radius: 10px !important;
+    padding: 0 !important;
+    z-index: 110 !important;
+  }
+
+  /* Chat-Header anpassen für mobile Nutzung */
+  #chat-modal .chat-header {
+    padding: 8px 12px 0 12px !important;
+  }
+
+  /* Schließen-Button deutlicher machen */
+  #chat-close {
+    font-size: 1.8em !important;
+    padding: 4px 8px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 50% !important;
+    background: rgba(255, 70, 118, 0.2) !important;
+    transition: all 0.2s ease !important;
+  }
+
+  #chat-close:hover,
+  #chat-close:active {
+    background: rgba(255, 70, 118, 0.4) !important;
+    transform: scale(1.1) !important;
+  }
+
+  /* Chat-Nachrichten-Bereich anpassen */
+  #chat-messages {
+    max-height: 20vh !important;
+    font-size: 0.95em !important;
+    padding: 8px 12px !important;
+  }
+
+  /* Chat-Eingabe-Bereich anpassen */
+  #chat-form {
+    padding: 6px 8px 8px 8px !important;
+    gap: 6px !important;
+  }
+
+  #chat-input {
+    padding: 8px 10px !important;
+    font-size: 16px !important; /* Verhindert Zoom auf iOS */
+    border-radius: 8px !important;
+  }
+
+  #chat-send {
+    padding: 8px 12px !important;
+    font-size: 0.9em !important;
+    border-radius: 8px !important;
+    min-width: 60px !important;
+  }
+}
+
+/* Mobile Menu Fixes */
+@media (max-width: 600px) {
+  /* Fix menu container sizing for mobile */
+  .menu-glass {
+    padding: 16px 12px 16px 12px !important;
+    max-width: 94vw !important;
+    margin-top: 20px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    width: 94vw !important;
+    box-sizing: border-box !important;
+  }
+
+  .menu-glass h1 {
+    font-size: 1em !important;
+    font-family: "Trade Winds", cursive !important;
+    margin-bottom: 12px !important;
+  }
+
+  /* Fix menu items and input fields */
+  .menu-item {
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .menu-input {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 8px 10px !important;
+    font-size: 0.9em !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+  }
+
+  .main-menu-btn {
+    font-size: 0.9em !important;
+    padding: 10px 8px !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Settings menu mobile fixes */
+  #settingsMenuContainer {
+    background: rgba(15, 12, 41, 0.82) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4), 0 0 30px rgba(138, 43, 226, 0.18) !important;
+    border: 1.5px solid rgba(182, 125, 255, 0.18) !important;
+    padding: 16px 12px !important;
+    max-width: 94vw !important;
+    margin: 20px auto !important;
+    width: 94vw !important;
+    box-sizing: border-box !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 16px !important;
+  }
+
+  #settingsMenuContainer h1 {
+    font-size: 1em !important;
+    font-family: "Trade Winds", cursive !important;
+    margin-bottom: 8px !important;
+    margin-top: 0 !important;
+  }
+
+  #settingsMenuContainer .menu-item {
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  #settingsMenuContainer select {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 8px 10px !important;
+    font-size: 0.9em !important;
+    box-sizing: border-box !important;
+    border-radius: 8px !important;
+    border: 1.5px solid #b67dff !important;
+    background: rgba(30, 25, 50, 0.7) !important;
+    color: #ffffff !important;
+  }
+
+  .menu-button {
+    width: 100% !important;
+    padding: 10px 8px !important;
+    font-size: 0.9em !important;
+    box-sizing: border-box !important;
+    border-radius: 8px !important;
+    border: none !important;
+    background: linear-gradient(90deg, #8a2be2 60%, #00d2a8 100%) !important;
+    color: #ffffff !important;
+    cursor: pointer !important;
+    font-weight: 600 !important;
+  }
+}
+
+/* Extra small mobile devices */
+@media (max-width: 400px) {
+  .menu-glass {
+    padding: 12px 8px 12px 8px !important;
+    max-width: 96vw !important;
+    width: 96vw !important;
+  }
+
+  .menu-glass h1 {
+    font-size: 0.9em !important;
+    font-family: "Trade Winds", cursive !important;
+  }
+
+  .menu-input {
+    padding: 6px 8px !important;
+    font-size: 0.85em !important;
+  }
+
+  .main-menu-btn {
+    font-size: 0.85em !important;
+    padding: 9px 6px !important;
+  }
+
+  #settingsMenuContainer {
+    padding: 12px 8px !important;
+    max-width: 96vw !important;
+    width: 96vw !important;
+    gap: 12px !important;
+  }
+
+  #settingsMenuContainer h1 {
+    font-size: 0.9em !important;
+    font-family: "Trade Winds", cursive !important;
+  }
+
+  #settingsMenuContainer select,
+  .menu-button {
+    padding: 6px 8px !important;
+    font-size: 0.85em !important;
+  }
+}
+
+/* Notfall-Fix für das Gegner-Board auf mobilen Geräten */
+@media (max-width: 600px) {
+  #opponentArea {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    position: fixed !important;
+    top: 10px !important;
+    right: 10px !important;
+    z-index: 1000 !important; /* Überschreibt alles andere */
+    max-height: 35vh !important; /* Begrenzt die Höhe */
+    transform-origin: top right !important;
+  }
+
+  /* Aktiverer Hover-Effekt auf Touch-Geräten */
+  #opponentArea:active {
+    transform: scale(1.1) !important;
+  }
+
+  /* Sicherstellen, dass der Pieces-Bereich korrekt angezeigt wird */
+  #pieces {
+    margin-top: 10px !important;
+    margin-bottom: 10px !important;
+    z-index: 1 !important;
+    width: 95% !important;
+  }
+}
+
+@media (max-width: 600px) {
+  /* Spielbereiche anpassen */
+  #gameArea {
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    gap: 0;
+    justify-content: flex-start;
+    padding-top: 0px;
+  }
+
+  #playerArea {
+    width: 100%;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* Gegnerbereich als elegantes Overlay - fixe Position oben rechts */
+  #opponentArea {
+    position: fixed; /* Geändert zu 'fixed' statt 'absolute' für konsistente Positionierung */
+    top: 10px !important; /* Höher positioniert */
+    right: 10px;
+    z-index: 100; /* Höherer z-index um sicherzustellen, dass es immer oben bleibt */
+    background: rgba(0, 210, 168, 0.15);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    padding: 5px;
+    border-radius: var(--border-radius-md);
+    box-shadow: 0 0 10px rgba(0, 210, 168, 0.3), 0 0 20px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(0, 210, 168, 0.2);
+    opacity: 0.95;
+    transition: opacity var(--transition-med), transform var(--transition-med);
+    max-width: 45%; /* Begrenzt die Breite auf mobilen Geräten */
+  }
+
+  #opponentArea:hover {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+
+  /* Zusätzliche Sicherheit gegen Überlappung */
+  #pieces {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Gegner-Board anpassen - kompakter für mobile Geräte */
+  #opponentBoard {
+    grid-template-columns: repeat(10, 7px) !important;
+    grid-template-rows: repeat(10, 7px) !important;
+    gap: 0.5px !important;
+    padding: 2px !important;
+    border-radius: var(--border-radius-sm);
+    box-shadow: var(--shadow-sm), 0 0 8px rgba(0, 210, 168, 0.2);
+    margin: 0 auto !important; /* Zentriert das Brett */
+    background: rgba(
+      10,
+      8,
+      20,
+      0.8
+    ); /* Dunklerer Hintergrund für besseren Kontrast */
+  }
+
+  .opponent-cell {
+    width: 7px !important;
+    height: 7px !important;
+    border-radius: 1px !important;
+  }
+
+  /* Gegner-Überschrift und Score anpassen */
+  #opponentArea h2 {
+    font-size: 0.7em;
+    margin: 0 0 2px 0;
+    color: var(--color-text);
+    text-shadow: 0 0 3px rgba(0, 210, 168, 0.8);
+    text-align: center;
+  }
+
+  #opponentArea .scoreDisplay {
+    font-size: 0.7em;
+    margin: 0 0 3px 0;
+    color: var(--color-text);
+    background: rgba(0, 210, 168, 0.2);
+    border: 1px solid rgba(0, 210, 168, 0.3);
+    padding: 1px 4px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* Spielfeld Spieler */
+  #board {
+    padding: calc(var(--gap-size) * 2);
+  }
+
+  /* Inventar */
+  #pieces {
+    gap: 10px;
+    margin-top: 0px !important;
+    padding: 3px !important;
+  }
+
+  /* Spieler-Überschriften */
+  #playerArea h2 {
+    font-size: 1em;
+    margin-bottom: 3px;
+  }
+
+  /* Spieler-Score-Anzeige */
+  #playerArea .scoreDisplay {
+    font-size: 0.9em;
+    margin-bottom: 5px;
+    padding: 5px 10px;
+  }
+
+  /* Titelanpassung */
+  #gameTitleOverlay {
+    font-size: 0.9em;
+    padding: 4px 10px;
+    top: 5px;
+  }
+
+  /* Message-Position */
+  #message {
+    top: 35px;
+    font-size: 0.8em;
+    padding: 6px 10px;
+  }
+
+  /* Hauptmenü Anpassungen */
+  .menu-glass {
+    padding: 22px 7vw 22px 7vw;
+    max-width: 98vw;
+    margin-top: 30px;
+  }
+  .menu-glass h1 {
+    font-size: 1.1em;
+  }
+  .main-menu-btn {
+    font-size: 0.98em;
+    padding: 11px 0;
+  }
+
+  /* Mobile adjustment */
+  #playerArea h2,
+  #opponentArea h2 {
+    font-family: "Trade Winds", cursive !important;
+    font-size: 1.3em !important;
+  }
+}
+
+@media (max-width: 600px) {
+  #board,
+  .piece {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    overflow: hidden !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Erlaubt Interaktion mit Spielteilen */
+  .piece {
+    touch-action: manipulation;
+    cursor: grab;
+  }
+
+  .piece:active {
+    cursor: grabbing;
+  }
+
+  /* Erlaubt Interaktionen mit UI-Elementen */
+  button,
+  .menu-button,
+  input,
+  select,
+  textarea {
+    touch-action: manipulation;
+    user-select: text;
+  }
+
+  /* Verhindern von unbeabsichtigtem Scrollen während des Drag-Vorgangs */
+  html,
+  body {
+    overscroll-behavior: none;
+    overflow: hidden !important;
+    position: fixed !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+  }
+
+  /* Verhindern von Scrollen auf allen Geräten */
+  html,
+  body {
+    overscroll-behavior: none !important;
+    overflow: hidden !important;
+    position: fixed !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    top: 0 !important;
+    left: 0 !important;
+  }
+
+  #board,
+  .piece {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    overflow: hidden !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Erlaubt Interaktion mit Spielteilen */
+  .piece {
+    touch-action: manipulation !important;
+    cursor: grab !important;
+  }
+
+  .piece:active {
+    cursor: grabbing !important;
+    transform: scale(1.05) !important;
+  }
+
+  /* Erlaubt Interaktionen mit UI-Elementen */
+  button,
+  .menu-button,
+  input,
+  select,
+  textarea {
+    touch-action: manipulation;
+    user-select: text;
+  }
+
+  /* Verbesserte Leistung für Animationen */
+  .hover-preview,
+  .touch-ghost,
+  .preview-valid-cell,
+  .preview-invalid-cell {
+    will-change: transform, opacity;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+}
+
+/* Desktop-spezifische Anpassungen für das Spielfeld */
+@media (min-width: 601px) {
+  /* Vergrößere das Spielerspielfeld um 15% */
+  #board {
+    transform: scale(1) translateZ(0);
+    transform-origin: center center;
+    position: relative;
+  }
+
+  /* Anpassung für den korrekten Abstand zum Inventar */
+  #playerArea {
+    padding-bottom: 5px; /* Zusätzlicher Raum für das vergrößerte Spielfeld */
+  }
+
+  /* Mehr Platz zwischen dem Board und den Pieces */
+  #pieces {
+    margin-top: 5px !important; /* Überschreibt andere margin-top Werte */
+    opacity: 1 !important; /* Stellt sicher, dass die Pieces sichtbar sind */
+    color: #200356 !important; /* Stellt sicher, dass die Pieces gut lesbar sind */
+  }
+
+  /* Feinabstimmung der Spielfeld-Animationen */
+  #board:hover {
+    transform: scale(1.005) translateZ(0); /* Leicht größere Hover-Animation */
+    box-shadow: var(--shadow-lg), 0 0 30px rgba(138, 43, 226, 0.35);
+  }
+
+  /* Verbesserte Zellgrößen und Effekte im vergrößerten Board */
+  #board .cell {
+    box-shadow: inset 0 0 4px rgba(255, 255, 255, 0.1);
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  /* Angepasste Titel-Position für das größere Board */
+  #playerArea h2 {
+    margin-bottom: 8px;
+  }
+}
+
+/* ────────── Graphics Quality Settings ────────── */
+/* Low graphics quality - reduced effects */
+.graphics-low .piece:hover .block {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.graphics-low #pieces::before,
+.graphics-low #pieces::after {
+  display: none !important;
+}
+
+.graphics-low .piece .block {
+  animation: none !important;
+  filter: none !important;
+}
+
+.graphics-low .block.rainbow {
+  background: #8a2be2 !important;
+  animation: none !important;
+}
+
+.graphics-low #board {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.graphics-low .menu-glass {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Medium graphics quality - standard effects (default) */
+.graphics-medium .piece:hover .block {
+  transform: translate3d(0, -3px, 8px) rotateX(6deg) !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* High graphics quality - enhanced effects */
+.graphics-high .piece:hover .block {
+  transform: translate3d(0, -8px, 20px) rotateX(15deg) !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2),
+    inset 0 4px 8px rgba(255, 255, 255, 0.15) !important;
+  filter: brightness(1.2) saturate(1.1) !important;
+}
+
+.graphics-high .block.rainbow {
+  animation: rainbow-swirl 2s linear infinite,
+    rainbow-flash 1s infinite alternate !important;
+  filter: brightness(1.3) saturate(1.3)
+    drop-shadow(0 0 10px rgba(138, 43, 226, 0.8)) !important;
+}
+
+.graphics-high #pieces::before {
+  opacity: 1 !important;
+  filter: blur(1px) !important;
+}
+
+.graphics-high .cell.filled {
+  box-shadow: 0 0 15px rgba(138, 43, 226, 0.6) !important;
+  filter: brightness(1.1) !important;
+}

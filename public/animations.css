@@ -1,0 +1,289 @@
+/* ───── Verbesserte Animationen ───── */
+@keyframes bg-pan {
+  0% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 100% 100%;
+  }
+  100% {
+    background-position: 0% 0%;
+  }
+}
+
+@keyframes pop-in {
+  0% {
+    transform: scale(0.5) translateZ(0);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.08) translateZ(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) translateZ(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pop-in-small {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: translateX(-50%) scale(1);
+    box-shadow: var(--shadow-sm), 0 0 10px rgba(138, 43, 226, 0.3);
+  }
+  50% {
+    transform: translateX(-50%) scale(1.02);
+    box-shadow: var(--shadow-md), 0 0 15px rgba(138, 43, 226, 0.4);
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes bg-wave {
+  0% {
+    background-position: 0% 50%;
+  }
+  20% {
+    background-position: 25% 10%;
+  }
+  40% {
+    background-position: 50% 70%;
+  }
+  60% {
+    background-position: 75% 30%;
+  }
+  80% {
+    background-position: 20% 80%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Message-Animation */
+.message-animated {
+  animation: message-pulse 1s ease-in-out;
+}
+
+@keyframes message-pulse {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-3px) scale(1.02);
+    opacity: 0.95;
+  }
+}
+
+/* Reihe-Puls bei vollständigem Löschen */
+.row-flash {
+  animation: row-flash 0.8s ease-in-out infinite alternate;
+}
+@keyframes row-flash {
+  0% {
+    background-color: rgba(255, 255, 0, 0.5);
+  }
+  100% {
+    background-color: rgba(255, 255, 0, 0.8);
+  }
+}
+
+/* Verbesserte Flacker-Effekte beim Löschen */
+@keyframes line-flash {
+  0% {
+    transform: scale(1);
+    filter: brightness(6) drop-shadow(0 0 50px #b67dff)
+      drop-shadow(0 0 100px #8a2be2);
+    box-shadow: 0 0 20px 10px #fff, 0 0 40px 20px #ff4676;
+  }
+  30% {
+    transform: scale(1.15);
+    filter: brightness(8) drop-shadow(0 0 100px #b67dff)
+      drop-shadow(0 0 200px #ff4676);
+    box-shadow: 0 0 80px 40px #fff, 0 0 160px 80px #ff4676;
+  }
+  60% {
+    transform: scale(1.1);
+    filter: brightness(6.5) drop-shadow(0 0 80px #8a2be2)
+      drop-shadow(0 0 160px #00d2a8);
+    box-shadow: 0 0 60px 30px #b67dff, 0 0 120px 60px #00d2a8;
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(2) drop-shadow(0 0 20px #8a2be2);
+    box-shadow: 0 0 10px 5px #b67dff;
+  }
+}
+
+.flash {
+  animation: line-flash 0.8s cubic-bezier(0.7, 0, 0.3, 1);
+  z-index: 10;
+  position: relative;
+  will-change: filter, box-shadow, transform;
+}
+
+@keyframes violet-sweep {
+  0% {
+    left: -100%;
+  }
+  50% {
+    left: 100%;
+  }
+  100% {
+    left: -100%;
+  }
+}
+
+@keyframes violet-shine {
+  0% {
+    box-shadow: 0 0 10px rgba(138, 43, 226, 0.6),
+      0 0 20px rgba(182, 125, 255, 0.4), inset 0 0 10px rgba(255, 255, 255, 0.1);
+  }
+  100% {
+    box-shadow: 0 0 25px rgba(138, 43, 226, 1),
+      0 0 40px rgba(182, 125, 255, 0.8), 0 0 60px rgba(138, 43, 226, 0.4),
+      inset 0 0 20px rgba(255, 255, 255, 0.3);
+  }
+}
+
+/* Animation für die Score-Anzeige wenn der Spieler dabei ist, die CPU einzuholen */
+@keyframes highlight-score-pulse {
+  0% {
+    box-shadow: 0 0 5px rgba(138, 43, 226, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(0, 210, 168, 0.8);
+    border-color: rgba(0, 210, 168, 0.5);
+  }
+  100% {
+    box-shadow: 0 0 5px rgba(138, 43, 226, 0.5);
+  }
+}
+
+.highlight-score {
+  animation: highlight-score-pulse 1s ease infinite;
+  border-color: rgba(0, 210, 168, 0.3);
+  background: rgba(0, 210, 168, 0.2);
+}
+
+/* ───── Blitz-Flash beim Clear (neu) ───── */
+@keyframes clear-flash {
+  0% {
+    opacity: 1;
+    filter: brightness(1);
+  }
+  50% {
+    opacity: 1;
+    filter: brightness(2.5);
+  }
+  100% {
+    opacity: 0;
+    filter: brightness(1);
+  }
+}
+
+.cell.clearing {
+  animation: clear-flash 0.6s ease-out;
+}
+
+/* Neue CSS-Klasse für Regenbogen-Blöcke */
+.block.rainbow {
+  /* 3D conic gradient swirl with vibrant glow */
+  background: conic-gradient(
+    from 180deg,
+    var(--color-primary),
+    var(--color-primary-light),
+    var(--color-secondary),
+    var(--color-accent),
+    var(--color-primary)
+  ) !important;
+  background-size: 200% 200% !important;
+  animation: rainbow-swirl 3s linear infinite,
+    rainbow-flash 1.5s infinite alternate !important;
+}
+
+@keyframes rainbow-flash {
+  0% {
+    filter: brightness(1);
+  }
+  100% {
+    filter: brightness(1.5) saturate(1.2);
+  }
+}
+
+@keyframes rainbow-swirl {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Opponent field fill percentage colors */
+.opponent-cell.filled.fill-warning {
+  background: linear-gradient(
+    145deg,
+    #ebe40a,
+    #fff700
+  ) !important; /* Yellow for 30-60% */
+  border-color: #fff700 !important;
+}
+
+.opponent-cell.filled.fill-danger {
+  background: linear-gradient(
+    145deg,
+    #b61919,
+    #ff4444
+  ) !important; /* Red for 60%+ */
+  border-color: #ff4444 !important;
+}
+
+/* Hover preview colors */
+.hover-preview.invalid .block {
+  background-color: #ff4444 !important; /* Red when piece doesn't fit */
+  opacity: 0.8 !important;
+}
+
+.hover-preview.line-clear .block {
+  background-color: #ffd700 !important; /* Gold when piece can clear lines */
+  opacity: 0.9 !important;
+  animation: pulse 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+  from {
+    opacity: 0.7;
+  }
+  to {
+    opacity: 1;
+  }
+}

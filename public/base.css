@@ -1,0 +1,244 @@
+/* ─── Moderne dynamische Basisgrößen ─── */
+:root {
+  --cell-size: clamp(18px, 8vw, 38px);
+  --gap-size: calc(var(--cell-size) * 0.05);
+
+  /* Neue lebendige Farbpalette */
+  --color-primary: #8a2be2; /* Kräftigeres Lila */
+  --color-primary-light: #b67dff; /* Helleres Lila für Highlights */
+  --color-secondary: #00d2a8; /* Türkis statt Grün */
+  --color-accent: #ff4676; /* Akzentfarbe (Pink) */
+  --color-bg-start: #0f0c29;
+  --color-bg-mid: #302b63;
+  --color-bg-end: #24243e;
+  --color-text: #ffffff;
+  --color-text-shadow: rgba(138, 43, 226, 0.8);
+
+  /* Neue Formvariablen */
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+
+  /* Neue Effektvariablen */
+  --glow-sm: 0 0 8px rgba(138, 43, 226, 0.5);
+  --glow-md: 0 0 15px rgba(138, 43, 226, 0.6);
+  --glow-lg: 0 0 25px rgba(138, 43, 226, 0.7);
+
+  /* Neue Schatten */
+  --shadow-sm: 0 2px 5px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 20px rgba(0, 0, 0, 0.4);
+
+  /* Übergänge */
+  --transition-fast: 0.15s ease;
+  --transition-med: 0.25s ease;
+  --transition-slow: 0.5s ease;
+}
+
+/* CSS-Variable für Block-Größe */
+:root {
+  --js-block-size: 30px;
+}
+
+@media (max-width: 600px) {
+  :root {
+    --js-block-size: 24px;
+  }
+}
+
+/* Anti-Scroll und Anti-Zoom Stilregeln für alle Geräte */
+html,
+body {
+  overflow: hidden !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  min-width: 100vw !important;
+  min-height: 100vh !important;
+  max-width: 100vw !important;
+  max-height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* Button und Input-Felder benötigen Spezialbehandlung für Benutzbarkeit */
+input,
+textarea,
+button,
+select {
+  user-select: text !important; /* Erlaubt Texteingabe in Formularfeldern */
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+  touch-action: auto !important; /* Erlaubt normale Touch-Interaktionen für Eingabefelder */
+}
+
+body {
+  font-family: "Roboto", sans-serif;
+  margin: 0;
+  padding: 15px;
+  color: var(--color-text);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  box-sizing: border-box;
+
+  position: relative;
+
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Nebula Hintergrund */
+.nebula-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
+  background: linear-gradient(
+    -45deg,
+    var(--color-bg-start),
+    var(--color-bg-mid),
+    var(--color-bg-end)
+  );
+  /* subtle irregular wave movement */
+  background-size: 400% 400%;
+  animation: bg-wave 30s ease-in-out infinite;
+  /* remove any filters to avoid affecting child elements */
+}
+
+/* Korrigiere das Hauptmenü-Design: sorge für einen sichtbaren, animierten Hintergrund wie im Spiel */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-image: radial-gradient(
+      circle at 25% 30%,
+      rgba(255, 255, 255, 0.08) 1px,
+      transparent 1px
+    ),
+    radial-gradient(
+      circle at 75% 70%,
+      rgba(255, 255, 255, 0.05) 1px,
+      transparent 1px
+    );
+  background-size: 30px 30px, 40px 40px;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+body::after {
+  content: none;
+}
+
+h1,
+h2 {
+  color: var(--color-text);
+  text-align: center;
+  font-family: "Press Start 2P", cursive;
+  letter-spacing: 1px;
+  position: relative;
+}
+
+h1 {
+  margin-top: 5px;
+  margin-bottom: 15px;
+  text-shadow: 0 0 8px var(--color-text-shadow),
+    0 0 15px var(--color-text-shadow);
+  position: relative;
+  z-index: 5;
+  animation: float 3s ease-in-out infinite;
+}
+
+h2 {
+  margin-bottom: 8px;
+  font-size: 1.1em;
+  text-shadow: 0 0 5px var(--color-text-shadow);
+}
+
+/* Hauptmenü-Container mittig auf ganzer Höhe */
+html,
+body {
+  min-height: 100vh;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    -45deg,
+    var(--color-bg-start),
+    var(--color-bg-mid),
+    var(--color-bg-end)
+  ) !important;
+  background-size: 400% 400% !important;
+  animation: bg-pan 20s linear infinite !important;
+}
+
+body,
+html {
+  /* Entfernt alle Regeln, die Touch-Steuerung verhindern */
+  /* overflow, overscroll-behavior, position, user-select, etc. entfernt */
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  -webkit-text-size-adjust: 100% !important; /* Verhindert automatische Textvergrößerung auf iOS */
+  -moz-text-size-adjust: 100% !important;
+  -ms-text-size-adjust: 100% !important;
+}
+
+/* Verhindert versehentliches Highlighten von Text überall außer im Hauptmenü */
+body,
+header,
+h1,
+h2,
+#gameArea,
+#playerArea,
+#opponentArea,
+#board,
+#pieces,
+.piece,
+.block,
+.cell,
+.scoreDisplay,
+#gameTitleOverlay,
+#message {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+}
+
+/* Erlaubt explizit das Highlighten von Text nur im Hauptmenü und in Eingabefeldern */
+.menu-glass,
+.menu-item,
+.main-menu-btn,
+input,
+textarea,
+select {
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+}
+
+/* Custom font for player and opponent names */
+#playerArea h2,
+#opponentArea h2 {
+  font-family: "Trade Winds", cursive !important;
+  font-size: 2em !important;
+  letter-spacing: normal !important;
+}
