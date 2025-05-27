@@ -266,7 +266,6 @@ export const GridSnap = {
         block.style.boxShadow = "0 0 10px rgba(0,210,168,0.3)";
       }
 
-      block.style.transform = "scale(0.95)";
       this.previewEl.appendChild(block);
     });
     document.body.appendChild(this.previewEl);

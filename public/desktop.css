@@ -664,13 +664,11 @@ h2 {
   background-color: rgba(0, 210, 168, 0.4) !important;
   border: 2px dashed #00d2a8 !important;
   box-shadow: 0 0 10px rgba(0, 210, 168, 0.3) !important;
-  transform: scale(0.95);
 }
 .hover-preview.invalid .block {
   background-color: rgba(255, 70, 118, 0.4) !important;
   border: 2px dashed #ff4676 !important;
   box-shadow: 0 0 10px rgba(255, 70, 118, 0.3) !important;
-  transform: scale(0.95);
 }
 
 /* Hover-Zellen-Vorschau mit Validitäts- und Reihen-Flash-Effekten */
@@ -682,13 +680,11 @@ h2 {
   /* Platzierbar: grün */
   background-color: rgba(0, 210, 168, 0.4);
   border: 2px dashed #00d2a8;
-  transform: scale(0.95);
 }
 .hover-preview.invalid .cell {
   /* Nicht platzierbar: rot */
   background-color: rgba(255, 70, 118, 0.4);
   border: 2px dashed #ff4676;
-  transform: scale(0.95);
 }
 .hover-preview .row-full {
   /* Ganze Reihe gelöscht: gelber Puls */
