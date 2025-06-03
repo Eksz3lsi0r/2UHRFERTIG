@@ -203,6 +203,11 @@
       <div id="playerArea">
         <h2 data-lang-key="yourBoard">Dein Spielfeld</h2>
         <div class="scoreDisplay"><span data-lang-key="scoreLabel">Score</span>: <span id="score">0</span></div>
+        <!-- Permanent Multiplier Display -->
+        <div id="playerPermanentMultiplier" class="permanent-multiplier" style="display: none;">
+          <span class="multiplier-icon">⚡</span>
+          <span class="multiplier-value">1.0x</span>
+        </div>
         <div id="board">
           <!-- Multiplikator-Anzeige in der Mitte des Spielfelds -->
           <div id="multiplierDisplay" class="multiplier-display" style="display: none;">
@@ -219,6 +224,11 @@
       <div id="opponentArea">
         <h2 data-lang-key="opponentBoard">Gegner</h2>
         <div class="scoreDisplay"><span data-lang-key="scoreLabel">Score</span>: <span id="opponentScore">0</span></div>
+        <!-- Opponent Permanent Multiplier Display -->
+        <div id="opponentPermanentMultiplier" class="permanent-multiplier" style="display: none;">
+          <span class="multiplier-icon">⚡</span>
+          <span class="multiplier-value">1.0x</span>
+        </div>
         <div id="opponentBoard"></div>
       </div>
     </div>

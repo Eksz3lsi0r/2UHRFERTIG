@@ -1,15 +1,14 @@
 /* --------------------------------------------------------------------
  *  src/player.js   –   Logik für das Spieler-Brett
  * ------------------------------------------------------------------ */
-import { state } from "./state.js";
 import {
   ALL_POSSIBLE_SHAPES,
   LANG,
   getRandomRainbowColor,
 } from "./constants.js";
-import { placeSound, clearSound } from "./audio.js";
-import { ui } from "./ui.js"; // für displayMessage
 import { GridSnap } from "./drag.js";
+import { state } from "./state.js";
+import { ui } from "./ui.js"; // für displayMessage
 
 /* --------------------------------------------------------------------
  *  Öffentliche API
@@ -39,24 +38,29 @@ function resetGame() {
   state.currentDragShape = null;
   state.currentDragOffset = { x: 0, y: 0 };
 
+  // Reset multiplier systems
+  state.consecutiveClears = 0;
+  state.currentMultiplier = 1;
+  state.permanentMultiplier = 1;
+
   // DOM zurücksetzen
   state.el.score.textContent = "0";
   if (state.boardCells?.length) {
     for (let r = 0; r < 10; r++) {
       for (let c = 0; c < 10; c++) {
         const cell = state.boardCells[r][c];
-        
+
         // Reset className to base "cell" class
         cell.className = "cell";
-        
+
         // Clear all potential animation and styling classes
         cell.classList.remove(
           "filled", "rainbow", "preview-valid-cell", "preview-invalid-cell",
-          "row-flash", "multi-line-flash", "fill-warning", "fill-danger", 
+          "row-flash", "multi-line-flash", "fill-warning", "fill-danger",
           "clearing", "flash", "preview-valid", "preview-invalid",
           "highlight-score", "score-combo"
         );
-        
+
         // Clear any inline styles that might have been applied during animations
         cell.style.background = "";
         cell.style.backgroundColor = "";
@@ -66,7 +70,7 @@ function resetGame() {
         cell.style.filter = "";
         cell.style.opacity = "";
         cell.style.animation = "";
-        
+
         // Board-Cell-Inhalt immer leeren (z.B. falls per innerHTML o.ä. befüllt)
         cell.innerHTML = "";
       }
@@ -96,6 +100,9 @@ function resetGame() {
 
   generatePieces();
   renderPieces();
+
+  // Reset permanent multiplier display
+  updatePermanentMultiplierDisplay();
 
   // Nach jedem Reset GridSnap neu initialisieren (wichtig für Touch)
   import("./drag.js").then(({ GridSnap }) => {
@@ -444,6 +451,11 @@ function _clearLines() {
   // Combo-System: Aufeinanderfolgende Löschungen
   state.consecutiveClears++;
 
+  // Permanenter Multiplikator erhöhen bei jeder Linien-Löschung
+  const oldPermanentMultiplier = state.permanentMultiplier;
+  state.permanentMultiplier += 1; // +1x für jede gelöschte Linie (summativ)
+  console.log(`Permanent multiplier increased from ${oldPermanentMultiplier.toFixed(0)}x to ${state.permanentMultiplier.toFixed(0)}x`);
+
   // Multiplikator berechnen (steigt mit Combos)
   if (state.consecutiveClears > 1) {
     state.currentMultiplier = Math.min(state.consecutiveClears, 8); // Maximum 8x
@@ -451,8 +463,8 @@ function _clearLines() {
     state.currentMultiplier = 1;
   }
 
-  // Finale Punkte mit Multiplikator
-  let finalPoints = basePoints * 10 * state.currentMultiplier;
+  // Finale Punkte mit BEIDEN Multiplikatoren (Combo * Permanent)
+  let finalPoints = basePoints * 10 * state.currentMultiplier * state.permanentMultiplier;
 
   // Berechne die Gesamtzahl der gelöschten Linien für die Animation
   const totalLinesCleared = fullRows.length + fullCols.length;
@@ -462,6 +474,7 @@ function _clearLines() {
 
   state.playerScore += finalPoints;
   updateScoreDisplay();
+  updatePermanentMultiplierDisplay();
 }
 
 /* --------------------------------------------------------------------
@@ -477,6 +490,36 @@ function testAnimations() {
 
 // Test-Funktion global verfügbar machen
 window.testAnimations = testAnimations;
+
+// Test function for permanent multiplier
+window.testPermanentMultiplier = function() {
+  console.log("Testing permanent multiplier...");
+  console.log("Current permanent multiplier:", state.permanentMultiplier);
+
+  // Simulate line clearing to increase permanent multiplier
+  state.permanentMultiplier += 1;
+  console.log("Increased permanent multiplier to:", state.permanentMultiplier);
+
+  // Update display
+  updatePermanentMultiplierDisplay();
+
+  // Test CPU permanent multiplier too
+  state.cpuPermanentMultiplier += 1;
+  console.log("Increased CPU permanent multiplier to:", state.cpuPermanentMultiplier);
+
+  // Call CPU update function directly
+  const cpuMultiplierElement = document.getElementById("opponentPermanentMultiplier");
+  const cpuMultiplierValueElement = cpuMultiplierElement?.querySelector(".multiplier-value");
+
+  if (cpuMultiplierElement && cpuMultiplierValueElement) {
+    if (state.cpuPermanentMultiplier > 1.0) {
+      cpuMultiplierElement.style.display = "flex";
+      cpuMultiplierValueElement.textContent = `${state.cpuPermanentMultiplier.toFixed(0)}x`;
+    } else {
+      cpuMultiplierElement.style.display = "none";
+    }
+  }
+};
 
 /* --------------------------------------------------------------------
  *  Animationen für Punkte und Multiplikatoren anzeigen
@@ -668,6 +711,30 @@ function _showPointsAnimation(points) {
  * ------------------------------------------------------------------ */
 function updateScoreDisplay() {
   if (state.el.score) state.el.score.textContent = state.playerScore;
+}
+
+/* --------------------------------------------------------------------
+ *  Permanent Multiplier Display Update
+ * ------------------------------------------------------------------ */
+function updatePermanentMultiplierDisplay() {
+  console.log("updatePermanentMultiplierDisplay called, permanentMultiplier:", state.permanentMultiplier);
+  const multiplierElement = document.getElementById("playerPermanentMultiplier");
+  const multiplierValueElement = multiplierElement?.querySelector(".multiplier-value");
+
+  if (multiplierElement && multiplierValueElement) {
+    // Show the multiplier display when it's above 1.0
+    if (state.permanentMultiplier > 1.0) {
+      console.log("Showing permanent multiplier display:", state.permanentMultiplier.toFixed(0) + "x");
+      multiplierElement.style.display = "flex";
+      // Format as whole number since we increment by 1
+      multiplierValueElement.textContent = `${state.permanentMultiplier.toFixed(0)}x`;
+    } else {
+      console.log("Hiding permanent multiplier display");
+      multiplierElement.style.display = "none";
+    }
+  } else {
+    console.log("Could not find permanent multiplier elements");
+  }
 }
 
 /* --------------------------------------------------------------------

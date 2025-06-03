@@ -29,11 +29,17 @@ export const state = {
   lastClearTurn: -1,
   currentMultiplier: 1,
 
+  // Permanenter Multiplikator (Spieler) - erhöht sich mit jeder Linien-Löschung
+  permanentMultiplier: 1,
+
   // Combo-System für CPU
   cpuConsecutiveClears: 0,
   cpuLastClearTurn: -1,
   cpuCurrentMultiplier: 1,
   cpuTurnCounter: 0,
+
+  // Permanenter Multiplikator (CPU) - erhöht sich mit jeder Linien-Löschung
+  cpuPermanentMultiplier: 1,
 
   // Boards & DOM-Arrays
   playerBoard: Array(10)

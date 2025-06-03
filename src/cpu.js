@@ -1,12 +1,14 @@
 /* --------------------------------------------------------------------
  *  src/cpu.js  –  KI-Logik für Einzelspieler-Modus mit Schwierigkeitsgraden
  * ------------------------------------------------------------------ */
-import { state } from "./state.js";
-import { ALL_POSSIBLE_SHAPES } from "./constants.js";
 import { clearSound } from "./audio.js"; // optional, falls Sound
-import { player } from "./player.js"; // für playerHasMoves()
+import { ALL_POSSIBLE_SHAPES } from "./constants.js";
+import { state } from "./state.js";
 
-/* --------------------------------------------------------------------
+/* ---------------------------------------------------------  // Permanenter Multiplikator erhöhen bei jeder Linien-Löschung
+  const oldCpuPermanentMultiplier = state.cpuPermanentMultiplier;
+  state.cpuPermanentMultiplier += 1; // +1x für jede gelöschte Linie (summativ)
+  console.log(`CPU Permanent multiplier increased from ${oldCpuPermanentMultiplier.toFixed(1)}x to ${state.cpuPermanentMultiplier.toFixed(1)}x`);-------
  *  Öffentliche API
  * ------------------------------------------------------------------ */
 export const cpu = {
@@ -43,10 +45,12 @@ function initGame() {
   state.cpuConsecutiveClears = 0;
   state.cpuLastClearTurn = -1;
   state.cpuCurrentMultiplier = 1;
+  state.cpuPermanentMultiplier = 1;
   state.cpuTurnCounter = 0;
 
   renderCpuBoard(); // zeigt leeres Board
   updateScore(); // setzt 0
+  updateOpponentPermanentMultiplierDisplay(); // reset display
   _generatePieces(); // erste 3 Teile
 }
 
@@ -436,6 +440,11 @@ function _clearLines() {
   }
   state.cpuLastClearTurn = state.cpuTurnCounter;
 
+  // Permanenter Multiplikator erhöhen bei jeder Linien-Löschung
+  const oldCpuPermanentMultiplier = state.cpuPermanentMultiplier;
+  state.cpuPermanentMultiplier += 1; // +1x für jede gelöschte Linie (summativ)
+  console.log(`CPU Permanent multiplier increased from ${oldCpuPermanentMultiplier.toFixed(0)}x to ${state.cpuPermanentMultiplier.toFixed(0)}x`);
+
   // Multiplikator berechnen (steigt mit Combos)
   if (state.cpuConsecutiveClears > 1) {
     state.cpuCurrentMultiplier = Math.min(state.cpuConsecutiveClears, 8); // Maximum 8x
@@ -443,10 +452,12 @@ function _clearLines() {
     state.cpuCurrentMultiplier = 1;
   }
 
-  // Finale Punkte mit Multiplikator
-  let finalPoints = basePoints * 10 * state.cpuCurrentMultiplier;
+  // Finale Punkte mit BEIDEN Multiplikatoren (Combo * Permanent)
+  let finalPoints = basePoints * 10 * state.cpuCurrentMultiplier * state.cpuPermanentMultiplier;
 
   state.cpuScore += finalPoints;
+  updateScore();
+  updateOpponentPermanentMultiplierDisplay();
 }
 
 /* ---------- Shapes erzeugen ---------------------------------------- */
@@ -535,6 +546,28 @@ function renderCpuBoard() {
 /* ---------- Punkteanzeige ------------------------------------------ */
 function updateScore() {
   state.el.oppScore.textContent = state.cpuScore;
+}
+
+/* ---------- Opponent Permanent Multiplier Display Update ----------- */
+function updateOpponentPermanentMultiplierDisplay() {
+  console.log("updateOpponentPermanentMultiplierDisplay called, cpuPermanentMultiplier:", state.cpuPermanentMultiplier);
+  const multiplierElement = document.getElementById("opponentPermanentMultiplier");
+  const multiplierValueElement = multiplierElement?.querySelector(".multiplier-value");
+
+  if (multiplierElement && multiplierValueElement) {
+    // Show the multiplier display when it's above 1.0
+    if (state.cpuPermanentMultiplier > 1.0) {
+      console.log("Showing CPU permanent multiplier display:", state.cpuPermanentMultiplier.toFixed(0) + "x");
+      multiplierElement.style.display = "flex";
+      // Format as whole number since we increment by 1
+      multiplierValueElement.textContent = `${state.cpuPermanentMultiplier.toFixed(0)}x`;
+    } else {
+      console.log("Hiding CPU permanent multiplier display");
+      multiplierElement.style.display = "none";
+    }
+  } else {
+    console.log("Could not find opponent permanent multiplier elements");
+  }
 }
 
 /* ---------- Keine Züge mehr ---------------------------------------- */
