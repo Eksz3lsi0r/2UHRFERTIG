@@ -110,7 +110,7 @@ function updateChatNotificationBadge() {
       document.head.appendChild(style);
     }
     
-    chatBubble.style.position = "relative";
+    // Don't override position - keep original CSS positioning
     chatBubble.appendChild(chatNotificationBadge);
   }
 
@@ -1139,9 +1139,13 @@ function setupChatUI() {
   function updateChatVisibility() {
     if (state.currentMode === "player") {
       chatBubble.style.display = "block";
+      // Reset chat position when entering player mode
+      resetChatPosition();
     } else {
       chatBubble.style.display = "none";
       chatModal.style.display = "none";
+      // Reset chat position when leaving player mode
+      resetChatPosition();
     }
   }
 
@@ -1161,6 +1165,27 @@ function setupChatUI() {
     chatModal.style.display = "none";
     chatModal.classList.remove("open");
     chatInput.blur();
+    
+    // Reset position to original CSS values to fix positioning issue
+    resetChatPosition();
+  }
+
+  // Reset chat modal position to original values
+  function resetChatPosition() {
+    // Remove any inline styles that might override CSS for chat modal
+    chatModal.style.top = "";
+    chatModal.style.left = "";
+    chatModal.style.right = "";
+    chatModal.style.bottom = "";
+    chatModal.style.transform = "";
+    
+    // Also reset chat bubble position to prevent position drift
+    chatBubble.style.position = "";
+    chatBubble.style.top = "";
+    chatBubble.style.left = "";
+    chatBubble.style.right = "";
+    chatBubble.style.bottom = "";
+    chatBubble.style.transform = "";
   }
 
   // Check if device is mobile
