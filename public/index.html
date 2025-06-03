@@ -311,6 +311,27 @@
       </div>
     </div>
 
+    <!-- Matchmaking Overlay (PvP only) -->
+    <div id="matchmakingOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,12,41,0.95); z-index:200; flex-direction:column; align-items:center; justify-content:center;">
+      <div class="matchmaking-container" style="text-align:center; color:#fff; max-width:420px; padding:40px;">
+        <div class="matchmaking-icon" style="font-size:4rem; margin-bottom:20px; animation:pulse 2s infinite;">🔍</div>
+        <h2 id="matchmakingTitle" data-lang-key="searchingForOpponent" style="font-size:1.8rem; margin-bottom:15px; color:#8a2be2;">Suche nach Gegner...</h2>
+        <div id="matchmakingStatus" style="font-size:1.2rem; margin-bottom:20px; color:#eaeaea;">
+          <span data-lang-key="waitingForPlayer">Warte auf Spieler</span> <span id="playerCount">1/2</span>
+        </div>
+        <div id="estimatedWaitTime" style="font-size:1rem; color:#aaa; margin-bottom:30px;">
+          <span data-lang-key="estimatedWait">Geschätzte Wartezeit:</span> <span id="waitTimeValue">~30s</span>
+        </div>
+        <div class="loading-animation" style="display:flex; justify-content:center; gap:8px; margin-bottom:30px;">
+          <div class="loading-dot" style="width:12px; height:12px; border-radius:50%; background:#8a2be2; animation:bounce 1.4s ease-in-out infinite both;"></div>
+          <div class="loading-dot" style="width:12px; height:12px; border-radius:50%; background:#8a2be2; animation:bounce 1.4s ease-in-out 0.16s infinite both;"></div>
+          <div class="loading-dot" style="width:12px; height:12px; border-radius:50%; background:#8a2be2; animation:bounce 1.4s ease-in-out 0.32s infinite both;"></div>
+        </div>
+        <div id="matchmakingMode" style="font-size:0.9rem; color:#bbb; margin-bottom:20px;"></div>
+        <button id="cancelMatchmaking" class="menu-button" data-lang-key="cancelMatchmaking" style="padding:10px 30px; font-size:1rem;">Abbrechen</button>
+      </div>
+    </div>
+
     <!-- Chat Bubble (PvP only) -->
     <div id="chat-bubble" style="display:none; position:fixed; top:18px; left:18px; z-index:50; cursor:pointer;">
       <svg width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">

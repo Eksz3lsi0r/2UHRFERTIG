@@ -15,9 +15,14 @@ export const socket = window.io
 // Make socket globally available for chat functionality
 window.socket = socket;
 
-// Show waiting message when matchmaking
+// Show waiting message when matchmaking and update overlay
 socket.on("waiting", (data) => {
   ui.displayMessage(data.message, "info");
+  // Update matchmaking status if overlay is visible
+  const matchmakingOverlay = document.getElementById("matchmaking-overlay");
+  if (matchmakingOverlay && !matchmakingOverlay.classList.contains("hidden")) {
+    ui.updateMatchmakingStatus(data.playerCount || 1);
+  }
 });
 
 /* --------------------------------------------------------------------
@@ -46,6 +51,11 @@ export function sendScore() {
 }
 export function requestRematch() {
   socket.emit("requestRematch");
+}
+
+export function cancelMatchmaking() {
+  socket.emit("cancelMatchmaking");
+  ui.hideMatchmakingOverlay();
 }
 
 /* --------------------------------------------------------------------
@@ -78,6 +88,11 @@ socket.on("playerInfo", (data) => {
 /* ---- Start des Spiels ---------------------------------------------- */
 socket.on("startGame", (data) => {
   if (state.currentMode !== "player") return;
+  
+  // Hide matchmaking overlay and show game area
+  ui.hideMatchmakingOverlay();
+  ui.showGameArea();
+  
   // Reset PvP-Spiel komplett für Rematch/Neustart
   if (typeof window.player?.resetGame === "function") {
     window.player.resetGame();
@@ -217,6 +232,27 @@ socket.on("rematchRequestedByOpponent", (data) => {
 socket.on("waitingForRematchConfirm", () => {
   ui.displayMessage?.(
     LANG[state.currentLanguage].waitingForRematchConfirmMsg,
+    "info"
+  );
+});
+
+/* ---- Matchmaking Events -------------------------------------------- */
+socket.on("matchmakingUpdate", (data) => {
+  // Update player count in matchmaking overlay
+  if (data.playerCount !== undefined) {
+    ui.updateMatchmakingStatus(data.playerCount);
+  }
+});
+
+socket.on("matchmakingError", (data) => {
+  ui.hideMatchmakingOverlay();
+  ui.displayMessage(data.message || "Matchmaking failed", "error");
+});
+
+socket.on("matchmakingCancelled", () => {
+  ui.hideMatchmakingOverlay();
+  ui.displayMessage(
+    LANG[state.currentLanguage].matchmakingCancelledMsg || "Matchmaking cancelled",
     "info"
   );
 });

@@ -330,6 +330,15 @@ export const LANG = {
     normalPvPDescription: "Entspanntes Spiel ohne Auswirkung auf die Rangliste",
     rankedPvPDescription:
       "Kämpfe um Ranglistenpunkte und steige in der Rangliste auf",
+    
+    // Matchmaking overlay
+    searchingForOpponent: "Suche nach Gegner...",
+    waitingForPlayer: "Warte auf Spieler",
+    estimatedWait: "Geschätzte Wartezeit:",
+    cancelMatchmaking: "Abbrechen",
+    normalMatchmaking: "Normaler Kampf",
+    rankedMatchmaking: "Gewerteter Ranglistenkampf",
+    matchmakingCancelledMsg: "Matchmaking abgebrochen",
   },
   en: {
     mainMenuTitle: "Shape Smasher!",
@@ -415,6 +424,15 @@ export const LANG = {
     rankedPvP: "Ranked Battle",
     normalPvPDescription: "Casual game with no effect on leaderboard",
     rankedPvPDescription: "Fight for ranking points and climb the leaderboard",
+    
+    // Matchmaking overlay
+    searchingForOpponent: "Searching for Opponent...",
+    waitingForPlayer: "Waiting for Player",
+    estimatedWait: "Estimated Wait Time:",
+    cancelMatchmaking: "Cancel",
+    normalMatchmaking: "Normal Battle",
+    rankedMatchmaking: "Ranked Battle",
+    matchmakingCancelledMsg: "Matchmaking cancelled",
   },
   fr: {
     mainMenuTitle: "Shape Smasher!",
@@ -502,6 +520,15 @@ export const LANG = {
     normalPvPDescription: "Jeu décontracté sans effet sur le classement",
     rankedPvPDescription:
       "Combattez pour des points de classement et grimpez dans le classement",
+    
+    // Matchmaking overlay
+    searchingForOpponent: "Recherche d'un adversaire...",
+    waitingForPlayer: "En attente d'un joueur",
+    estimatedWait: "Temps d'attente estimé:",
+    cancelMatchmaking: "Annuler",
+    normalMatchmaking: "Combat Normal",
+    rankedMatchmaking: "Combat Classé",
+    matchmakingCancelledMsg: "Matchmaking annulé",
   },
 };
 

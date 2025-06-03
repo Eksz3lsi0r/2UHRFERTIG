@@ -6,7 +6,7 @@ import { ui } from "./ui.js";
 import { player } from "./player.js";
 import { cpu } from "./cpu.js";
 import { GridSnap } from "./drag.js";
-import { findGame } from "./network.js";
+import { findGame, cancelMatchmaking } from "./network.js";
 import { LANG } from "./constants.js";
 import { socket as networkSocket } from "./network.js";
 
@@ -227,6 +227,15 @@ window.addEventListener("DOMContentLoaded", () => {
   if (state.el.backFromPvPModeButton) {
     state.el.backFromPvPModeButton.addEventListener("click", ui.showMainMenu);
   }
+
+  // Cancel matchmaking button
+  const cancelMatchmakingButton = document.getElementById("cancelMatchmaking");
+  if (cancelMatchmakingButton) {
+    cancelMatchmakingButton.addEventListener("click", () => {
+      cancelMatchmaking();
+      showPvpModeSelection();
+    });
+  }
 });
 
 /* --------------------------------------------------------------------
@@ -360,7 +369,9 @@ function startPvpMode(ranked = false) {
   if (typeof window.ui?.buildBoardDOM === "function") {
     window.ui.buildBoardDOM();
   }
-  ui.showGameArea();
+  
+  // Show matchmaking overlay instead of game area immediately
+  ui.showMatchmakingOverlay(ranked);
 
   player.resetGame();
   // Nach Reset GridSnap neu initialisieren (wichtig für Touch)
@@ -368,8 +379,6 @@ function startPvpMode(ranked = false) {
     GridSnap.init(state.el.board, state.boardCells);
   }
   findGame(state.playerName); // ruft Server
-  // Show searching message
-  ui.displayMessage(LANG[state.currentLanguage].searchingPlayer, "info");
 }
 
 /* --------------------------------------------------------------------

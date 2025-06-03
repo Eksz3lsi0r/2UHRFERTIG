@@ -53,6 +53,7 @@ export const state = {
   currentDragShape: null,
   currentDragOffset: { x: 0, y: 0 },
   countdownInterval: null,
+  waitTimeInterval: null, // For matchmaking wait time estimation
   timeLeft: 0,
   opponentFinished: false, // Flag für PVP: Gegner hat kein Züge mehr
   opponentFinalScore: 0, // Finale Punktzahl des Gegners im PVP

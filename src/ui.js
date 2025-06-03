@@ -875,6 +875,90 @@ function showRankedGameSummaryOverlay({
   updatePlayerRankingPoints();
 }
 
+/* --------------------------------------------------------------------
+ *  Matchmaking Overlay Functions
+ * ------------------------------------------------------------------ */
+function showMatchmakingOverlay(isRanked = false) {
+  const overlay = document.getElementById("matchmakingOverlay");
+  const modeDisplay = document.getElementById("matchmakingMode");
+  const cancelButton = document.getElementById("cancelMatchmaking");
+  
+  if (!overlay) return;
+
+  // Set mode text
+  if (modeDisplay) {
+    const modeKey = isRanked ? "rankedMatchmaking" : "normalMatchmaking";
+    modeDisplay.textContent = LANG[state.currentLanguage][modeKey] || (isRanked ? "Ranked Battle" : "Normal Battle");
+  }
+
+  // Set up cancel button
+  if (cancelButton) {
+    cancelButton.onclick = () => {
+      hideMatchmakingOverlay();
+      // Return to PvP mode selection
+      showPvpModeMenu();
+    };
+  }
+
+  // Start estimated wait time countdown
+  startWaitTimeEstimation();
+
+  overlay.style.display = "flex";
+  translateUI(); // Update all language-dependent elements
+}
+
+function hideMatchmakingOverlay() {
+  const overlay = document.getElementById("matchmakingOverlay");
+  if (overlay) {
+    overlay.style.display = "none";
+  }
+  
+  // Clear wait time estimation
+  if (state.waitTimeInterval) {
+    clearInterval(state.waitTimeInterval);
+    state.waitTimeInterval = null;
+  }
+}
+
+function updateMatchmakingStatus(playerCount = 1) {
+  const playerCountElement = document.getElementById("playerCount");
+  if (playerCountElement) {
+    playerCountElement.textContent = `${playerCount}/2`;
+  }
+}
+
+function startWaitTimeEstimation() {
+  const waitTimeElement = document.getElementById("waitTimeValue");
+  if (!waitTimeElement) return;
+
+  let estimatedSeconds = 30; // Start with 30 seconds estimate
+  
+  const updateWaitTime = () => {
+    const minutes = Math.floor(estimatedSeconds / 60);
+    const seconds = estimatedSeconds % 60;
+    
+    if (minutes > 0) {
+      waitTimeElement.textContent = `~${minutes}m ${seconds}s`;
+    } else {
+      waitTimeElement.textContent = `~${seconds}s`;
+    }
+    
+    // Gradually increase wait time estimate to simulate real matchmaking
+    if (estimatedSeconds < 120) {
+      estimatedSeconds += 2;
+    }
+  };
+
+  updateWaitTime(); // Initial update
+  
+  // Clear any existing interval
+  if (state.waitTimeInterval) {
+    clearInterval(state.waitTimeInterval);
+  }
+  
+  state.waitTimeInterval = setInterval(updateWaitTime, 3000); // Update every 3 seconds
+}
+
 // --- Chat UI Logic (PvP only) ---
 function setupChatUI() {
   const chatBubble = document.getElementById("chat-bubble");
@@ -1028,6 +1112,9 @@ export const ui = {
   hideCatchupTimer,
   showGameResultOverlay,
   showRankedGameSummaryOverlay,
+  showMatchmakingOverlay,
+  hideMatchmakingOverlay,
+  updateMatchmakingStatus,
 
   /* Reactive Getter/Setter */
   get lang() {

@@ -44,11 +44,43 @@ function resetGame() {
   if (state.boardCells?.length) {
     for (let r = 0; r < 10; r++) {
       for (let c = 0; c < 10; c++) {
-        state.boardCells[r][c].className = "cell";
+        const cell = state.boardCells[r][c];
+        
+        // Reset className to base "cell" class
+        cell.className = "cell";
+        
+        // Clear all potential animation and styling classes
+        cell.classList.remove(
+          "filled", "rainbow", "preview-valid-cell", "preview-invalid-cell",
+          "row-flash", "multi-line-flash", "fill-warning", "fill-danger", 
+          "clearing", "flash", "preview-valid", "preview-invalid",
+          "highlight-score", "score-combo"
+        );
+        
+        // Clear any inline styles that might have been applied during animations
+        cell.style.background = "";
+        cell.style.backgroundColor = "";
+        cell.style.border = "";
+        cell.style.boxShadow = "";
+        cell.style.transform = "";
+        cell.style.filter = "";
+        cell.style.opacity = "";
+        cell.style.animation = "";
+        
         // Board-Cell-Inhalt immer leeren (z.B. falls per innerHTML o.ä. befüllt)
-        state.boardCells[r][c].innerHTML = "";
+        cell.innerHTML = "";
       }
     }
+  }
+
+  // Clear board-level animation classes that might persist from previous games
+  const boardElement = state.el.board;
+  if (boardElement) {
+    boardElement.classList.remove("multi-line-flash");
+    // Clear any inline styles that might have been applied
+    boardElement.style.transform = "";
+    boardElement.style.filter = "";
+    boardElement.style.animation = "";
   }
 
   // State-Board auch im DOM spiegeln (Sicherheit)
