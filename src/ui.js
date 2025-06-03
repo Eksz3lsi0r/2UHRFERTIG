@@ -7,6 +7,11 @@ import { state } from "./state.js";
 /* --------------------------------------------------------------------
  *  Chat Message Function (available globally early)
  * ------------------------------------------------------------------ */
+// --- Chat notification state ---
+let unreadChatMessages = 0;
+let chatNotificationBadge = null;
+let lastChatMessageTime = 0;
+
 // --- Make appendChatMessage globally available early ---
 window.appendChatMessage = function (msg, fromSelf = false) {
   const chatMessages = document.getElementById("chat-messages");
@@ -32,11 +37,161 @@ window.appendChatMessage = function (msg, fromSelf = false) {
     chatMessages.appendChild(div);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 
+    // Handle notifications for incoming messages
+    if (!fromSelf) {
+      handleIncomingChatMessage(msg);
+    }
+
     console.log("[Chat] Message successfully appended to chat");
   } catch (error) {
     console.error("[Chat] Error appending message:", error);
   }
 };
+
+// --- Handle incoming chat message notifications ---
+function handleIncomingChatMessage(msg) {
+  const chatModal = document.getElementById("chat-modal");
+  const isChatOpen = chatModal && chatModal.style.display === "flex";
+  
+  // Only increment unread count if chat is not open
+  if (!isChatOpen) {
+    unreadChatMessages++;
+    updateChatNotificationBadge();
+  }
+  
+  // Show brief notification in game area
+  showBriefChatNotification(msg);
+}
+
+// --- Update chat notification badge ---
+function updateChatNotificationBadge() {
+  const chatBubble = document.getElementById("chat-bubble");
+  if (!chatBubble) return;
+
+  if (!chatNotificationBadge) {
+    // Create notification badge
+    chatNotificationBadge = document.createElement("div");
+    chatNotificationBadge.id = "chat-notification-badge";
+    chatNotificationBadge.style.cssText = `
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: #ff4757;
+      color: white;
+      border-radius: 50%;
+      min-width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: bold;
+      z-index: 51;
+      box-shadow: 0 2px 6px rgba(255, 71, 87, 0.4);
+      animation: badge-pulse 2s infinite ease-in-out;
+    `;
+    
+    // Add CSS animation
+    if (!document.getElementById("chat-notification-styles")) {
+      const style = document.createElement("style");
+      style.id = "chat-notification-styles";
+      style.textContent = `
+        @keyframes badge-pulse {
+          0%, 100% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(1.1); opacity: 0.8; }
+        }
+        @keyframes brief-chat-fade {
+          0% { opacity: 0; transform: translateY(-10px); }
+          10% { opacity: 1; transform: translateY(0); }
+          90% { opacity: 1; transform: translateY(0); }
+          100% { opacity: 0; transform: translateY(-10px); }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+    
+    chatBubble.style.position = "relative";
+    chatBubble.appendChild(chatNotificationBadge);
+  }
+
+  if (unreadChatMessages > 0) {
+    chatNotificationBadge.textContent = unreadChatMessages > 99 ? "99+" : unreadChatMessages.toString();
+    chatNotificationBadge.style.display = "flex";
+    
+    // Add glow effect to chat bubble
+    chatBubble.style.boxShadow = "0 2px 8px #8a2be244, 0 0 15px rgba(255, 71, 87, 0.6)";
+  } else {
+    chatNotificationBadge.style.display = "none";
+    chatBubble.style.boxShadow = "0 2px 8px #8a2be244";
+  }
+}
+
+// --- Show brief chat notification in game area ---
+function showBriefChatNotification(msg) {
+  const currentTime = Date.now();
+  
+  // Throttle notifications to avoid spam
+  if (currentTime - lastChatMessageTime < 1000) return;
+  lastChatMessageTime = currentTime;
+  
+  // Extract sender name and message content
+  let senderName = "Gegner";
+  let messageContent = msg;
+  
+  if (msg.includes(": ")) {
+    const parts = msg.split(": ", 2);
+    senderName = parts[0];
+    messageContent = parts[1];
+  }
+  
+  // Create brief notification element
+  const briefNotification = document.createElement("div");
+  briefNotification.style.cssText = `
+    position: fixed;
+    top: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 12, 41, 0.95);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.9em;
+    z-index: 200;
+    max-width: 300px;
+    text-align: center;
+    border: 1px solid #8a2be2;
+    box-shadow: 0 4px 12px rgba(138, 43, 226, 0.3);
+    animation: brief-chat-fade 4s ease-in-out forwards;
+    pointer-events: none;
+  `;
+  
+  // Truncate long messages
+  if (messageContent.length > 50) {
+    messageContent = messageContent.substring(0, 47) + "...";
+  }
+  
+  briefNotification.innerHTML = `
+    <div style="color: #8a2be2; font-weight: bold; font-size: 0.8em; margin-bottom: 2px;">
+      💬 ${senderName}
+    </div>
+    <div>${messageContent}</div>
+  `;
+  
+  document.body.appendChild(briefNotification);
+  
+  // Remove after animation
+  setTimeout(() => {
+    if (briefNotification.parentNode) {
+      briefNotification.parentNode.removeChild(briefNotification);
+    }
+  }, 4000);
+}
+
+// --- Clear unread messages when chat is opened ---
+function clearChatNotifications() {
+  unreadChatMessages = 0;
+  updateChatNotificationBadge();
+}
 
 /* --------------------------------------------------------------------
  *  Modul-Variablen
@@ -997,6 +1152,8 @@ function setupChatUI() {
     chatInput.focus();
     // Scroll to bottom
     chatMessages.scrollTop = chatMessages.scrollHeight;
+    // Clear notifications when chat is opened
+    clearChatNotifications();
   }
 
   // Close chat modal

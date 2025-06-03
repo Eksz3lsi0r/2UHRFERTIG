@@ -287,12 +287,9 @@ window.sendChatMessage = function (msg) {
     window.socket.emit("chatMessage", { msg });
     console.log("[Chat] Message sent to server successfully");
 
-    if (typeof window.appendChatMessage === "function") {
-      window.appendChatMessage("Du: " + msg, true);
-      console.log("[Chat] Message added to local chat");
-    } else {
-      console.warn("[Chat] appendChatMessage function not available");
-    }
+    // Don't add the message locally here - wait for server confirmation
+    // This prevents duplicate messages
+    console.log("[Chat] Message sent, waiting for server confirmation");
   } catch (error) {
     console.error("[Chat] Error sending message:", error);
   }
@@ -307,10 +304,18 @@ if (window.socket && typeof window.socket.on === "function") {
     );
 
     if (typeof window.appendChatMessage === "function") {
-      const displayName = data.fromSelf ? "Du" : state.opponentName || "Gegner";
-      const message = displayName + ": " + data.msg;
-      window.appendChatMessage(message, data.fromSelf);
-      console.log("[Chat] Message added to chat:", message);
+      // Handle both sent and received messages
+      if (data.fromSelf) {
+        // Message sent by this client
+        const message = "Du: " + data.msg;
+        window.appendChatMessage(message, true);
+      } else {
+        // Message received from opponent
+        const displayName = state.opponentName || "Gegner";
+        const message = displayName + ": " + data.msg;
+        window.appendChatMessage(message, false);
+      }
+      console.log("[Chat] Message added to chat");
     } else {
       console.warn(
         "[Chat] appendChatMessage function not available for received message"

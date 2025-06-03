@@ -2,10 +2,10 @@
   "players": {
     "123": {
       "name": "123",
-      "rankingPoints": 1184,
-      "wins": 6,
-      "losses": 4,
-      "totalGames": 10
+      "rankingPoints": 1204,
+      "wins": 7,
+      "losses": 5,
+      "totalGames": 12
     },
     "bhh": {
       "name": "bhh",
