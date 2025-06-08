@@ -439,24 +439,40 @@ io.on("connection", async (socket) => {
       if (game.timeout) clearTimeout(game.timeout);
       game.timeout = setTimeout(() => {
         // After 3 min, finish game with current scores
-        const oppScore = game.scores[opponentId] || 0;
-        const win = oppScore > finalScore ? opponentId : socket.id;
-        finish(room, win);
+        const secondPlayerScore = game.scores[opponentId] || 0;
+        const firstPlayerScore = finalScore;
+
+        // Winner is determined by highest score
+        // If tied, first finisher wins (advantage for finishing first)
+        let winnerId;
+        if (secondPlayerScore > firstPlayerScore) {
+          winnerId = opponentId; // Second player wins with higher score
+        } else {
+          winnerId = socket.id; // First player wins (higher score or tie)
+        }
+
+        console.log(`Timeout expired - First player (${game.playerNames[socket.id]}): ${firstPlayerScore}, Second player (${game.playerNames[opponentId]}): ${secondPlayerScore}, Winner: ${game.playerNames[winnerId]}`);
+        finish(room, winnerId);
       }, 180 * 1000);
     } else {
       // Second player finishes: decide winner immediately
       if (game.timeout) clearTimeout(game.timeout);
-      const leader = game.firstFinisher;
-      const leaderScore = game.firstScore;
-      const challenger = socket.id;
-      const challengerScore = finalScore;
-      let win;
-      if (challengerScore > leaderScore) {
-        win = challenger;
+      const firstPlayerId = game.firstFinisher;
+      const firstPlayerScore = game.firstScore;
+      const secondPlayerId = socket.id;
+      const secondPlayerScore = finalScore;
+
+      // Winner is determined by highest score
+      // If tied, first finisher wins (advantage for finishing first)
+      let winnerId;
+      if (secondPlayerScore > firstPlayerScore) {
+        winnerId = secondPlayerId; // Second player wins with higher score
       } else {
-        win = leader;
+        winnerId = firstPlayerId; // First player wins (higher score or tie)
       }
-      finish(room, win);
+
+      console.log(`Both players finished - First player (${game.playerNames[firstPlayerId]}): ${firstPlayerScore}, Second player (${game.playerNames[secondPlayerId]}): ${secondPlayerScore}, Winner: ${game.playerNames[winnerId]}`);
+      finish(room, winnerId);
     }
   });
   socket.on("requestRematch", () => {
