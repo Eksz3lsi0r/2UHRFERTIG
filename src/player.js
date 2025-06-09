@@ -25,6 +25,10 @@ export const player = {
   checkGameOverCondition,
   finishGame,
   handleDrop, // <-- handleDrop hinzugefügt
+  clearLines, // <-- clearLines für Power-Ups hinzugefügt
+  hasFullLines, // <-- hasFullLines für Power-Ups hinzugefügt
+  updateScoreDisplay,
+  updatePermanentMultiplierDisplay,
 };
 
 /* --------------------------------------------------------------------
@@ -389,6 +393,18 @@ function placeShape(shape, br, bc) {
         JSON.stringify(sh.shape) === JSON.stringify(shape))
   );
   if (idx !== -1) state.playerPieces.splice(idx, 1);
+
+  // Board-Sync für PvP - sende Board-Update nach jeder Platzierung
+  if (state.currentMode === "player") {
+    import("./network.js").then((mod) => {
+      if (typeof mod.sendBoard === "function") {
+        mod.sendBoard();
+      }
+      if (typeof mod.sendScore === "function") {
+        mod.sendScore();
+      }
+    });
+  }
 }
 
 /* --------------------------------------------------------------------
@@ -513,6 +529,18 @@ function _clearLines() {
   state.playerScore += finalPoints;
   updateScoreDisplay();
   updatePermanentMultiplierDisplay();
+
+  // Board-Sync für PvP - sende Board-Update nach Line-Clearing
+  if (state.currentMode === "player") {
+    import("./network.js").then((mod) => {
+      if (typeof mod.sendBoard === "function") {
+        mod.sendBoard();
+      }
+      if (typeof mod.sendScore === "function") {
+        mod.sendScore();
+      }
+    });
+  }
 }
 
 /* --------------------------------------------------------------------
@@ -1034,9 +1062,9 @@ window.verifyPowerUpSystem = function() {
     return false;
   }
 
-  // Check if registry has the required power-ups
-  const hasStorm = window.powerUpRegistry.stormBlock !== undefined;
-  const hasElectro = window.powerUpRegistry.electroStack !== undefined;
+  // Check if registry has the required power-ups using the correct get() method
+  const hasStorm = window.powerUpRegistry.get('storm') !== null;
+  const hasElectro = window.powerUpRegistry.get('electro') !== null;
 
   console.log(`🌪️ Storm Block available: ${hasStorm ? '✅' : '❌'}`);
   console.log(`⚡ Electro Stack available: ${hasElectro ? '✅' : '❌'}`);

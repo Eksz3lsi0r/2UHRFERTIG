@@ -29,13 +29,47 @@ export const successSound = createSound("/sounds/success.wav");
 export const pickSound = createSound("/sounds/pick.wav");
 
 /* ---------- Hintergrundmusik (zwei Tracks im Wechsel) ---------------- */
-const bg1 = createSound("/sounds/wgame1.wav", { loop: false, volume: 0.5 });
-const bg2 = createSound("/sounds/wgame2.wav", { loop: false, volume: 0.5 });
-const bgTracks = [bg1, bg2];
+// Check if background music files exist before creating sounds
+let bg1, bg2, bgTracks = [];
+
+function initBackgroundMusic() {
+  try {
+    // Only create background sounds if Howl is available
+    if (howlAvailable) {
+      // Create sounds with error handling
+      bg1 = new Howl({
+        src: ["/sounds/wgame1.wav"],
+        loop: false,
+        volume: 0.5,
+        onloaderror: (id, error) => {
+          console.log("Background music file 1 not found, skipping background music");
+        }
+      });
+
+      bg2 = new Howl({
+        src: ["/sounds/wgame2.wav"],
+        loop: false,
+        volume: 0.5,
+        onloaderror: (id, error) => {
+          console.log("Background music file 2 not found, skipping background music");
+        }
+      });
+
+      bgTracks = [bg1, bg2];
+    }
+  } catch (err) {
+    console.log("Background music initialization failed, continuing without music");
+    bgTracks = [];
+  }
+}
+
+// Initialize background music
+initBackgroundMusic();
+
 let currentIdx = 0;
 
 function playNext() {
-  if (!howlAvailable) return;
+  if (!howlAvailable || bgTracks.length === 0) return;
 
   try {
     bgTracks[currentIdx].off("end"); // alten Listener lösen
@@ -43,13 +77,16 @@ function playNext() {
     bgTracks[currentIdx].once("end", playNext);
     bgTracks[currentIdx].play();
   } catch (err) {
-    console.error("Fehler beim Abspielen der Hintergrundmusik:", err);
+    console.log("Background music playback failed, continuing without music");
   }
 }
 
 /*  öffentliche Funktionen  */
 export function startBg() {
-  if (!howlAvailable) return;
+  if (!howlAvailable || bgTracks.length === 0) {
+    console.log("Background music not available, continuing without music");
+    return;
+  }
 
   try {
     stopBg();
@@ -57,12 +94,12 @@ export function startBg() {
     bgTracks[0].once("end", playNext);
     bgTracks[0].play();
   } catch (err) {
-    console.error("Fehler beim Starten der Hintergrundmusik:", err);
+    console.log("Background music start failed, continuing without music");
   }
 }
 
 export function stopBg() {
-  if (!howlAvailable) return;
+  if (!howlAvailable || bgTracks.length === 0) return;
 
   try {
     bgTracks.forEach((t) => {
@@ -70,7 +107,7 @@ export function stopBg() {
       t.stop();
     });
   } catch (err) {
-    console.error("Fehler beim Stoppen der Hintergrundmusik:", err);
+    console.log("Background music stop failed");
   }
 }
 

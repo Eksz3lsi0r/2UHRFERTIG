@@ -1,10 +1,10 @@
 /* --------------------------------------------------------------------
  *  src/network.js   –   Kommunikation mit dem Server (PvP)
  * ------------------------------------------------------------------ */
+import { LANG } from "./constants.js";
+import { player } from "./player.js";
 import { state } from "./state.js";
 import { ui } from "./ui.js";
-import { player } from "./player.js";
-import { LANG } from "./constants.js";
 
 /* ---------- Socket initialisieren ----------------------------------- */
 // Wir nutzen die globale io-Variable aus dem HTML-Script-Tag
@@ -88,11 +88,11 @@ socket.on("playerInfo", (data) => {
 /* ---- Start des Spiels ---------------------------------------------- */
 socket.on("startGame", (data) => {
   if (state.currentMode !== "player") return;
-  
+
   // Hide matchmaking overlay and show game area
   ui.hideMatchmakingOverlay();
   ui.showGameArea();
-  
+
   // Reset PvP-Spiel komplett für Rematch/Neustart
   if (typeof window.player?.resetGame === "function") {
     window.player.resetGame();
@@ -102,21 +102,47 @@ socket.on("startGame", (data) => {
   state.opponentFinished = false;
   state.opponentFinalScore = 0;
   state.timeLeft = 0;
+
+  // Ensure opponent board is properly reset
+  if (state.opponentBoardCells?.length) {
+    for (let r = 0; r < 10; r++) {
+      for (let c = 0; c < 10; c++) {
+        if (state.opponentBoardCells[r] && state.opponentBoardCells[r][c]) {
+          state.opponentBoardCells[r][c].className = "opponent-cell";
+          state.opponentBoardCells[r][c].classList.remove("filled", "fill-warning", "fill-danger");
+        }
+      }
+    }
+  }
+
   // Nach Reset GridSnap neu initialisieren (wichtig für Touch)
   import("./drag.js").then(({ GridSnap }) => {
     if (state.el.board && state.boardCells?.length) {
       GridSnap.init(state.el.board, state.boardCells);
     }
   });
-  // Initial board & score sync
-  socket.emit("boardUpdate", state.playerBoard);
-  socket.emit("scoreUpdate", state.playerScore);
+
+  // Initial board & score sync - delay slightly to ensure opponent board is ready
+  setTimeout(() => {
+    socket.emit("boardUpdate", state.playerBoard);
+    socket.emit("scoreUpdate", state.playerScore);
+  }, 100);
 });
 
 /* ---- Gegner schickt Board ------------------------------------------ */
 socket.on("opponentBoardUpdate", (board) => {
-  if (!state.opponentBoardCells?.length) return;
+  if (!state.opponentBoardCells?.length) {
+    console.warn("Opponent board cells not ready, trying to rebuild...");
+    // Try to rebuild board DOM if opponent cells aren't ready
+    if (typeof window.ui?.buildBoardDOM === "function") {
+      window.ui.buildBoardDOM();
+    }
+    return;
+  }
+
   try {
+    console.log("Updating opponent board with data:", board);
+
     // Calculate fill percentage for color coding
     const fillPercentage = calculateFillPercentage(board);
 
@@ -124,16 +150,23 @@ socket.on("opponentBoardUpdate", (board) => {
     for (let r = 0; r < 10; r++) {
       for (let c = 0; c < 10; c++) {
         if (state.opponentBoardCells[r] && state.opponentBoardCells[r][c]) {
-          state.opponentBoardCells[r][c].classList.toggle(
-            "filled",
-            !!board[r][c]
-          );
+          const cell = state.opponentBoardCells[r][c];
+          const isFilled = !!(board[r] && board[r][c]);
+
+          // Update filled state
+          if (isFilled) {
+            cell.classList.add("filled");
+          } else {
+            cell.classList.remove("filled");
+          }
         }
       }
     }
 
     // Apply fill percentage colors
     applyFillColors(state.opponentBoardCells, fillPercentage);
+
+    console.log(`Opponent board updated successfully. Fill: ${fillPercentage.toFixed(1)}%`);
   } catch (err) {
     console.error("Fehler beim Aktualisieren des Gegner-Boards:", err);
   }
@@ -372,5 +405,16 @@ function applyFillColors(cells, fillPercentage) {
         }
       }
     }
+  }
+}
+
+/* --------------------------------------------------------------------
+ *  Ensure opponent board sync function
+ * ------------------------------------------------------------------ */
+export function ensureOpponentBoardSync() {
+  console.log("Ensuring opponent board sync...");
+  if (state.currentMode === "player" && socket.connected) {
+    // Request current board state from opponent
+    socket.emit("requestBoardSync");
   }
 }

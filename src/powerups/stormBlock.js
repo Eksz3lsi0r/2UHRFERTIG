@@ -15,7 +15,7 @@ export class StormBlock extends BasePowerUp {
       name: 'Storm Block',
       shape: [[0, 0]], // 1x1 shape
       color: '#4a90e2',
-      spawnRate: 0.1, // 10% chance
+      spawnRate: 0.5, // 10% chance
       emoji: '🌪️',
       description: 'Collects and redistributes all blocks on the board'
     });

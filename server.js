@@ -9,7 +9,7 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
 
-// Middleware for JSON parsing
+// Middleware
 app.use(express.json());
 
 // Leaderboard storage file
@@ -361,6 +361,21 @@ io.on("connection", async (socket) => {
             playerName: player2.playerName,
           });
 
+          // Send initial board states to both players after a short delay
+          setTimeout(() => {
+            const game = games[room];
+            if (game && game.boards) {
+              // Send player1's board to player2
+              if (game.boards[player1.id] && io.sockets.sockets.get(player2.id)) {
+                io.to(player2.id).emit("opponentBoardUpdate", game.boards[player1.id]);
+              }
+              // Send player2's board to player1
+              if (game.boards[player2.id] && io.sockets.sockets.get(player1.id)) {
+                io.to(player1.id).emit("opponentBoardUpdate", game.boards[player2.id]);
+              }
+            }
+          }, 200);
+
           console.log(
             `Spiel ${room} gestartet mit ${player1.id} (${player1.playerName}) und ${player2.id} (${player2.playerName}).`
           );
@@ -381,10 +396,20 @@ io.on("connection", async (socket) => {
     const room = socket.gameRoom;
     if (!room || !games[room] || games[room].isFinished) return;
     const game = games[room];
-    game.boards[socket.id] = boardData;
+
+    // Validate board data
+    if (!Array.isArray(boardData) || boardData.length !== 10) {
+      console.warn(`Invalid board data from ${socket.id}`);
+      return;
+    }
+
+    // Store the board state
+    game.boards[socket.id] = JSON.parse(JSON.stringify(boardData)); // Deep copy
+
     const opponentId = game.players.find((id) => id !== socket.id);
-    if (opponentId) {
-      socket.to(opponentId).emit("opponentBoardUpdate", boardData);
+    if (opponentId && io.sockets.sockets.get(opponentId)) {
+      console.log(`Sending board update from ${socket.id} to ${opponentId}`);
+      io.to(opponentId).emit("opponentBoardUpdate", boardData);
     }
   });
 
