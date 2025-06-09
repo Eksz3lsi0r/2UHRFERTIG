@@ -5,10 +5,17 @@ import { clearSound } from "./audio.js"; // optional, falls Sound
 import { ALL_POSSIBLE_SHAPES } from "./constants.js";
 import { state } from "./state.js";
 
-/* ---------------------------------------------------------  // Permanenter Multiplikator erhöhen bei jeder Linien-Löschung
-  const oldCpuPermanentMultiplier = state.cpuPermanentMultiplier;
-  state.cpuPermanentMultiplier += 1; // +1x für jede gelöschte Linie (summativ)
-  console.log(`CPU Permanent multiplier increased from ${oldCpuPermanentMultiplier.toFixed(1)}x to ${state.cpuPermanentMultiplier.toFixed(1)}x`);-------
+// Debug mode toggle - set to false for production, true for development
+const DEBUG_MODE = false;
+
+// Utility function for conditional logging
+function debugLog(...args) {
+  if (DEBUG_MODE) {
+    console.log(...args);
+  }
+}
+
+/* --------------------------------------------------------------------
  *  Öffentliche API
  * ------------------------------------------------------------------ */
 export const cpu = {
@@ -49,6 +56,10 @@ function initGame() {
   state.cpuTurnCounter = 0;
 
   renderCpuBoard(); // zeigt leeres Board
+  updateScore(); // zeigt Score
+
+  // Initialize opponent permanent multiplier display for real-time visibility
+  updateOpponentPermanentMultiplierDisplay();
   updateScore(); // setzt 0
   updateOpponentPermanentMultiplierDisplay(); // reset display
   _generatePieces(); // erste 3 Teile
@@ -443,7 +454,7 @@ function _clearLines() {
   // Permanenter Multiplikator erhöhen bei jeder Linien-Löschung
   const oldCpuPermanentMultiplier = state.cpuPermanentMultiplier;
   state.cpuPermanentMultiplier += 1; // +1x für jede gelöschte Linie (summativ)
-  console.log(`CPU Permanent multiplier increased from ${oldCpuPermanentMultiplier.toFixed(0)}x to ${state.cpuPermanentMultiplier.toFixed(0)}x`);
+  debugLog(`CPU Permanent multiplier increased from ${oldCpuPermanentMultiplier.toFixed(0)}x to ${state.cpuPermanentMultiplier.toFixed(0)}x`);
 
   // Multiplikator berechnen (steigt mit Combos)
   if (state.cpuConsecutiveClears > 1) {
@@ -513,7 +524,7 @@ function renderCpuBoard() {
   }
 
   const fillPercentage = (filledCells / 100) * 100;
-  console.log(
+  debugLog(
     `CPU Board fill percentage: ${fillPercentage}% (${filledCells} filled cells)`
   );
 
@@ -533,10 +544,10 @@ function renderCpuBoard() {
       if (isFilled) {
         if (fillPercentage >= 60) {
           cell.classList.add("fill-danger"); // Red at 60+ cells
-          console.log(`Applied fill-danger to CPU cell [${r},${c}]`);
+          debugLog(`Applied fill-danger to CPU cell [${r},${c}]`);
         } else if (fillPercentage >= 30) {
           cell.classList.add("fill-warning"); // Yellow at 30+ cells
-          console.log(`Applied fill-warning to CPU cell [${r},${c}]`);
+          debugLog(`Applied fill-warning to CPU cell [${r},${c}]`);
         }
       }
     }
@@ -550,23 +561,18 @@ function updateScore() {
 
 /* ---------- Opponent Permanent Multiplier Display Update ----------- */
 function updateOpponentPermanentMultiplierDisplay() {
-  console.log("updateOpponentPermanentMultiplierDisplay called, cpuPermanentMultiplier:", state.cpuPermanentMultiplier);
+  debugLog("updateOpponentPermanentMultiplierDisplay called, cpuPermanentMultiplier:", state.cpuPermanentMultiplier);
   const multiplierElement = document.getElementById("opponentPermanentMultiplier");
   const multiplierValueElement = multiplierElement?.querySelector(".multiplier-value");
 
   if (multiplierElement && multiplierValueElement) {
-    // Show the multiplier display when it's above 1.0
-    if (state.cpuPermanentMultiplier > 1.0) {
-      console.log("Showing CPU permanent multiplier display:", state.cpuPermanentMultiplier.toFixed(0) + "x");
-      multiplierElement.style.display = "flex";
-      // Format as whole number since we increment by 1
-      multiplierValueElement.textContent = `${state.cpuPermanentMultiplier.toFixed(0)}x`;
-    } else {
-      console.log("Hiding CPU permanent multiplier display");
-      multiplierElement.style.display = "none";
-    }
+    // Always show the multiplier display from the beginning
+    debugLog("Showing CPU permanent multiplier display:", state.cpuPermanentMultiplier.toFixed(0) + "x");
+    multiplierElement.style.display = "flex";
+    // Format as whole number since we increment by 1
+    multiplierValueElement.textContent = `${state.cpuPermanentMultiplier.toFixed(0)}x`;
   } else {
-    console.log("Could not find opponent permanent multiplier elements");
+    debugLog("Could not find opponent permanent multiplier elements");
   }
 }
 

@@ -10,9 +10,18 @@
       "totalGames": 0
     },
     "bhh": {
-      "username": "bhh",
-      "password": "667",
+      "username": "abc",
+      "password": "123",
       "createdAt": "2025-05-27T05:30:51.685Z",
+      "rankingPoints": 1000,
+      "wins": 0,
+      "losses": 0,
+      "totalGames": 0
+    },
+    "gv": {
+      "username": "gv",
+      "password": "vg",
+      "createdAt": "2025-06-09T23:08:06.218Z",
       "rankingPoints": 1000,
       "wins": 0,
       "losses": 0,

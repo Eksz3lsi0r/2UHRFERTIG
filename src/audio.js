@@ -2,6 +2,16 @@
  *  src/audio.js   –   Soundeffekte & Hintergrundmusik
  * ------------------------------------------------------------------ */
 
+// Debug mode toggle - set to false for production, true for development
+const DEBUG_MODE = false;
+
+// Utility function for conditional logging
+function debugLog(...args) {
+  if (DEBUG_MODE) {
+    console.log(...args);
+  }
+}
+
 // Prüfen, ob Howl verfügbar ist
 const howlAvailable = typeof Howl !== "undefined";
 
@@ -9,7 +19,7 @@ const howlAvailable = typeof Howl !== "undefined";
 function createSound(path, options = {}) {
   if (!howlAvailable) {
     return {
-      play: () => console.log(`Sound würde abgespielt: ${path}`),
+      play: () => debugLog(`Sound würde abgespielt: ${path}`),
       stop: () => {},
       once: () => {},
       off: () => {},
@@ -52,9 +62,9 @@ export function stopPowerUpSounds() {
       stormSound.stop();
       electroSound.stop();
       extendSound.stop();
-      console.log("🔇 All power-up sounds stopped");
+      debugLog("🔇 All power-up sounds stopped");
     } catch (err) {
-      console.log("Power-up sound stop failed:", err);
+      debugLog("Power-up sound stop failed:", err);
     }
   }
 }
@@ -63,9 +73,9 @@ export function stopStormSound() {
   if (howlAvailable) {
     try {
       stormSound.stop();
-      console.log("🔇 Storm sound stopped");
+      debugLog("🔇 Storm sound stopped");
     } catch (err) {
-      console.log("Storm sound stop failed:", err);
+      debugLog("Storm sound stop failed:", err);
     }
   }
 }
@@ -74,9 +84,9 @@ export function stopElectroSound() {
   if (howlAvailable) {
     try {
       electroSound.stop();
-      console.log("🔇 Electro sound stopped");
+      debugLog("🔇 Electro sound stopped");
     } catch (err) {
-      console.log("Electro sound stop failed:", err);
+      debugLog("Electro sound stop failed:", err);
     }
   }
 }
@@ -85,9 +95,9 @@ export function stopExtendSound() {
   if (howlAvailable) {
     try {
       extendSound.stop();
-      console.log("🔇 Extend sound stopped");
+      debugLog("🔇 Extend sound stopped");
     } catch (err) {
-      console.log("Extend sound stop failed:", err);
+      debugLog("Extend sound stop failed:", err);
     }
   }
 }
@@ -106,7 +116,7 @@ function initBackgroundMusic() {
         loop: false,
         volume: 0.5,
         onloaderror: (id, error) => {
-          console.log("Background music file 1 not found, skipping background music");
+          debugLog("Background music file 1 not found, skipping background music");
         }
       });
 
@@ -115,14 +125,14 @@ function initBackgroundMusic() {
         loop: false,
         volume: 0.5,
         onloaderror: (id, error) => {
-          console.log("Background music file 2 not found, skipping background music");
+          debugLog("Background music file 2 not found, skipping background music");
         }
       });
 
       bgTracks = [bg1, bg2];
     }
   } catch (err) {
-    console.log("Background music initialization failed, continuing without music");
+    debugLog("Background music initialization failed, continuing without music");
     bgTracks = [];
   }
 }
@@ -141,14 +151,14 @@ function playNext() {
     bgTracks[currentIdx].once("end", playNext);
     bgTracks[currentIdx].play();
   } catch (err) {
-    console.log("Background music playback failed, continuing without music");
+    debugLog("Background music playback failed, continuing without music");
   }
 }
 
 /*  öffentliche Funktionen  */
 export function startBg() {
   if (!howlAvailable || bgTracks.length === 0) {
-    console.log("Background music not available, continuing without music");
+    debugLog("Background music not available, continuing without music");
     return;
   }
 
@@ -158,7 +168,7 @@ export function startBg() {
     bgTracks[0].once("end", playNext);
     bgTracks[0].play();
   } catch (err) {
-    console.log("Background music start failed, continuing without music");
+    debugLog("Background music start failed, continuing without music");
   }
 }
 
@@ -171,7 +181,7 @@ export function stopBg() {
       t.stop();
     });
   } catch (err) {
-    console.log("Background music stop failed");
+    debugLog("Background music stop failed");
   }
 }
 

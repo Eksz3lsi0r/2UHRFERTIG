@@ -4,6 +4,16 @@
 import { LANG } from "./constants.js";
 import { state } from "./state.js";
 
+// Debug mode toggle - set to false for production, true for development
+const DEBUG_MODE = false;
+
+// Utility function for conditional logging
+function debugLog(...args) {
+  if (DEBUG_MODE) {
+    debugLog(...args);
+  }
+}
+
 /* --------------------------------------------------------------------
  *  Chat Message Function (available globally early)
  * ------------------------------------------------------------------ */
@@ -15,14 +25,14 @@ let lastChatMessageTime = 0;
 // --- Make appendChatMessage globally available early ---
 window.appendChatMessage = function (msg, fromSelf = false) {
   const chatMessages = document.getElementById("chat-messages");
-  console.log("[Chat] appendChatMessage called", {
+  debugLog("[Chat] appendChatMessage called", {
     msg,
     fromSelf,
     chatMessagesExists: !!chatMessages,
   });
 
   if (!chatMessages) {
-    console.warn("[Chat] chat-messages div not found!");
+    console.warn("[Chat] chat-messages div not found!"); // Keep warning
     return;
   }
 
@@ -42,9 +52,9 @@ window.appendChatMessage = function (msg, fromSelf = false) {
       handleIncomingChatMessage(msg);
     }
 
-    console.log("[Chat] Message successfully appended to chat");
+    debugLog("[Chat] Message successfully appended to chat");
   } catch (error) {
-    console.error("[Chat] Error appending message:", error);
+    console.error("[Chat] Error appending message:", error); // Keep error
   }
 };
 
@@ -52,13 +62,13 @@ window.appendChatMessage = function (msg, fromSelf = false) {
 function handleIncomingChatMessage(msg) {
   const chatModal = document.getElementById("chat-modal");
   const isChatOpen = chatModal && chatModal.style.display === "flex";
-  
+
   // Only increment unread count if chat is not open
   if (!isChatOpen) {
     unreadChatMessages++;
     updateChatNotificationBadge();
   }
-  
+
   // Show brief notification in game area
   showBriefChatNotification(msg);
 }
@@ -90,7 +100,7 @@ function updateChatNotificationBadge() {
       box-shadow: 0 2px 6px rgba(255, 71, 87, 0.4);
       animation: badge-pulse 2s infinite ease-in-out;
     `;
-    
+
     // Add CSS animation
     if (!document.getElementById("chat-notification-styles")) {
       const style = document.createElement("style");
@@ -109,7 +119,7 @@ function updateChatNotificationBadge() {
       `;
       document.head.appendChild(style);
     }
-    
+
     // Don't override position - keep original CSS positioning
     chatBubble.appendChild(chatNotificationBadge);
   }
@@ -117,7 +127,7 @@ function updateChatNotificationBadge() {
   if (unreadChatMessages > 0) {
     chatNotificationBadge.textContent = unreadChatMessages > 99 ? "99+" : unreadChatMessages.toString();
     chatNotificationBadge.style.display = "flex";
-    
+
     // Add glow effect to chat bubble
     chatBubble.style.boxShadow = "0 2px 8px #8a2be244, 0 0 15px rgba(255, 71, 87, 0.6)";
   } else {
@@ -129,21 +139,21 @@ function updateChatNotificationBadge() {
 // --- Show brief chat notification in game area ---
 function showBriefChatNotification(msg) {
   const currentTime = Date.now();
-  
+
   // Throttle notifications to avoid spam
   if (currentTime - lastChatMessageTime < 1000) return;
   lastChatMessageTime = currentTime;
-  
+
   // Extract sender name and message content
   let senderName = "Gegner";
   let messageContent = msg;
-  
+
   if (msg.includes(": ")) {
     const parts = msg.split(": ", 2);
     senderName = parts[0];
     messageContent = parts[1];
   }
-  
+
   // Create brief notification element
   const briefNotification = document.createElement("div");
   briefNotification.style.cssText = `
@@ -164,21 +174,21 @@ function showBriefChatNotification(msg) {
     animation: brief-chat-fade 4s ease-in-out forwards;
     pointer-events: none;
   `;
-  
+
   // Truncate long messages
   if (messageContent.length > 50) {
     messageContent = messageContent.substring(0, 47) + "...";
   }
-  
+
   briefNotification.innerHTML = `
     <div style="color: #8a2be2; font-weight: bold; font-size: 0.8em; margin-bottom: 2px;">
       💬 ${senderName}
     </div>
     <div>${messageContent}</div>
   `;
-  
+
   document.body.appendChild(briefNotification);
-  
+
   // Remove after animation
   setTimeout(() => {
     if (briefNotification.parentNode) {
@@ -205,7 +215,7 @@ let graphicsQuality = "medium";
 function loadSettings() {
   const savedLang = localStorage.getItem("gameLanguage");
   const savedGraphics = localStorage.getItem("gameGraphics");
-  console.log("Loading settings from localStorage:", {
+  debugLog("Loading settings from localStorage:", {
     savedLang,
     savedGraphics,
   });
@@ -213,7 +223,7 @@ function loadSettings() {
   if (savedLang && LANG[savedLang]) currentLanguage = savedLang;
   if (savedGraphics) graphicsQuality = savedGraphics;
 
-  console.log("Settings loaded:", {
+  debugLog("Settings loaded:", {
     language: currentLanguage,
     graphics: graphicsQuality,
   });
@@ -221,27 +231,27 @@ function loadSettings() {
 }
 
 function saveSettings() {
-  console.log("Saving settings:", {
+  debugLog("Saving settings:", {
     language: currentLanguage,
     graphics: graphicsQuality,
   });
   localStorage.setItem("gameLanguage", currentLanguage);
   localStorage.setItem("gameGraphics", graphicsQuality);
-  console.log("Settings saved to localStorage");
+  debugLog("Settings saved to localStorage");
 }
 
 /* --------------------------------------------------------------------
  *  Grafikqualität
  * ------------------------------------------------------------------ */
 function applyGraphicsQuality() {
-  console.log("Applying graphics quality:", graphicsQuality);
+  debugLog("Applying graphics quality:", graphicsQuality);
   document.body.classList.remove(
     "graphics-low",
     "graphics-medium",
     "graphics-high"
   );
   document.body.classList.add(`graphics-${graphicsQuality}`);
-  console.log("Body class list:", document.body.className);
+  debugLog("Body class list:", document.body.className);
 }
 
 /* --------------------------------------------------------------------
@@ -342,7 +352,7 @@ function showMainMenu() {
 }
 
 function showSettingsMenu() {
-  console.log("Showing settings menu with current values:", {
+  debugLog("Showing settings menu with current values:", {
     language: currentLanguage,
     graphics: graphicsQuality,
   });
@@ -365,11 +375,11 @@ function showSettingsMenu() {
   // Update select elements to show current values
   if (state.el.languageSelect) {
     state.el.languageSelect.value = currentLanguage;
-    console.log("Set language select to:", currentLanguage);
+    debugLog("Set language select to:", currentLanguage);
   }
   if (state.el.graphicsQualitySelect) {
     state.el.graphicsQualitySelect.value = graphicsQuality;
-    console.log("Set graphics quality select to:", graphicsQuality);
+    debugLog("Set graphics quality select to:", graphicsQuality);
   }
 
   // Translate UI to reflect current language
@@ -397,6 +407,10 @@ function showGameArea() {
   // Do NOT hide message overlay here, so timer/info is visible
   // update the board headings
   updateBoardTitles();
+
+  // Initialize permanent multiplier displays for real-time visibility
+  initializePermanentMultiplierDisplays();
+
   import("./audio.js").then((mod) => mod.startBg());
 }
 
@@ -533,7 +547,7 @@ function renderLeaderboard(players) {
           <div class="leaderboard-player-stats">
             <span data-lang-key="wins">${getLangText("wins")}</span>: ${
         player.wins || 0
-      } • 
+      } •
             <span data-lang-key="losses">${getLangText("losses")}</span>: ${
         player.losses || 0
       }
@@ -609,6 +623,9 @@ function buildBoardDOM() {
     state.boardCells.push(row);
     state.opponentBoardCells.push(oppRow);
   }
+
+  // Initialize permanent multiplier displays for real-time visibility
+  initializePermanentMultiplierDisplays();
 }
 
 /* --------------------------------------------------------------------
@@ -652,7 +669,7 @@ function initUI() {
   /* Button-Events */
   if (state.el.saveSettingsButton) {
     state.el.saveSettingsButton.addEventListener("click", () => {
-      console.log("Save settings button clicked");
+      debugLog("Save settings button clicked");
       saveSettings();
       showMainMenu();
     });
@@ -668,7 +685,7 @@ function initUI() {
 
   if (state.el.languageSelect) {
     state.el.languageSelect.addEventListener("change", (e) => {
-      console.log("Language changed to:", e.target.value);
+      debugLog("Language changed to:", e.target.value);
       currentLanguage = e.target.value;
       translateUI();
       updateBoardTitles();
@@ -679,7 +696,7 @@ function initUI() {
 
   if (state.el.graphicsQualitySelect) {
     state.el.graphicsQualitySelect.addEventListener("change", (e) => {
-      console.log("Graphics quality changed to:", e.target.value);
+      debugLog("Graphics quality changed to:", e.target.value);
       graphicsQuality = e.target.value;
       applyGraphicsQuality();
     });
@@ -1037,7 +1054,7 @@ function showMatchmakingOverlay(isRanked = false) {
   const overlay = document.getElementById("matchmakingOverlay");
   const modeDisplay = document.getElementById("matchmakingMode");
   const cancelButton = document.getElementById("cancelMatchmaking");
-  
+
   if (!overlay) return;
 
   // Set mode text
@@ -1067,7 +1084,7 @@ function hideMatchmakingOverlay() {
   if (overlay) {
     overlay.style.display = "none";
   }
-  
+
   // Clear wait time estimation
   if (state.waitTimeInterval) {
     clearInterval(state.waitTimeInterval);
@@ -1087,17 +1104,17 @@ function startWaitTimeEstimation() {
   if (!waitTimeElement) return;
 
   let estimatedSeconds = 30; // Start with 30 seconds estimate
-  
+
   const updateWaitTime = () => {
     const minutes = Math.floor(estimatedSeconds / 60);
     const seconds = estimatedSeconds % 60;
-    
+
     if (minutes > 0) {
       waitTimeElement.textContent = `~${minutes}m ${seconds}s`;
     } else {
       waitTimeElement.textContent = `~${seconds}s`;
     }
-    
+
     // Gradually increase wait time estimate to simulate real matchmaking
     if (estimatedSeconds < 120) {
       estimatedSeconds += 2;
@@ -1105,12 +1122,12 @@ function startWaitTimeEstimation() {
   };
 
   updateWaitTime(); // Initial update
-  
+
   // Clear any existing interval
   if (state.waitTimeInterval) {
     clearInterval(state.waitTimeInterval);
   }
-  
+
   state.waitTimeInterval = setInterval(updateWaitTime, 3000); // Update every 3 seconds
 }
 
@@ -1165,7 +1182,7 @@ function setupChatUI() {
     chatModal.style.display = "none";
     chatModal.classList.remove("open");
     chatInput.blur();
-    
+
     // Reset position to original CSS values to fix positioning issue
     resetChatPosition();
   }
@@ -1178,7 +1195,7 @@ function setupChatUI() {
     chatModal.style.right = "";
     chatModal.style.bottom = "";
     chatModal.style.transform = "";
-    
+
     // Also reset chat bubble position to prevent position drift
     chatBubble.style.position = "";
     chatBubble.style.top = "";
@@ -1297,6 +1314,7 @@ export const ui = {
   showMatchmakingOverlay,
   hideMatchmakingOverlay,
   updateMatchmakingStatus,
+  initializePermanentMultiplierDisplays,
 
   /* Reactive Getter/Setter */
   get lang() {
@@ -1410,12 +1428,54 @@ async function updatePlayerRankingPoints() {
       rankingPointsElement.textContent = data.rankingPoints || 1000;
     }
   } catch (error) {
-    console.log("Could not fetch player ranking:", error);
+    debugLog("Could not fetch player ranking:", error);
     // Default to 1000 if fetch fails
     const rankingPointsElement = document.getElementById("playerRankingPoints");
     if (rankingPointsElement) {
       rankingPointsElement.textContent = "1000";
     }
+  }
+}
+
+/* --------------------------------------------------------------------
+ *  Initialize Permanent Multiplier Displays
+ * ------------------------------------------------------------------ */
+
+// Debug mode toggle - set to false for production, true for development
+const DEBUG_MODE_UI = false;
+
+// Utility function for conditional logging
+function debugLogUI(...args) {
+  if (DEBUG_MODE_UI) {
+    debugLog(...args);
+  }
+}
+
+function initializePermanentMultiplierDisplays() {
+  debugLogUI("Initializing permanent multiplier displays for real-time visibility");
+
+  // Initialize player permanent multiplier display
+  const playerMultiplierElement = document.getElementById("playerPermanentMultiplier");
+  const playerMultiplierValueElement = playerMultiplierElement?.querySelector(".multiplier-value");
+
+  if (playerMultiplierElement && playerMultiplierValueElement) {
+    playerMultiplierElement.style.display = "flex";
+    playerMultiplierValueElement.textContent = "1x";
+    debugLogUI("Player permanent multiplier display initialized and visible");
+  } else {
+    console.warn("Could not find player permanent multiplier elements");
+  }
+
+  // Initialize opponent permanent multiplier display
+  const opponentMultiplierElement = document.getElementById("opponentPermanentMultiplier");
+  const opponentMultiplierValueElement = opponentMultiplierElement?.querySelector(".multiplier-value");
+
+  if (opponentMultiplierElement && opponentMultiplierValueElement) {
+    opponentMultiplierElement.style.display = "flex";
+    opponentMultiplierValueElement.textContent = "1x";
+    debugLogUI("Opponent permanent multiplier display initialized and visible");
+  } else {
+    console.warn("Could not find opponent permanent multiplier elements");
   }
 }
 

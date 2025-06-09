@@ -12,6 +12,16 @@ import { ui } from "./ui.js"; // für displayMessage
 
 // Import power-up system
 
+// Debug mode toggle - set to false for production, true for development
+const DEBUG_MODE = false;
+
+// Utility function for conditional logging
+function debugLog(...args) {
+  if (DEBUG_MODE) {
+    debugLog(...args);
+  }
+}
+
 /* --------------------------------------------------------------------
  *  Öffentliche API
  * ------------------------------------------------------------------ */
@@ -130,7 +140,7 @@ function resetGame() {
 function generatePieces() {
   // Prevent inventory generation during power-up animations
   if (state.stormAnimationActive || state.extendAnimationActive || state.electroAnimationActive) {
-    console.log("Power-up animation active, skipping piece generation");
+    debugLog("Power-up animation active, skipping piece generation");
     return;
   }
 
@@ -397,10 +407,16 @@ function placeShape(shape, br, bc) {
   // Board-Sync für PvP - sende Board-Update nach jeder Platzierung
   if (state.currentMode === "player") {
     import("./network.js").then((mod) => {
-      if (typeof mod.sendBoard === "function") {
+      // Use debounced functions to prevent spam during power-up animations
+      if (typeof mod.debouncedBoardUpdate === "function") {
+        mod.debouncedBoardUpdate();
+      } else if (typeof mod.sendBoard === "function") {
         mod.sendBoard();
       }
-      if (typeof mod.sendScore === "function") {
+
+      if (typeof mod.debouncedScoreUpdate === "function") {
+        mod.debouncedScoreUpdate();
+      } else if (typeof mod.sendScore === "function") {
         mod.sendScore();
       }
     });
@@ -510,7 +526,7 @@ function _clearLines() {
   // Permanenter Multiplikator erhöhen bei jeder Linien-Löschung
   const oldPermanentMultiplier = state.permanentMultiplier;
   state.permanentMultiplier += 1; // +1x für jede gelöschte Linie (summativ)
-  console.log(`Permanent multiplier increased from ${oldPermanentMultiplier.toFixed(0)}x to ${state.permanentMultiplier.toFixed(0)}x`);
+  debugLog(`Permanent multiplier increased from ${oldPermanentMultiplier.toFixed(0)}x to ${state.permanentMultiplier.toFixed(0)}x`);
 
   // Multiplikator berechnen (steigt mit Combos)
   if (state.consecutiveClears > 1) {
@@ -535,10 +551,16 @@ function _clearLines() {
   // Board-Sync für PvP - sende Board-Update nach Line-Clearing
   if (state.currentMode === "player") {
     import("./network.js").then((mod) => {
-      if (typeof mod.sendBoard === "function") {
+      // Use debounced functions to prevent spam during power-up animations
+      if (typeof mod.debouncedBoardUpdate === "function") {
+        mod.debouncedBoardUpdate();
+      } else if (typeof mod.sendBoard === "function") {
         mod.sendBoard();
       }
-      if (typeof mod.sendScore === "function") {
+
+      if (typeof mod.debouncedScoreUpdate === "function") {
+        mod.debouncedScoreUpdate();
+      } else if (typeof mod.sendScore === "function") {
         mod.sendScore();
       }
     });
@@ -549,7 +571,7 @@ function _clearLines() {
  *  Score Animation Functions
  * ------------------------------------------------------------------ */
 function _showScoreAnimations(finalPoints, currentMultiplier, totalLinesCleared) {
-  console.log(`Showing score animations: ${finalPoints} points, ${currentMultiplier}x multiplier, ${totalLinesCleared} lines cleared`);
+  debugLog(`Showing score animations: ${finalPoints} points, ${currentMultiplier}x multiplier, ${totalLinesCleared} lines cleared`);
 
   // Create score animation message
   const messageDiv = document.createElement("div");
@@ -619,7 +641,7 @@ function _showScoreAnimations(finalPoints, currentMultiplier, totalLinesCleared)
 }
 
 function _showMultiplierAnimation(multiplier, comboCount) {
-  console.log(`Showing multiplier animation: ${multiplier}x multiplier, ${comboCount} combo`);
+  debugLog(`Showing multiplier animation: ${multiplier}x multiplier, ${comboCount} combo`);
 
   // Create multiplier animation message
   const messageDiv = document.createElement("div");
@@ -690,7 +712,7 @@ function _showMultiplierAnimation(multiplier, comboCount) {
 }
 
 function _showPointsAnimation(points) {
-  console.log(`Showing points animation: +${points} points`);
+  debugLog(`Showing points animation: +${points} points`);
 
   // Create points animation message
   const messageDiv = document.createElement("div");
@@ -751,7 +773,7 @@ function _showPointsAnimation(points) {
  *  Test-Funktion für Animationen (zur Debugging)
  * ------------------------------------------------------------------ */
 function testAnimations() {
-  console.log("Testing animations...");
+  debugLog("Testing animations...");
   _showMultiplierAnimation(2, 2);
   setTimeout(() => {
     _showPointsAnimation(50);
@@ -763,19 +785,19 @@ window.testAnimations = testAnimations;
 
 // Test function for permanent multiplier
 window.testPermanentMultiplier = function() {
-  console.log("Testing permanent multiplier...");
-  console.log("Current permanent multiplier:", state.permanentMultiplier);
+  debugLog("Testing permanent multiplier...");
+  debugLog("Current permanent multiplier:", state.permanentMultiplier);
 
   // Simulate line clearing to increase permanent multiplier
   state.permanentMultiplier += 1;
-  console.log("Increased permanent multiplier to:", state.permanentMultiplier);
+  debugLog("Increased permanent multiplier to:", state.permanentMultiplier);
 
   // Update display
   updatePermanentMultiplierDisplay();
 
   // Test CPU permanent multiplier too
   state.cpuPermanentMultiplier += 1;
-  console.log("Increased CPU permanent multiplier to:", state.cpuPermanentMultiplier);
+  debugLog("Increased CPU permanent multiplier to:", state.cpuPermanentMultiplier);
 
   // Call CPU update function directly
   const cpuMultiplierElement = document.getElementById("opponentPermanentMultiplier");
@@ -796,11 +818,11 @@ window.forceStormPiece = function() {
   if (state.playerPieces.length > 0) {
     state.playerPieces[0] = {
       shape: [[0, 0]], // STORM_SHAPE
-      color: '#4a90e2',
+          color: '#4a90e2',
       isStorm: true
     };
     renderPieces();
-    console.log("Storm piece forced in inventory!");
+    debugLog("Storm piece forced in inventory!");
   }
 };
 
@@ -825,7 +847,7 @@ window.fillTestBlocks = function() {
     }
   });
 
-  console.log("Test blocks added to board!");
+  debugLog("Test blocks added to board!");
 };
 
 /* --------------------------------------------------------------------
@@ -833,29 +855,40 @@ window.fillTestBlocks = function() {
  * ------------------------------------------------------------------ */
 function updateScoreDisplay() {
   if (state.el.score) state.el.score.textContent = state.playerScore;
+
+  // Send score update with debouncing for real-time synchronization in PvP mode
+  if (state.currentMode === "player") {
+    try {
+      import("./network.js").then((mod) => {
+        // Use debounced function to prevent spam during power-up animations
+        if (typeof mod.debouncedScoreUpdate === "function") {
+          mod.debouncedScoreUpdate();
+        } else if (typeof mod.sendScore === "function") {
+          mod.sendScore(); // Fallback
+        }
+      });
+    } catch (err) {
+      console.error("Error sending score update:", err);
+    }
+  }
 }
 
 /* --------------------------------------------------------------------
  *  Permanent Multiplier Display Update
  * ------------------------------------------------------------------ */
 function updatePermanentMultiplierDisplay() {
-  console.log("updatePermanentMultiplierDisplay called, permanentMultiplier:", state.permanentMultiplier);
+  debugLog("updatePermanentMultiplierDisplay called, permanentMultiplier:", state.permanentMultiplier);
   const multiplierElement = document.getElementById("playerPermanentMultiplier");
   const multiplierValueElement = multiplierElement?.querySelector(".multiplier-value");
 
   if (multiplierElement && multiplierValueElement) {
-    // Show the multiplier display when it's above 1.0
-    if (state.permanentMultiplier > 1.0) {
-      console.log("Showing permanent multiplier display:", state.permanentMultiplier.toFixed(0) + "x");
-      multiplierElement.style.display = "flex";
-      // Format as whole number since we increment by 1
-      multiplierValueElement.textContent = `${state.permanentMultiplier.toFixed(0)}x`;
-    } else {
-      console.log("Hiding permanent multiplier display");
-      multiplierElement.style.display = "none";
-    }
+    // Always show the multiplier display from the beginning
+    debugLog("Showing permanent multiplier display:", state.permanentMultiplier.toFixed(0) + "x");
+    multiplierElement.style.display = "flex";
+    // Format as whole number since we increment by 1
+    multiplierValueElement.textContent = `${state.permanentMultiplier.toFixed(0)}x`;
   } else {
-    console.log("Could not find permanent multiplier elements");
+    debugLog("Could not find permanent multiplier elements");
   }
 }
 
@@ -879,29 +912,29 @@ function canPlaceSomewhere(sh) {
  *  Game-Over-Erkennung (aufrufen nach jedem Zug)
  * ------------------------------------------------------------------ */
 function checkGameOverCondition() {
-  console.log("checkGameOverCondition aufgerufen");
+  debugLog("checkGameOverCondition aufgerufen");
 
   // Skip game over check during power-up animations
   if (state.stormAnimationActive || state.extendAnimationActive || state.electroAnimationActive) {
-    console.log("Power-up animation active, skipping game over check");
+    debugLog("Power-up animation active, skipping game over check");
     return;
   }
 
   // CPU-Modus: Spielende wenn beide keine Züge mehr haben oder wenn Spieler CPU nach beendetem KI-Zug überholt
   if (state.currentMode === "cpu") {
-    console.log("CPU-Modus");
+    debugLog("CPU-Modus");
 
     // Wenn keine Pieces mehr, neue Pieces generieren (unabhängig von hasMoves)
     // ABER NICHT während Power-up-Animationen
     if (state.playerPieces.length === 0 && !state.stormAnimationActive && !state.extendAnimationActive && !state.electroAnimationActive) {
-      console.log("Keine Player Pieces mehr, generiere neue");
+      debugLog("Keine Player Pieces mehr, generiere neue");
       generatePieces();
       renderPieces();
     }
 
     // Nach dem Generieren prüfen, ob jetzt noch Züge möglich sind
     if (!hasMoves()) {
-      console.log("Keine Züge mehr möglich");
+      debugLog("Keine Züge mehr möglich");
       // Neue Game-Over-Bedingung: Spieler hat keine Züge mehr, CPU ist noch aktiv und hat mehr Punkte
       if (state.cpuGameActive && state.cpuScore > state.playerScore) {
         finishGame(
@@ -915,7 +948,7 @@ function checkGameOverCondition() {
       }
       // Keine Züge mehr nach Nachschub → Spielende
       if (!state.cpuGameActive) {
-        console.log("CPU nicht aktiv, Spiel beenden");
+        debugLog("CPU nicht aktiv, Spiel beenden");
         const playerWon = state.playerScore >= state.cpuScore;
         finishGame(playerWon);
       }
@@ -923,14 +956,14 @@ function checkGameOverCondition() {
     }
 
     if (!state.cpuGameActive) {
-      console.log("CPU nicht aktiv");
+      debugLog("CPU nicht aktiv");
       if (state.playerScore > state.cpuScore) {
-        console.log("Player Score höher als CPU Score, Spiel beenden");
+        debugLog("Player Score höher als CPU Score, Spiel beenden");
         finishGame(true);
         return;
       }
       if (!hasMoves()) {
-        console.log("Keine Züge mehr möglich, Spiel beenden");
+        debugLog("Keine Züge mehr möglich, Spiel beenden");
         const playerWon = state.playerScore >= state.cpuScore;
         finishGame(playerWon);
       }
@@ -940,21 +973,21 @@ function checkGameOverCondition() {
 
   // PvP: nur Pieces nachfüllen, keine lokale Spielbeendigung (Server steuert Ende)
   if (state.currentMode === "player") {
-    console.log("PvP-Modus");
+    debugLog("PvP-Modus");
 
     // Skip game over check during storm animation
     if (state.stormAnimationActive) {
-      console.log("Storm animation active in PvP, skipping checks");
+      debugLog("Storm animation active in PvP, skipping checks");
       return;
     }
 
     if (state.playerPieces.length === 0 && !state.stormAnimationActive) {
-      console.log("Keine Player Pieces mehr, generiere neue");
+      debugLog("Keine Player Pieces mehr, generiere neue");
       generatePieces();
       renderPieces();
     }
     if (!hasMoves()) {
-      console.log("Keine Züge mehr möglich, Spielende an Server melden");
+      debugLog("Keine Züge mehr möglich, Spielende an Server melden");
       import("./network.js").then((mod) => {
         if (mod.socket && typeof mod.socket.emit === "function") {
           mod.socket.emit("gameOver", state.playerScore);
@@ -969,7 +1002,7 @@ function checkGameOverCondition() {
  *  Spiel beenden – ruft ui.displayMessage und Game-Over-Buttons
  * ------------------------------------------------------------------ */
 function finishGame(playerWon, msgOverride) {
-  console.log("finishGame aufgerufen", { playerWon, msgOverride });
+  debugLog("finishGame aufgerufen", { playerWon, msgOverride });
   state.gameActive = false;
   let msg = msgOverride;
   if (!msg) {
@@ -985,7 +1018,7 @@ function finishGame(playerWon, msgOverride) {
   }
   // CPU: gameOver erst senden, wenn CPU auch fertig
   if (state.currentMode === "cpu") {
-    console.log("CPU-Modus: warte bis CPU fertig");
+    debugLog("CPU-Modus: warte bis CPU fertig");
     // warte bis cpuGameActive false und player keine Züge mehr
     if (!state.cpuGameActive && !hasMoves()) {
       import("./network.js").then(() => {}); // keine Aktion für CPU offline
@@ -1064,14 +1097,22 @@ window.showPowerUpIndicator = function(powerUpType, powerUpName) {
 
   // Show indicator
   indicator.style.display = 'flex';
-  console.log(`🎯 Power-Up Indicator: ${powerUpName || powerUpType} activated`);
+
+  // Only log in debug mode to reduce console spam
+  if (DEBUG_MODE_INVENTORY) {
+    debugLog(`🎯 Power-Up Indicator: ${powerUpName || powerUpType} activated`);
+  }
 };
 
 window.hidePowerUpIndicator = function() {
   const indicator = document.getElementById('powerUpIndicator');
   if (indicator) {
     indicator.style.display = 'none';
-    console.log('🎯 Power-Up Indicator hidden');
+
+    // Only log in debug mode to reduce console spam
+    if (DEBUG_MODE_INVENTORY) {
+      debugLog('🎯 Power-Up Indicator hidden');
+    }
   }
 };
 
@@ -1088,7 +1129,7 @@ window.stopAllPowerUpSounds = function() {
 
 // Individual animation tests with proper sound stopping
 window.testStormAnimation = function() {
-  console.log("🌪️ Testing Storm Animation (5 seconds)...");
+  debugLog("🌪️ Testing Storm Animation (5 seconds)...");
 
   const board = document.getElementById("board");
   if (!board) {
@@ -1105,7 +1146,7 @@ window.testStormAnimation = function() {
     window.audio.stormSound.play();
   }
 
-  console.log("🌪️ Storm animation started with sound");
+  debugLog("🌪️ Storm animation started with sound");
 
   // Stop after 5 seconds
   setTimeout(() => {
@@ -1116,12 +1157,12 @@ window.testStormAnimation = function() {
     if (window.hidePowerUpIndicator) {
       window.hidePowerUpIndicator();
     }
-    console.log("🌪️ Storm animation and sound stopped");
+    debugLog("🌪️ Storm animation and sound stopped");
   }, 5000);
 };
 
 window.testElectroAnimation = function() {
-  console.log("⚡ Testing Electro Animation (5 seconds)...");
+  debugLog("⚡ Testing Electro Animation (5 seconds)...");
 
   const board = document.getElementById("board");
   if (!board) {
@@ -1138,7 +1179,7 @@ window.testElectroAnimation = function() {
     window.audio.electroSound.play();
   }
 
-  console.log("⚡ Electro animation started with sound");
+  debugLog("⚡ Electro animation started with sound");
 
   // Stop after 5 seconds
   setTimeout(() => {
@@ -1149,12 +1190,12 @@ window.testElectroAnimation = function() {
     if (window.hidePowerUpIndicator) {
       window.hidePowerUpIndicator();
     }
-    console.log("⚡ Electro animation and sound stopped");
+    debugLog("⚡ Electro animation and sound stopped");
   }, 5000);
 };
 
 window.testExtendAnimation = function() {
-  console.log("🔄 Testing Extend Animation (5 seconds)...");
+  debugLog("🔄 Testing Extend Animation (5 seconds)...");
 
   const board = document.getElementById("board");
   if (!board) {
@@ -1171,7 +1212,7 @@ window.testExtendAnimation = function() {
     window.audio.extendSound.play();
   }
 
-  console.log("🔄 Extend animation started with sound");
+  debugLog("🔄 Extend animation started with sound");
 
   // Stop after 5 seconds
   setTimeout(() => {
@@ -1182,14 +1223,14 @@ window.testExtendAnimation = function() {
     if (window.hidePowerUpIndicator) {
       window.hidePowerUpIndicator();
     }
-    console.log("🔄 Extend animation and sound stopped");
+    debugLog("🔄 Extend animation and sound stopped");
   }, 5000);
 };
 
 // Test all animations sequentially
 window.testAllAnimations = function() {
-  console.log("🎬 Testing All Power-Up Animations Sequentially...");
-  console.log("Each animation will run for 5 seconds with sound, then stop properly");
+  debugLog("🎬 Testing All Power-Up Animations Sequentially...");
+  debugLog("Each animation will run for 5 seconds with sound, then stop properly");
 
   window.testStormAnimation();
 
@@ -1202,22 +1243,22 @@ window.testAllAnimations = function() {
   }, 12000);
 
   setTimeout(() => {
-    console.log("✅ All power-up animation tests completed!");
+    debugLog("✅ All power-up animation tests completed!");
   }, 18000);
 };
 
 // Show available animation tests
 window.testPowerUpAnimations = function() {
-  console.log("🎬 POWER-UP ANIMATION TESTS");
-  console.log("═══════════════════════════════════════");
-  console.log("📋 Available Test Commands:");
-  console.log("• testStormAnimation() - Storm effects (5s)");
-  console.log("• testElectroAnimation() - Lightning effects (5s)");
-  console.log("• testExtendAnimation() - Expansion effects (5s)");
-  console.log("• testAllAnimations() - All effects sequentially (18s)");
-  console.log("• stopAllPowerUpSounds() - Stop all sounds immediately");
-  console.log("═══════════════════════════════════════");
-  console.log("🔊 Note: Each test includes sound effects that auto-stop");
+  debugLog("🎬 POWER-UP ANIMATION TESTS");
+  debugLog("═══════════════════════════════════════");
+  debugLog("📋 Available Test Commands:");
+  debugLog("• testStormAnimation() - Storm effects (5s)");
+  debugLog("• testElectroAnimation() - Lightning effects (5s)");
+  debugLog("• testExtendAnimation() - Expansion effects (5s)");
+  debugLog("• testAllAnimations() - All effects sequentially (18s)");
+  debugLog("• stopAllPowerUpSounds() - Stop all sounds immediately");
+  debugLog("═══════════════════════════════════════");
+  debugLog("🔊 Note: Each test includes sound effects that auto-stop");
 };
 
 /* --------------------------------------------------------------------
@@ -1243,8 +1284,19 @@ function hasFullLines() {
 /* --------------------------------------------------------------------
  *  Robust inventory regeneration helper for power-ups
  * ------------------------------------------------------------------ */
+
+// Debug mode toggle - set to false for production, true for development
+const DEBUG_MODE_INVENTORY = false;
+
+// Utility function for conditional logging
+function debugLogInventory(...args) {
+  if (DEBUG_MODE_INVENTORY) {
+    debugLog(...args);
+  }
+}
+
 export function regenerateInventoryAfterPowerUp(gameState, powerUpName = "Power-up") {
-  console.log(`${powerUpName}: Starting inventory regeneration...`);
+  debugLogInventory(`${powerUpName}: Starting inventory regeneration...`);
 
   // Clear inventory first
   gameState.playerPieces = [];
@@ -1259,7 +1311,7 @@ export function regenerateInventoryAfterPowerUp(gameState, powerUpName = "Power-
     try {
       if (window.player?.generatePieces) {
         window.player.generatePieces();
-        console.log(`${powerUpName}: Generated ${gameState.playerPieces.length} new pieces`);
+        debugLogInventory(`${powerUpName}: Generated ${gameState.playerPieces.length} new pieces`);
       } else {
         console.error(`${powerUpName}: player.generatePieces not available`);
       }
@@ -1267,7 +1319,7 @@ export function regenerateInventoryAfterPowerUp(gameState, powerUpName = "Power-
       // Render the new pieces
       if (window.player?.renderPieces) {
         window.player.renderPieces();
-        console.log(`${powerUpName}: Inventory rendered successfully`);
+        debugLogInventory(`${powerUpName}: Inventory rendered successfully`);
       } else {
         console.error(`${powerUpName}: player.renderPieces not available`);
       }
@@ -1282,7 +1334,7 @@ export function regenerateInventoryAfterPowerUp(gameState, powerUpName = "Power-
             if (window.player?.renderPieces) {
               window.player.renderPieces();
             }
-            console.log(`${powerUpName}: Retry successful, ${gameState.playerPieces.length} pieces`);
+            debugLogInventory(`${powerUpName}: Retry successful, ${gameState.playerPieces.length} pieces`);
           }
         }, 500);
       }
@@ -1295,7 +1347,7 @@ export function regenerateInventoryAfterPowerUp(gameState, powerUpName = "Power-
 
 // Global test functions for power-up inventory regeneration
 window.testExtendBlock = function() {
-  console.log("🔬 Testing Extend Block...");
+  debugLog("🔬 Testing Extend Block...");
 
   // Clear board first
   for (let r = 0; r < 10; r++) {
@@ -1318,14 +1370,14 @@ window.testExtendBlock = function() {
   }];
 
   window.player.renderPieces();
-  console.log("✅ Extend block added to inventory");
-  console.log("Execute extend effect...");
+  debugLog("✅ Extend block added to inventory");
+  debugLog("Execute extend effect...");
 
   window.extendBlock.execute(5, 5, window.state);
 };
 
 window.testStormBlock = function() {
-  console.log("🔬 Testing Storm Block...");
+  debugLog("🔬 Testing Storm Block...");
 
   // Add some test blocks
   const testPositions = [[2, 2], [2, 3], [4, 4], [6, 6]];
@@ -1346,14 +1398,14 @@ window.testStormBlock = function() {
   }];
 
   window.player.renderPieces();
-  console.log("✅ Storm block added to inventory");
-  console.log("Execute storm effect...");
+  debugLog("✅ Storm block added to inventory");
+  debugLog("Execute storm effect...");
 
   window.stormBlock.execute(0, 0, window.state);
 };
 
 window.testElectroBlock = function() {
-  console.log("🔬 Testing Electro Block...");
+  debugLog("🔬 Testing Electro Block...");
 
   // Add test blocks around position (5,5)
   const testBlocks = [
@@ -1379,49 +1431,49 @@ window.testElectroBlock = function() {
   }];
 
   window.player.renderPieces();
-  console.log("✅ Electro block added to inventory");
-  console.log("Execute electro effect...");
+  debugLog("✅ Electro block added to inventory");
+  debugLog("Execute electro effect...");
 
   window.electroStack.execute(5, 5, window.state);
 };
 
-console.log("🧪 Power-up test functions available:");
-console.log("- testExtendBlock()");
-console.log("- testStormBlock()");
-console.log("- testElectroBlock()");
-console.log("- testInventoryRegeneration()");
-console.log("- testPowerUpInventoryFlow()");
+debugLog("🧪 Power-up test functions available:");
+debugLog("- testExtendBlock()");
+debugLog("- testStormBlock()");
+debugLog("- testElectroBlock()");
+debugLog("- testInventoryRegeneration()");
+debugLog("- testPowerUpInventoryFlow()");
 
 /* --------------------------------------------------------------------
  *  ENHANCED POWER-UP ANIMATIONS - IMPLEMENTATION COMPLETE
  * ------------------------------------------------------------------ */
 
 // Test commands for demonstration (available in browser console):
-console.log("\n🎬 ENHANCED POWER-UP ANIMATIONS - READY FOR TESTING");
-console.log("═══════════════════════════════════════════════════════");
-console.log("💫 Visual Effects: Enhanced board-wide animations for each power-up");
-console.log("🔊 Audio Effects: Power-up specific sound effects during events");
-console.log("🎯 Visual Indicator: Shows active power-up with progress animation");
-console.log("\n📋 Available Test Commands:");
-console.log("• testPowerUpAnimations() - Show all available animation tests");
-console.log("• testStormAnimation() - Test storm swirling effects (5s)");
-console.log("• testElectroAnimation() - Test electrical lightning effects (5s)");
-console.log("• testExtendAnimation() - Test expansion wave effects (5s)");
-console.log("• testAllAnimations() - Sequential demonstration of all effects (18s)");
-console.log("\n🎮 Power-Up Testing:");
-console.log("• testStormBlock() - Full storm power-up with blocks");
-console.log("• testElectroBlock() - Full electro power-up with targets");
-console.log("• testExtendBlock() - Full extend power-up demonstration");
-console.log("═══════════════════════════════════════════════════════\n");
+debugLog("\n🎬 ENHANCED POWER-UP ANIMATIONS - READY FOR TESTING");
+debugLog("═══════════════════════════════════════════════════════");
+debugLog("💫 Visual Effects: Enhanced board-wide animations for each power-up");
+debugLog("🔊 Audio Effects: Power-up specific sound effects during events");
+debugLog("🎯 Visual Indicator: Shows active power-up with progress animation");
+debugLog("\n📋 Available Test Commands:");
+debugLog("• testPowerUpAnimations() - Show all available animation tests");
+debugLog("• testStormAnimation() - Test storm swirling effects (5s)");
+debugLog("• testElectroAnimation() - Test electrical lightning effects (5s)");
+debugLog("• testExtendAnimation() - Test expansion wave effects (5s)");
+debugLog("• testAllAnimations() - Sequential demonstration of all effects (18s)");
+debugLog("\n🎮 Power-Up Testing:");
+debugLog("• testStormBlock() - Full storm power-up with blocks");
+debugLog("• testElectroBlock() - Full electro power-up with targets");
+debugLog("• testExtendBlock() - Full extend power-up demonstration");
+debugLog("═══════════════════════════════════════════════════════\n");
 
 // Complete Power-Up Animation Demo
 window.testPowerUpAnimationDemo = function() {
-  console.log("🎬 COMPLETE POWER-UP ANIMATION DEMONSTRATION");
-  console.log("This will test all enhanced features in sequence:");
-  console.log("1. Visual indicators");
-  console.log("2. Board-wide animations");
-  console.log("3. Sound effects");
-  console.log("4. Animation cleanup");
+  debugLog("🎬 COMPLETE POWER-UP ANIMATION DEMONSTRATION");
+  debugLog("This will test all enhanced features in sequence:");
+  debugLog("1. Visual indicators");
+  debugLog("2. Board-wide animations");
+  debugLog("3. Sound effects");
+  debugLog("4. Animation cleanup");
 
   let demoStep = 0;
   const steps = [
@@ -1447,14 +1499,14 @@ window.testPowerUpAnimationDemo = function() {
 
   function runStep() {
     if (demoStep >= steps.length) {
-      console.log("✅ Demo complete! All power-up animations tested successfully.");
+      debugLog("✅ Demo complete! All power-up animations tested successfully.");
       return;
     }
 
     const step = steps[demoStep];
-    console.log(`\n${step.emoji} Testing: ${step.name}`);
-    console.log(`Description: ${step.description}`);
-    console.log("─".repeat(50));
+    debugLog(`\n${step.emoji} Testing: ${step.name}`);
+    debugLog(`Description: ${step.description}`);
+    debugLog("─".repeat(50));
 
     step.test();
     demoStep++;
@@ -1469,8 +1521,8 @@ window.testPowerUpAnimationDemo = function() {
 
 // Audio Pool Management for Power-Up Sounds
 window.testAudioSystem = function() {
-  console.log("🔊 Testing Audio System for Power-Ups");
-  console.log("Available sounds:");
+  debugLog("🔊 Testing Audio System for Power-Ups");
+  debugLog("Available sounds:");
 
   const sounds = [
     { name: "Storm", sound: window.audio?.stormSound, file: "wind.wav" },
@@ -1480,22 +1532,22 @@ window.testAudioSystem = function() {
 
   sounds.forEach(({ name, sound, file }) => {
     if (sound && typeof sound.play === 'function') {
-      console.log(`✅ ${name}: Ready (${file})`);
+      debugLog(`✅ ${name}: Ready (${file})`);
 
       // Test play with rate limiting
       try {
         sound.play();
-        console.log(`🎵 ${name} sound played`);
+        debugLog(`🎵 ${name} sound played`);
       } catch (error) {
         console.warn(`⚠️ ${name} sound play failed:`, error);
       }
     } else {
-      console.log(`❌ ${name}: Not available (${file})`);
+      debugLog(`❌ ${name}: Not available (${file})`);
     }
   });
 
-  console.log("\nNote: HTML5 Audio pool warnings are normal during rapid testing.");
-  console.log("In normal gameplay, sounds are spaced out and won't cause issues.");
+  debugLog("\nNote: HTML5 Audio pool warnings are normal during rapid testing.");
+  debugLog("In normal gameplay, sounds are spaced out and won't cause issues.");
 };
 
 //# sourceMappingURL=player.js.map

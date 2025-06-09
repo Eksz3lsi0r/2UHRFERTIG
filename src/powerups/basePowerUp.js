@@ -110,7 +110,7 @@ export class BasePowerUp {
       if (window.player?.renderPieces) {
         window.player.renderPieces();
       }
-      console.log(`${this.name} piece forced in inventory!`);
+      debugLog(`${this.name} piece forced in inventory!`);
     }
   }
 
@@ -118,6 +118,6 @@ export class BasePowerUp {
    * Test the power-up effect (override in subclasses)
    */
   testEffect() {
-    console.log(`Testing ${this.name} effect...`);
+    debugLog(`Testing ${this.name} effect...`);
   }
 }

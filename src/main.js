@@ -395,15 +395,21 @@ export function boardChanged() {
   if (state.currentMode === "player") {
     try {
       import("./network.js").then((mod) => {
-        if (typeof mod.sendBoard === "function") {
-          mod.sendBoard();
+        // Use debounced functions to prevent excessive network calls during power-up animations
+        if (typeof mod.debouncedBoardUpdate === "function") {
+          mod.debouncedBoardUpdate();
+        } else if (typeof mod.sendBoard === "function") {
+          mod.sendBoard(); // Fallback
         }
-        if (typeof mod.sendScore === "function" && state.playerScore > 0) {
-          mod.sendScore();
+
+        if (typeof mod.debouncedScoreUpdate === "function") {
+          mod.debouncedScoreUpdate();
+        } else if (typeof mod.sendScore === "function") {
+          mod.sendScore(); // Fallback
         }
       });
     } catch (err) {
-      console.error("Fehler beim synchronisieren des Boards:", err);
+      console.error("Error synchronizing board and score:", err);
     }
   }
 }

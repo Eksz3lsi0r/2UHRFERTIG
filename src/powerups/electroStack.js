@@ -4,6 +4,16 @@
 
 import { BasePowerUp } from './basePowerUp.js';
 
+// Debug mode toggle - set to false for production, true for development
+const DEBUG_MODE = false;
+
+// Utility function for conditional logging
+function debugLog(...args) {
+  if (DEBUG_MODE) {
+    debugLog(...args);
+  }
+}
+
 /**
  * Electro Stack Power-Up
  * Creates an electrical explosion that clears all blocks in the 8 surrounding cells
@@ -47,7 +57,7 @@ export class ElectroStack extends BasePowerUp {
    * @param {Object} gameState - Current game state
    */
   execute(centerRow, centerCol, gameState) {
-    console.log("Elektro Stack effect activated at position:", centerRow, centerCol);
+    debugLog("Elektro Stack effect activated at position:", centerRow, centerCol);
 
     // Set flag to prevent automatic inventory generation during electro animation
     gameState.electroAnimationActive = true;
@@ -84,7 +94,7 @@ export class ElectroStack extends BasePowerUp {
     });
 
     if (totalClearedBlocks === 0) {
-      console.log("No blocks found to clear");
+      debugLog("No blocks found to clear");
       this._showElectroCompleteMessage(0, 0);
 
       // Still need to regenerate inventory even if no blocks were cleared
@@ -118,7 +128,7 @@ export class ElectroStack extends BasePowerUp {
       // Increase permanent multiplier by +1 per cleared block
       const oldPermanentMultiplier = gameState.permanentMultiplier;
       gameState.permanentMultiplier += totalClearedBlocks;
-      console.log(`Elektro Stack: Permanent multiplier increased from ${oldPermanentMultiplier.toFixed(0)}x to ${gameState.permanentMultiplier.toFixed(0)}x (+${totalClearedBlocks})`);
+      debugLog(`Elektro Stack: Permanent multiplier increased from ${oldPermanentMultiplier.toFixed(0)}x to ${gameState.permanentMultiplier.toFixed(0)}x (+${totalClearedBlocks})`);
 
       // Add points with current multipliers
       const finalPoints = totalPoints * gameState.currentMultiplier * gameState.permanentMultiplier;
@@ -140,7 +150,7 @@ export class ElectroStack extends BasePowerUp {
         this._regenerateInventoryAfterElectro(gameState);
       }, 1000);
 
-      console.log(`Elektro Stack: ${totalClearedBlocks} blocks cleared, ${finalPoints} points gained`);
+      debugLog(`Elektro Stack: ${totalClearedBlocks} blocks cleared, ${finalPoints} points gained`);
     }, 800);
   }
 
@@ -154,7 +164,7 @@ export class ElectroStack extends BasePowerUp {
     const boardElement = document.getElementById("board");
     if (boardElement) {
       boardElement.classList.add("electro-effect");
-      console.log("⚡ Electro animation started - effect will run during entire electro event");
+      debugLog("⚡ Electro animation started - effect will run during entire electro event");
 
       // Show power-up indicator
       if (window.showPowerUpIndicator) {
@@ -189,7 +199,7 @@ export class ElectroStack extends BasePowerUp {
     const boardElement = document.getElementById("board");
     if (boardElement) {
       boardElement.classList.remove("electro-effect");
-      console.log("⚡ Electro animation ended");
+      debugLog("⚡ Electro animation ended");
     }
 
     // Stop electro sound effect
@@ -254,7 +264,7 @@ export class ElectroStack extends BasePowerUp {
    * @private
    */
   _regenerateInventoryAfterElectro(gameState) {
-    console.log("Electro Stack: Starting inventory regeneration...");
+    debugLog("Electro Stack: Starting inventory regeneration...");
 
     // Use robust inventory regeneration
     if (window.player?.regenerateInventoryAfterPowerUp) {
@@ -275,14 +285,14 @@ export class ElectroStack extends BasePowerUp {
     // Hide the electro animation when complete
     this._hideElectroAnimation();
 
-    console.log("Electro Stack: Inventory regenerated after effect completion");
+    debugLog("Electro Stack: Inventory regenerated after effect completion");
   }
 
   /**
    * Test the electro effect with sample blocks
    */
   testEffect() {
-    console.log("Testing Electro Stack effect...");
+    debugLog("Testing Electro Stack effect...");
 
     if (!window.state?.playerBoard || !window.state?.boardCells) {
       console.error("Game state not available for testing");
@@ -302,7 +312,7 @@ export class ElectroStack extends BasePowerUp {
     if (window.player?.renderPieces) {
       window.player.renderPieces();
     }
-    console.log("✅ Electro piece added to inventory");
+    debugLog("✅ Electro piece added to inventory");
 
     // Add test blocks around position (5,5) in a 3x3 pattern
     const testBlocks = [
@@ -323,8 +333,8 @@ export class ElectroStack extends BasePowerUp {
     const oldScore = window.state.playerScore;
     const oldMultiplier = window.state.permanentMultiplier;
 
-    console.log("✅ Test blocks placed around position (5,5)");
-    console.log(`📊 Before: Score=${oldScore}, Multiplier=${oldMultiplier}x`);
+    debugLog("✅ Test blocks placed around position (5,5)");
+    debugLog(`📊 Before: Score=${oldScore}, Multiplier=${oldMultiplier}x`);
 
     // Execute the electro effect at center position
     this.execute(5, 5, window.state);
@@ -333,8 +343,8 @@ export class ElectroStack extends BasePowerUp {
     setTimeout(() => {
       const newScore = window.state.playerScore;
       const newMultiplier = window.state.permanentMultiplier;
-      console.log(`📊 After: Score=${newScore} (+${newScore - oldScore}), Multiplier=${newMultiplier}x (+${newMultiplier - oldMultiplier})`);
-      console.log("✅ Electro Stack test completed!");
+      debugLog(`📊 After: Score=${newScore} (+${newScore - oldScore}), Multiplier=${newMultiplier}x (+${newMultiplier - oldMultiplier})`);
+      debugLog("✅ Electro Stack test completed!");
     }, 2000);
   }
 }

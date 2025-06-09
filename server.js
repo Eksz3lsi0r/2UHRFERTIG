@@ -5,6 +5,16 @@ const path = require("path");
 const socketIo = require("socket.io");
 const fs = require("fs").promises;
 
+// Debug mode toggle - set to false for production, true for development
+const DEBUG_MODE = false;
+
+// Utility function for conditional logging
+function debugLog(...args) {
+  if (DEBUG_MODE) {
+    console.log(...args);
+  }
+}
+
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
@@ -397,18 +407,28 @@ io.on("connection", async (socket) => {
     if (!room || !games[room] || games[room].isFinished) return;
     const game = games[room];
 
-    // Validate board data
+    // Validate board data for real-time sync
     if (!Array.isArray(boardData) || boardData.length !== 10) {
       console.warn(`Invalid board data from ${socket.id}`);
       return;
     }
 
-    // Store the board state
+    // Validate each row for complete board integrity
+    for (let i = 0; i < boardData.length; i++) {
+      if (!Array.isArray(boardData[i]) || boardData[i].length !== 10) {
+        console.warn(`Invalid board row ${i} from ${socket.id}`);
+        return;
+      }
+    }
+
+    // Store the board state with timestamp for real-time tracking
     game.boards[socket.id] = JSON.parse(JSON.stringify(boardData)); // Deep copy
+    game.boardUpdateTime = Date.now();
 
     const opponentId = game.players.find((id) => id !== socket.id);
     if (opponentId && io.sockets.sockets.get(opponentId)) {
-      console.log(`Sending board update from ${socket.id} to ${opponentId}`);
+      debugLog(`Real-time board update: ${socket.id} -> ${opponentId}`);
+      // Send immediately for real-time synchronization
       io.to(opponentId).emit("opponentBoardUpdate", boardData);
     }
   });
@@ -417,19 +437,26 @@ io.on("connection", async (socket) => {
     const room = socket.gameRoom;
     if (!room || !games[room] || games[room].isFinished) return;
     const game = games[room];
-    if (game.scores[socket.id] !== newScore) {
-      game.scores[socket.id] = newScore;
-      const opponentId = game.players.find((id) => id !== socket.id);
-      if (opponentId) {
-        socket.to(opponentId).emit("opponentScore", newScore);
-      }
-      if (
-        game.firstFinisher &&
-        game.firstFinisher !== socket.id &&
-        newScore > game.firstScore
-      ) {
-        finish(room, socket.id);
-      }
+
+    // Always update score for exact synchronization, even if same value
+    const previousScore = game.scores[socket.id] || 0;
+    game.scores[socket.id] = newScore;
+    game.scoreUpdateTime = Date.now();
+
+    const opponentId = game.players.find((id) => id !== socket.id);
+    if (opponentId && io.sockets.sockets.get(opponentId)) {
+      console.log(`Real-time score update: ${socket.id} score ${previousScore} -> ${newScore}`);
+      // Send score update immediately for exact synchronization
+      io.to(opponentId).emit("opponentScore", newScore);
+    }
+
+    // Check for catch-up victory condition
+    if (
+      game.firstFinisher &&
+      game.firstFinisher !== socket.id &&
+      newScore > game.firstScore
+    ) {
+      finish(room, socket.id);
     }
   });
 

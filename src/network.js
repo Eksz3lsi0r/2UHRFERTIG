@@ -6,6 +6,16 @@ import { player } from "./player.js";
 import { state } from "./state.js";
 import { ui } from "./ui.js";
 
+// Debug mode toggle - set to false for production, true for development
+const DEBUG_MODE = false;
+
+// Utility function for conditional logging
+function debugLog(...args) {
+  if (DEBUG_MODE) {
+    console.log(...args);
+  }
+}
+
 /* ---------- Socket initialisieren ----------------------------------- */
 // Wir nutzen die globale io-Variable aus dem HTML-Script-Tag
 export const socket = window.io
@@ -36,10 +46,28 @@ export function findGame(playerName) {
   });
 }
 export function sendBoard() {
+  if (!socket.connected) {
+    console.warn("Socket not connected, unable to send board");
+    return;
+  }
+
+  // Send board update immediately for real-time synchronization
   socket.emit("boardUpdate", state.playerBoard);
+  // Optional: Log only when debugging is needed
+  // console.log("Board update sent (optimized)");
 }
+
 export function sendScore() {
+  if (!socket.connected) {
+    console.warn("Socket not connected, unable to send score");
+    return;
+  }
+
+  // Send score update immediately for real-time synchronization
   socket.emit("scoreUpdate", state.playerScore);
+  // Optional: Log only when debugging is needed
+  // console.log("Score update sent (optimized):", state.playerScore);
+
   // In PVP catch-up: if opponent finished and player overtakes, immediately send gameOver
   if (
     state.currentMode === "player" &&
@@ -58,13 +86,20 @@ export function cancelMatchmaking() {
   ui.hideMatchmakingOverlay();
 }
 
+// Export debounced functions for use by power-ups and other systems
+export { debouncedBoardUpdate, debouncedScoreUpdate };
+
 /* --------------------------------------------------------------------
  *  Events vom Server
  * ------------------------------------------------------------------ */
-socket.on("connect", () => console.log("[socket] verbunden:", socket.id));
+socket.on("connect", () => debugLog("[socket] verbunden:", socket.id));
 
 socket.on("disconnect", (reason) => {
   console.warn("[socket] getrennt:", reason);
+
+  // Stop real-time synchronization on disconnect
+  stopRealTimeSynchronization();
+
   if (state.currentMode === "player" && state.gameActive) {
     player.finishGame(
       false,
@@ -103,7 +138,7 @@ socket.on("startGame", (data) => {
   state.opponentFinalScore = 0;
   state.timeLeft = 0;
 
-  // Ensure opponent board is properly reset
+  // Ensure opponent board is properly reset for real-time updates
   if (state.opponentBoardCells?.length) {
     for (let r = 0; r < 10; r++) {
       for (let c = 0; c < 10; c++) {
@@ -114,6 +149,14 @@ socket.on("startGame", (data) => {
       }
     }
   }
+
+  // Initialize permanent multiplier displays for real-time visibility
+  if (typeof ui.initializePermanentMultiplierDisplays === "function") {
+    ui.initializePermanentMultiplierDisplays();
+  }
+
+  // Start real-time synchronization for opponent area updates
+  startRealTimeSynchronization();
 
   // Nach Reset GridSnap neu initialisieren (wichtig für Touch)
   import("./drag.js").then(({ GridSnap }) => {
@@ -141,40 +184,57 @@ socket.on("opponentBoardUpdate", (board) => {
   }
 
   try {
-    console.log("Updating opponent board with data:", board);
-
-    // Calculate fill percentage for color coding
+    // Only log board changes, not every update
     const fillPercentage = calculateFillPercentage(board);
 
-    // Update board cells
+    // Update board cells immediately for real-time display
     for (let r = 0; r < 10; r++) {
       for (let c = 0; c < 10; c++) {
         if (state.opponentBoardCells[r] && state.opponentBoardCells[r][c]) {
           const cell = state.opponentBoardCells[r][c];
           const isFilled = !!(board[r] && board[r][c]);
 
-          // Update filled state
+          // Remove all existing states first for clean updates
+          cell.classList.remove("filled", "fill-warning", "fill-danger");
+
+          // Update filled state immediately
           if (isFilled) {
             cell.classList.add("filled");
-          } else {
-            cell.classList.remove("filled");
           }
         }
       }
     }
 
-    // Apply fill percentage colors
+    // Apply fill percentage colors for real-time visual feedback
     applyFillColors(state.opponentBoardCells, fillPercentage);
 
-    console.log(`Opponent board updated successfully. Fill: ${fillPercentage.toFixed(1)}%`);
+    // Only log significant changes (every 5% or major milestones)
+    if (fillPercentage >= 95 || fillPercentage % 10 === 0 || fillPercentage >= 60) {
+      debugLog(`Opponent board updated. Fill: ${fillPercentage.toFixed(1)}%`);
+    }
   } catch (err) {
-    console.error("Fehler beim Aktualisieren des Gegner-Boards:", err);
+    console.error("Error updating opponent board in real-time:", err);
   }
 });
 
 /* ---- Gegner schickt Punktestand ------------------------------------ */
 socket.on("opponentScore", (score) => {
-  state.el.oppScore.textContent = score;
+  if (state.el.oppScore) {
+    const previousScore = parseInt(state.el.oppScore.textContent) || 0;
+    state.el.oppScore.textContent = score;
+
+    // Only log score changes, not identical updates
+    if (previousScore !== score) {
+      debugLog(`Opponent score updated: ${previousScore} -> ${score}`);
+    }
+
+    // Ensure score display is visible and properly formatted
+    if (state.el.oppScore.parentElement) {
+      state.el.oppScore.parentElement.style.display = "flex";
+    }
+  } else {
+    console.warn("Opponent score element not found");
+  }
 });
 
 /* ---- Gegner ist fertig --------------------------------------------- */
@@ -196,7 +256,7 @@ socket.on("opponentFinished", (data) => {
   state.countdownInterval = setInterval(() => {
     state.timeLeft -= 1;
     ui.updateCatchupTimer(state.timeLeft); // Aktualisiere den Timer für beide Spieler
-    console.log("Timer: ", state.timeLeft);
+    debugLog("Timer: ", state.timeLeft);
     if (state.timeLeft <= 0) {
       clearInterval(state.countdownInterval);
       ui.hideCatchupTimer(); // Verstecke den Timer, wenn die Zeit abgelaufen ist
@@ -211,6 +271,9 @@ socket.on("gameEnd", (data) => {
   state.gameActive = false;
   const catchupTimer = document.getElementById("catchup-timer");
   if (catchupTimer) catchupTimer.style.display = "none";
+
+  // Stop real-time synchronization when game ends
+  stopRealTimeSynchronization();
 
   // Check if this is a ranked game
   if (data.isRanked && data.rankingChange) {
@@ -245,6 +308,10 @@ socket.on("gameEnd", (data) => {
 socket.on("opponentLeft", (data) => {
   if (state.countdownInterval) clearInterval(state.countdownInterval);
   state.gameActive = false;
+
+  // Stop real-time synchronization when opponent leaves
+  stopRealTimeSynchronization();
+
   player.finishGame(
     false,
     LANG[state.currentLanguage].opponentLeftMsg(
@@ -292,11 +359,11 @@ socket.on("matchmakingCancelled", () => {
 
 // --- Chat Message Handling (PvP) ---
 window.sendChatMessage = function (msg) {
-  console.log("[Chat] sendChatMessage –", `"${msg}"`);
-  console.log("[Chat] Current mode:", state.currentMode);
-  console.log("[Chat] Socket exists:", !!window.socket);
-  console.log("[Chat] Socket emit function:", typeof window.socket?.emit);
-  console.log(
+  debugLog("[Chat] sendChatMessage –", `"${msg}"`);
+  debugLog("[Chat] Current mode:", state.currentMode);
+  debugLog("[Chat] Socket exists:", !!window.socket);
+  debugLog("[Chat] Socket emit function:", typeof window.socket?.emit);
+  debugLog(
     "[Chat] appendChatMessage function:",
     typeof window.appendChatMessage
   );
@@ -318,11 +385,11 @@ window.sendChatMessage = function (msg) {
 
   try {
     window.socket.emit("chatMessage", { msg });
-    console.log("[Chat] Message sent to server successfully");
+    debugLog("[Chat] Message sent to server successfully");
 
     // Don't add the message locally here - wait for server confirmation
     // This prevents duplicate messages
-    console.log("[Chat] Message sent, waiting for server confirmation");
+    debugLog("[Chat] Message sent, waiting for server confirmation");
   } catch (error) {
     console.error("[Chat] Error sending message:", error);
   }
@@ -330,8 +397,8 @@ window.sendChatMessage = function (msg) {
 
 if (window.socket && typeof window.socket.on === "function") {
   window.socket.on("chatMessage", (data) => {
-    console.log("[Chat] received chatMessage", data);
-    console.log(
+    debugLog("[Chat] received chatMessage", data);
+    debugLog(
       "[Chat] appendChatMessage function available:",
       typeof window.appendChatMessage
     );
@@ -348,7 +415,7 @@ if (window.socket && typeof window.socket.on === "function") {
         const message = displayName + ": " + data.msg;
         window.appendChatMessage(message, false);
       }
-      console.log("[Chat] Message added to chat");
+      debugLog("[Chat] Message added to chat");
     } else {
       console.warn(
         "[Chat] appendChatMessage function not available for received message"
@@ -381,7 +448,8 @@ function calculateFillPercentage(board) {
 function applyFillColors(cells, fillPercentage) {
   if (!cells || !cells.length) return;
 
-  console.log(`Applying fill colors for ${fillPercentage}% fill`);
+  // Only log significant color changes
+  let colorChangeCount = 0;
 
   // Apply colors only to filled cells
   for (let r = 0; r < 10; r++) {
@@ -397,14 +465,19 @@ function applyFillColors(cells, fillPercentage) {
         if (cell.classList.contains("filled")) {
           if (fillPercentage >= 60) {
             cell.classList.add("fill-danger"); // Red at 60+ cells
-            console.log(`Applied fill-danger to cell [${r},${c}]`);
+            colorChangeCount++;
           } else if (fillPercentage >= 30) {
             cell.classList.add("fill-warning"); // Yellow at 30+ cells
-            console.log(`Applied fill-warning to cell [${r},${c}]`);
+            colorChangeCount++;
           }
         }
       }
     }
+  }
+
+  // Only log when colors are applied to significant number of cells
+  if (colorChangeCount > 0 && fillPercentage >= 30) {
+    debugLog(`Fill colors applied: ${colorChangeCount} cells colored at ${fillPercentage.toFixed(1)}% fill`);
   }
 }
 
@@ -412,9 +485,107 @@ function applyFillColors(cells, fillPercentage) {
  *  Ensure opponent board sync function
  * ------------------------------------------------------------------ */
 export function ensureOpponentBoardSync() {
-  console.log("Ensuring opponent board sync...");
+  debugLog("Ensuring opponent board sync...");
   if (state.currentMode === "player" && socket.connected) {
     // Request current board state from opponent
     socket.emit("requestBoardSync");
+  }
+}
+
+/* --------------------------------------------------------------------
+ *  Real-time synchronization interval for ensuring updates
+ * ------------------------------------------------------------------ */
+let syncInterval = null;
+let lastSentBoard = null;
+let lastSentScore = null;
+let boardUpdateTimeout = null;
+let scoreUpdateTimeout = null;
+
+// Debounced update functions to prevent excessive network calls
+function debouncedBoardUpdate() {
+  if (boardUpdateTimeout) {
+    clearTimeout(boardUpdateTimeout);
+  }
+
+  boardUpdateTimeout = setTimeout(() => {
+    sendBoard();
+    boardUpdateTimeout = null;
+  }, 100); // 100ms debounce
+}
+
+function debouncedScoreUpdate() {
+  if (scoreUpdateTimeout) {
+    clearTimeout(scoreUpdateTimeout);
+  }
+
+  scoreUpdateTimeout = setTimeout(() => {
+    sendScore();
+    scoreUpdateTimeout = null;
+  }, 100); // 100ms debounce
+}
+
+export function startRealTimeSynchronization() {
+  debugLog("Starting real-time synchronization for opponent area");
+
+  // Clear any existing interval
+  if (syncInterval) {
+    clearInterval(syncInterval);
+  }
+
+  // Reset tracking variables when starting new sync
+  lastSentBoard = null;
+  lastSentScore = null;
+
+  // Set up periodic sync check every 500ms for real-time feeling
+  syncInterval = setInterval(() => {
+    if (state.currentMode === "player" && socket.connected) {
+      // Only send updates if data has actually changed
+      checkAndSendBoardUpdate();
+      checkAndSendScoreUpdate();
+    }
+  }, 500);
+}
+
+export function stopRealTimeSynchronization() {
+  debugLog("Stopping real-time synchronization");
+  if (syncInterval) {
+    clearInterval(syncInterval);
+    syncInterval = null;
+  }
+
+  // Clear any pending debounced updates
+  if (boardUpdateTimeout) {
+    clearTimeout(boardUpdateTimeout);
+    boardUpdateTimeout = null;
+  }
+
+  if (scoreUpdateTimeout) {
+    clearTimeout(scoreUpdateTimeout);
+    scoreUpdateTimeout = null;
+  }
+
+  // Clear tracking variables when stopping sync
+  lastSentBoard = null;
+  lastSentScore = null;
+}
+
+/* --------------------------------------------------------------------
+ *  Smart change detection functions
+ * ------------------------------------------------------------------ */
+function checkAndSendBoardUpdate() {
+  const currentBoardString = JSON.stringify(state.playerBoard);
+
+  if (lastSentBoard !== currentBoardString) {
+    lastSentBoard = currentBoardString;
+    sendBoard();
+  }
+}
+
+function checkAndSendScoreUpdate() {
+  const currentScore = state.playerScore;
+
+  if (lastSentScore !== currentScore) {
+    lastSentScore = currentScore;
+    sendScore();
   }
 }

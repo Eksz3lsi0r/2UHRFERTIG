@@ -4,6 +4,16 @@
 
 import { BasePowerUp } from './basePowerUp.js';
 
+// Debug mode toggle - set to false for production, true for development
+const DEBUG_MODE = false;
+
+// Utility function for conditional logging
+function debugLog(...args) {
+  if (DEBUG_MODE) {
+    debugLog(...args);
+  }
+}
+
 /**
  * Extend Block Power-Up
  * Checks all four directions (up, down, left, right) from its position
@@ -56,7 +66,7 @@ export class ExtendBlock extends BasePowerUp {
    * @param {Object} gameState - Current game state
    */
   execute(row, col, gameState) {
-    console.log(`Extend Block effect activated at position [${row}, ${col}]!`);
+    debugLog(`Extend Block effect activated at position [${row}, ${col}]!`);
 
     // Set flag to prevent automatic inventory generation during extend animation
     gameState.extendAnimationActive = true;
@@ -76,7 +86,7 @@ export class ExtendBlock extends BasePowerUp {
     const boardElement = document.getElementById("board");
     if (boardElement) {
       boardElement.classList.add("extend-effect");
-      console.log("🔄 Extend animation started - effect will run during entire extend event");
+      debugLog("🔄 Extend animation started - effect will run during entire extend event");
 
       // Show power-up indicator
       if (window.showPowerUpIndicator) {
@@ -101,7 +111,7 @@ export class ExtendBlock extends BasePowerUp {
     const boardElement = document.getElementById("board");
     if (boardElement) {
       boardElement.classList.remove("extend-effect");
-      console.log("🔄 Extend animation ended");
+      debugLog("🔄 Extend animation ended");
     }
 
     // Stop extend sound effect
@@ -123,7 +133,7 @@ export class ExtendBlock extends BasePowerUp {
    * @private
    */
   _startExtendProcess(startRow, startCol, gameState) {
-    console.log(`Starting extend process at position [${startRow}, ${startCol}]`);
+    debugLog(`Starting extend process at position [${startRow}, ${startCol}]`);
 
     // First, place the extend block itself at the starting position
     gameState.playerBoard[startRow][startCol] = 1;
@@ -149,14 +159,14 @@ export class ExtendBlock extends BasePowerUp {
     const processNextWave = () => {
       if (queue.length === 0) {
         // No more positions to process, finish the extend effect
-        console.log(`Extend process completed after ${waveNumber} waves. Total new positions: ${allNewPositions.length}`);
+        debugLog(`Extend process completed after ${waveNumber} waves. Total new positions: ${allNewPositions.length}`);
         setTimeout(() => {
           this._finishExtendEffect(gameState, allNewPositions);
         }, 150); // Doubled speed: 300 -> 150
         return;
       }
 
-      console.log(`Processing wave ${waveNumber} with ${queue.length} positions`);
+      debugLog(`Processing wave ${waveNumber} with ${queue.length} positions`);
 
       const currentWave = [...queue];
       queue.length = 0; // Clear the queue for next wave
@@ -252,7 +262,7 @@ export class ExtendBlock extends BasePowerUp {
         this._createFlyingBlockAnimation(sourceCell, cell, dirIndex);
 
         newPositions.push({row: newRow, col: newCol});
-        console.log(`Extended to position [${newRow}, ${newCol}]`);
+        debugLog(`Extended to position [${newRow}, ${newCol}]`);
       }
     });
 
@@ -342,7 +352,7 @@ export class ExtendBlock extends BasePowerUp {
   _finishExtendEffect(gameState, extendedPositions) {
     // Include the starting position in the total count
     const totalExtendedCount = extendedPositions.length + 1; // +1 for the starting position
-    console.log(`Extend effect completed! Extended to ${extendedPositions.length} new positions + 1 starting position = ${totalExtendedCount} total.`);
+    debugLog(`Extend effect completed! Extended to ${extendedPositions.length} new positions + 1 starting position = ${totalExtendedCount} total.`);
 
     // Check for full lines after extend effect
     setTimeout(() => {
@@ -357,13 +367,13 @@ export class ExtendBlock extends BasePowerUp {
    * @private
    */
   _checkAndClearLinesAfterExtend(gameState, extendedPositions, totalExtendedCount) {
-    console.log("Checking for full lines after extend effect...");
+    debugLog("Checking for full lines after extend effect...");
 
     // Check if any lines are full after extension using player's public API
     const hasFullLines = window.player?.hasFullLines?.();
 
     if (hasFullLines) {
-      console.log("Full lines detected after extend effect - clearing them!");
+      debugLog("Full lines detected after extend effect - clearing them!");
 
       // Clear the full lines using the player's public clearLines function
       if (window.player?.clearLines) {
@@ -473,7 +483,7 @@ export class ExtendBlock extends BasePowerUp {
    * Test the extend effect with a positioned block
    */
   testEffect() {
-    console.log("Testing Extend Block effect...");
+    debugLog("Testing Extend Block effect...");
 
     if (!window.state?.playerBoard || !window.state?.boardCells) {
       console.error("Game state not available for testing");
@@ -508,8 +518,8 @@ export class ExtendBlock extends BasePowerUp {
       }
     });
 
-    console.log("✅ Test boundaries added to board");
-    console.log("Now execute extend effect from center position [5, 5]...");
+    debugLog("✅ Test boundaries added to board");
+    debugLog("Now execute extend effect from center position [5, 5]...");
 
     // Execute the extend effect from center
     this.execute(5, 5, window.state);

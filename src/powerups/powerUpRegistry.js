@@ -6,6 +6,16 @@ import { electroStack } from './electroStack.js';
 import { extendBlock } from './extendBlock.js';
 import { stormBlock } from './stormBlock.js';
 
+// Debug mode toggle - set to false for production, true for development
+const DEBUG_MODE = false;
+
+// Utility function for conditional logging
+function debugLog(...args) {
+  if (DEBUG_MODE) {
+    console.log(...args);
+  }
+}
+
 /**
  * Central registry for all power-ups in the game
  * Provides a unified interface for managing different power-up types
@@ -26,7 +36,7 @@ class PowerUpRegistry {
     this.register(electroStack);
     this.register(extendBlock);
 
-    console.log(`Power-Up Registry initialized with ${this.powerUps.size} power-ups:`,
+    debugLog(`Power-Up Registry initialized with ${this.powerUps.size} power-ups:`,
                 Array.from(this.powerUps.keys()));
   }
 
@@ -45,7 +55,7 @@ class PowerUpRegistry {
     const testFunctions = powerUp.getTestFunctions();
     Object.assign(window, testFunctions);
 
-    console.log(`Registered power-up: ${powerUp.name} (${powerUp.id})`);
+    debugLog(`Registered power-up: ${powerUp.name} (${powerUp.id})`);
   }
 
   /**
@@ -90,7 +100,7 @@ class PowerUpRegistry {
   executePowerUp(pieceObj, row, col, gameState) {
     const powerUp = this.identifyPowerUp(pieceObj);
     if (powerUp) {
-      console.log(`Executing ${powerUp.name} power-up...`);
+      debugLog(`Executing ${powerUp.name} power-up...`);
 
       // Immediately clear the entire inventory when any power-up is executed
       gameState.playerPieces = [];
@@ -132,7 +142,7 @@ class PowerUpRegistry {
         // Remove this index from available indices
         availableIndices.splice(randomIdx, 1);
 
-        console.log(`Generated ${powerUp.name} power-up (${(powerUp.spawnRate * 100).toFixed(1)}% chance)`);
+        debugLog(`Generated ${powerUp.name} power-up (${(powerUp.spawnRate * 100).toFixed(1)}% chance)`);
 
         // Prevent multiple power-ups in a single generation cycle
         break;
@@ -172,14 +182,14 @@ class PowerUpRegistry {
    */
   getComprehensiveTest() {
     return () => {
-      console.log("🧪 Running comprehensive power-up tests...");
+      debugLog("🧪 Running comprehensive power-up tests...");
 
       this.powerUps.forEach(powerUp => {
-        console.log(`\n--- Testing ${powerUp.name} ---`);
+        debugLog(`\n--- Testing ${powerUp.name} ---`);
         powerUp.testEffect();
       });
 
-      console.log("\n✅ All power-up tests completed!");
+      debugLog("\n✅ All power-up tests completed!");
     };
   }
 

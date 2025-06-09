@@ -4,6 +4,16 @@
 
 import { BasePowerUp } from './basePowerUp.js';
 
+// Debug mode toggle - set to false for production, true for development
+const DEBUG_MODE = false;
+
+// Utility function for conditional logging
+function debugLog(...args) {
+  if (DEBUG_MODE) {
+    debugLog(...args);
+  }
+}
+
 /**
  * Storm Block Power-Up
  * Collects all blocks on the board and redistributes them randomly
@@ -47,7 +57,7 @@ export class StormBlock extends BasePowerUp {
    * @param {Object} gameState - Current game state
    */
   execute(row, col, gameState) {
-    console.log("Storm effect activated!");
+    debugLog("Storm effect activated!");
 
     // Set flag to prevent automatic inventory generation during storm animation
     gameState.stormAnimationActive = true;
@@ -96,7 +106,7 @@ export class StormBlock extends BasePowerUp {
     const boardElement = document.getElementById("board");
     if (boardElement) {
       boardElement.classList.add("storm-effect");
-      console.log("🌪️ Storm animation started - effect will run during entire storm event");
+      debugLog("🌪️ Storm animation started - effect will run during entire storm event");
 
       // Show power-up indicator
       if (window.showPowerUpIndicator) {
@@ -121,7 +131,7 @@ export class StormBlock extends BasePowerUp {
     const boardElement = document.getElementById("board");
     if (boardElement) {
       boardElement.classList.remove("storm-effect");
-      console.log("🌪️ Storm animation ended");
+      debugLog("🌪️ Storm animation ended");
     }
 
     // Stop storm sound effect
@@ -195,13 +205,13 @@ export class StormBlock extends BasePowerUp {
    * @private
    */
   _checkAndClearLinesAfterStorm(gameState) {
-    console.log("Checking for full lines after storm redistribution...");
+    debugLog("Checking for full lines after storm redistribution...");
 
     // Check if any lines are full after redistribution using player's public API
     const hasFullLines = window.player?.hasFullLines?.();
 
     if (hasFullLines) {
-      console.log("Full lines detected after storm - clearing them first!");
+      debugLog("Full lines detected after storm - clearing them first!");
 
       // Clear the full lines using the player's public clearLines function
       if (window.player?.clearLines) {
@@ -302,7 +312,7 @@ export class StormBlock extends BasePowerUp {
    * Test the storm effect with sample blocks
    */
   testEffect() {
-    console.log("Testing Storm Block effect...");
+    debugLog("Testing Storm Block effect...");
 
     if (!window.state?.playerBoard || !window.state?.boardCells) {
       console.error("Game state not available for testing");
@@ -325,8 +335,8 @@ export class StormBlock extends BasePowerUp {
       }
     });
 
-    console.log("✅ Test blocks added to board");
-    console.log("Now execute storm effect...");
+    debugLog("✅ Test blocks added to board");
+    debugLog("Now execute storm effect...");
 
     // Execute the storm effect
     this.execute(0, 0, window.state);
