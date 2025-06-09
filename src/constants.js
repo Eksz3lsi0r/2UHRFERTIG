@@ -242,6 +242,9 @@ export const BASE_SHAPES = [
 // Storm Power-Up Shape (1x1 special block)
 export const STORM_SHAPE = [[0, 0]];
 
+// Elektro Stack Power-Up Shape (1x1 special block)
+export const ELECTRO_SHAPE = [[0, 0]];
+
 export const ALL_POSSIBLE_SHAPES = [...BASE_SHAPES, ...BASE_SHAPES];
 
 /* ---------- Sprachen -------------------------------------------------- */

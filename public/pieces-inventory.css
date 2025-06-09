@@ -376,3 +376,150 @@
     transform: translate(-50%, -50%) scale(1);
   }
 }
+
+/* ───── Elektro Stack Power-Up Styles ───── */
+.electro-piece {
+  position: relative;
+  animation: electro-charge 2s ease-in-out infinite alternate;
+}
+
+.electro-piece::before {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, #FFD700, #FFA500, #FFD700);
+  border-radius: 8px;
+  z-index: -1;
+  opacity: 0.8;
+  filter: blur(3px);
+  animation: electro-pulse 1.5s ease-in-out infinite;
+}
+
+.electro-block {
+  background: linear-gradient(135deg, #FFD700, #FFA500) !important;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.9) !important;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  animation: electro-spark 2s linear infinite;
+}
+
+/* Elektro Animations */
+@keyframes electro-charge {
+  0% { filter: brightness(1) saturate(1); }
+  100% { filter: brightness(1.4) saturate(1.6); }
+}
+
+@keyframes electro-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.15); opacity: 1; }
+}
+
+@keyframes electro-spark {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(5deg); }
+  50% { transform: rotate(0deg); }
+  75% { transform: rotate(-5deg); }
+  100% { transform: rotate(0deg); }
+}
+
+/* Elektro Effect Animations on Game Board */
+.electro-effect {
+  animation: electro-shock 1s ease-in-out;
+  background: radial-gradient(circle, rgba(255, 215, 0, 0.4) 0%, transparent 70%);
+}
+
+.electro-target {
+  animation: electro-zap 0.6s ease-out;
+}
+
+.electro-zapped {
+  animation: electro-dissolve 0.6s ease-out;
+}
+
+@keyframes electro-shock {
+  0%, 100% { transform: translate(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translate(-3px, -3px); }
+  20%, 40%, 60%, 80% { transform: translate(3px, 3px); }
+}
+
+@keyframes electro-zap {
+  0% {
+    transform: scale(1);
+    filter: brightness(1);
+    box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+  }
+  50% {
+    transform: scale(1.2);
+    filter: brightness(2);
+    box-shadow: 0 0 25px rgba(255, 215, 0, 1);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+    box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+  }
+}
+
+@keyframes electro-dissolve {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+    filter: brightness(2);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.8);
+    filter: brightness(1);
+    box-shadow: 0 0 0 rgba(255, 215, 0, 0);
+  }
+}
+
+/* Elektro Complete Message */
+.electro-complete-message {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  color: #000;
+  padding: 20px 40px;
+  border-radius: 15px;
+  font-size: 18px;
+  font-weight: bold;
+  box-shadow: 0 10px 30px rgba(255, 215, 0, 0.5);
+  z-index: 1000;
+  animation: electro-message-appear 0.5s ease-out;
+}
+
+@keyframes electroMessageFade {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  80% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+}
+
+@keyframes electro-message-appear {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}

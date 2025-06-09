@@ -3,9 +3,10 @@
  * ------------------------------------------------------------------ */
 import {
   ALL_POSSIBLE_SHAPES,
+  ELECTRO_SHAPE,
+  getRandomRainbowColor,
   LANG,
   STORM_SHAPE,
-  getRandomRainbowColor,
 } from "./constants.js";
 import { GridSnap } from "./drag.js";
 import { state } from "./state.js";
@@ -237,6 +238,23 @@ function generatePieces() {
       isStorm: true
     };
   }
+
+  // 5% Chance für Elektro Stack Power-Up (ersetzt ein anderes Piece, falls noch verfügbar)
+  if (Math.random() < 0.05 && state.playerPieces.length > 1) {
+    // Finde ein Piece das noch kein Powerup ist
+    const availableIndices = state.playerPieces
+      .map((piece, index) => !piece.isStorm && !piece.isElectro ? index : -1)
+      .filter(index => index !== -1);
+
+    if (availableIndices.length > 0) {
+      const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
+      state.playerPieces[randomIndex] = {
+        shape: ELECTRO_SHAPE.map((c) => [...c]),
+        color: '#FFD700',
+        isElectro: true
+      };
+    }
+  }
 }
 
 /* --------------------------------------------------------------------
@@ -259,6 +277,7 @@ function renderPieces() {
     const shape = pieceObj.shape || pieceObj; // Fallback falls noch altes Format
     const color = pieceObj.color || getRandomRainbowColor();
     const isStorm = pieceObj.isStorm || false;
+    const isElectro = pieceObj.isElectro || false;
 
     // Bestimme die Dimensionen des Shapes für das Grid-Layout
     let maxR = 0,
@@ -269,7 +288,10 @@ function renderPieces() {
     });
 
     const pieceDiv = document.createElement("div");
-    pieceDiv.className = isStorm ? "piece storm-piece" : "piece";
+    let pieceClass = "piece";
+    if (isStorm) pieceClass += " storm-piece";
+    if (isElectro) pieceClass += " electro-piece";
+    pieceDiv.className = pieceClass;
     pieceDiv.setAttribute("draggable", true);
 
     // Grid-Layout für das Piece konfigurieren
@@ -299,7 +321,15 @@ function renderPieces() {
     // Render blocks mit Grid und Farbe
     shape.forEach(([r, c]) => {
       const block = document.createElement("div");
-      block.className = isStorm ? "block storm-block" : "block rainbow";
+      let blockClass = "block";
+      if (isStorm) {
+        blockClass += " storm-block";
+      } else if (isElectro) {
+        blockClass += " electro-block";
+      } else {
+        blockClass += " rainbow";
+      }
+      block.className = blockClass;
       block.style.gridRowStart = r + 1;
       block.style.gridColumnStart = c + 1;
       block.style.background = color;
@@ -312,8 +342,21 @@ function renderPieces() {
         block.style.display = 'flex';
         block.style.alignItems = 'center';
         block.style.justifyContent = 'center';
+        block.style.textAlign = 'center';
         block.style.backgroundImage = 'radial-gradient(circle, #4a90e2, #2171b5)';
         block.style.boxShadow = '0 0 10px rgba(74, 144, 226, 0.6)';
+      }
+
+      // Add electro-specific styling
+      if (isElectro) {
+        block.innerHTML = '⚡'; // Lightning emoji as content
+        block.style.fontSize = `${cellPx * 0.6}px`;
+        block.style.display = 'flex';
+        block.style.alignItems = 'center';
+        block.style.justifyContent = 'center';
+        block.style.textAlign = 'center';
+        block.style.backgroundImage = 'linear-gradient(135deg, #FFD700, #FFA500)';
+        block.style.boxShadow = '0 0 15px rgba(255, 215, 0, 0.8)';
       }
 
       pieceDiv.appendChild(block);
@@ -360,6 +403,22 @@ function placeShape(shape, br, bc) {
     );
     if (idx !== -1) state.playerPieces.splice(idx, 1);
     return; // Verlasse die Funktion früh für Storm-Pieces
+  }
+
+  // Prüfe ob es sich um ein Elektro Piece handelt
+  if (pieceObj?.isElectro) {
+    console.log("Elektro piece placed! Executing electro effect...");
+    _executeElectroEffect(br, bc);
+
+    // Entferne das Elektro-Piece aus dem Inventar
+    const idx = state.playerPieces.findIndex(
+      (sh) =>
+        (sh.shape || sh) === shape ||
+        (Array.isArray(sh.shape) &&
+          JSON.stringify(sh.shape) === JSON.stringify(shape))
+    );
+    if (idx !== -1) state.playerPieces.splice(idx, 1);
+    return; // Verlasse die Funktion früh für Elektro-Pieces
   }
 
   const color =
@@ -573,6 +632,156 @@ function _showStormCompleteMessage() {
 }
 
 /* --------------------------------------------------------------------
+ *  Elektro Stack Power-Up Funktionen
+ * ------------------------------------------------------------------ */
+function _isElectroPiece(pieceObj) {
+  // Prüft ob es sich um ein Elektro-Piece handelt
+  return pieceObj?.isElectro === true;
+}
+
+function _executeElectroEffect(centerRow, centerCol) {
+  console.log("Elektro Stack effect activated at position:", centerRow, centerCol);
+
+  // Definiere die 8 umgebenden Positionen (alle Richtungen)
+  const directions = [
+    [-1, -1], [-1, 0], [-1, 1],  // oben-links, oben, oben-rechts
+    [0, -1],           [0, 1],   // links, rechts
+    [1, -1],  [1, 0],  [1, 1]    // unten-links, unten, unten-rechts
+  ];
+
+  const clearedBlocks = [];
+  let totalClearedBlocks = 0;
+
+  // Sammle alle Blöcke in den umgebenden Feldern
+  directions.forEach(([dRow, dCol]) => {
+    const targetRow = centerRow + dRow;
+    const targetCol = centerCol + dCol;
+
+    // Prüfe ob Position im Board ist
+    if (targetRow >= 0 && targetRow < 10 && targetCol >= 0 && targetCol < 10) {
+      if (state.playerBoard[targetRow][targetCol] === 1) {
+        const cell = state.boardCells[targetRow][targetCol];
+        clearedBlocks.push({
+          row: targetRow,
+          col: targetCol,
+          cell: cell,
+          color: cell.style.background,
+          hasRainbow: cell.classList.contains('rainbow')
+        });
+        totalClearedBlocks++;
+      }
+    }
+  });
+
+  if (totalClearedBlocks === 0) {
+    console.log("Keine Blöcke zum Löschen gefunden");
+    _showElectroCompleteMessage(0, 0);
+    return;
+  }
+
+  // Zeige Elektro-Animation
+  _showElectroAnimation(centerRow, centerCol, clearedBlocks);
+
+  // Nach Animation: Lösche die Blöcke und berechne Punkte
+  setTimeout(() => {
+    clearedBlocks.forEach(block => {
+      state.playerBoard[block.row][block.col] = 0;
+      block.cell.classList.remove("filled", "rainbow");
+      block.cell.style.background = "";
+
+      // Elektrische Lösch-Animation auf jedem Block
+      block.cell.classList.add("electro-zapped");
+      setTimeout(() => {
+        block.cell.classList.remove("electro-zapped");
+      }, 600);
+    });
+
+    // Berechne Punkte: 50 Punkte pro gelöschtem Block
+    const pointsPerBlock = 50;
+    const totalPoints = totalClearedBlocks * pointsPerBlock;
+
+    // Erhöhe permanenten Multiplier um +1 pro gelöschtem Block
+    const oldPermanentMultiplier = state.permanentMultiplier;
+    state.permanentMultiplier += totalClearedBlocks;
+    console.log(`Elektro Stack: Permanent multiplier increased from ${oldPermanentMultiplier.toFixed(0)}x to ${state.permanentMultiplier.toFixed(0)}x (+${totalClearedBlocks})`);
+
+    // Füge Punkte mit aktuellen Multiplikatoren hinzu
+    const finalPoints = totalPoints * state.currentMultiplier * state.permanentMultiplier;
+    state.playerScore += finalPoints;
+
+    // Update Displays
+    updateScoreDisplay();
+    updatePermanentMultiplierDisplay();
+
+    // Zeige Abschlussnachricht
+    _showElectroCompleteMessage(totalClearedBlocks, finalPoints);
+
+    console.log(`Elektro Stack: ${totalClearedBlocks} Blöcke gelöscht, ${finalPoints} Punkte erhalten`);
+  }, 800);
+}
+
+function _showElectroAnimation(centerRow, centerCol, targetBlocks) {
+  const boardElement = document.getElementById("board");
+  if (boardElement) {
+    boardElement.classList.add("electro-effect");
+
+    // Animation für das Board
+    setTimeout(() => {
+      boardElement.classList.remove("electro-effect");
+    }, 1500);
+  }
+
+  // Animiere jeden zu löschenden Block einzeln
+  targetBlocks.forEach((block, index) => {
+    setTimeout(() => {
+      block.cell.classList.add("electro-target");
+      setTimeout(() => {
+        block.cell.classList.remove("electro-target");
+      }, 400);
+    }, index * 50); // Gestaggerte Animation
+  });
+}
+
+function _showElectroCompleteMessage(blocksCleared, pointsGained) {
+  const messageDiv = document.createElement("div");
+  messageDiv.className = "electro-complete-message";
+
+  let messageText = "⚡ Elektro Stack abgefeuert!";
+  if (blocksCleared > 0) {
+    messageText += ` ${blocksCleared} Blöcke gelöscht! +${pointsGained} Punkte!`;
+  } else {
+    messageText += " Keine Blöcke betroffen.";
+  }
+
+  messageDiv.textContent = messageText;
+  messageDiv.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    color: #000;
+    padding: 15px 25px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    z-index: 10000;
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+    backdrop-filter: blur(5px);
+    animation: electroMessageFade 3s ease-out forwards;
+    border: 2px solid #FFD700;
+  `;
+
+  document.body.appendChild(messageDiv);
+
+  setTimeout(() => {
+    if (messageDiv.parentNode) {
+      messageDiv.parentNode.removeChild(messageDiv);
+    }
+  }, 3000);
+}
+
+/* --------------------------------------------------------------------
  *  Zeilen/Spalten räumen - mit erweitertem Punktesystem und Multiplikatoren
  * ------------------------------------------------------------------ */
 function _clearLines() {
@@ -674,6 +883,208 @@ function _clearLines() {
 }
 
 /* --------------------------------------------------------------------
+ *  Score Animation Functions
+ * ------------------------------------------------------------------ */
+function _showScoreAnimations(finalPoints, currentMultiplier, totalLinesCleared) {
+  console.log(`Showing score animations: ${finalPoints} points, ${currentMultiplier}x multiplier, ${totalLinesCleared} lines cleared`);
+
+  // Create score animation message
+  const messageDiv = document.createElement("div");
+  messageDiv.className = "score-animation-message";
+  messageDiv.style.cssText = `
+    position: fixed;
+    top: 30%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+    padding: 15px 30px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    box-shadow: 0 8px 25px rgba(76, 175, 80, 0.4);
+    z-index: 1000;
+    animation: scoreMessageAppear 0.6s ease-out;
+    text-align: center;
+  `;
+
+  let messageText = `🎯 ${finalPoints} Punkte!`;
+  if (totalLinesCleared > 0) {
+    messageText += `\n${totalLinesCleared} Linie${totalLinesCleared > 1 ? 'n' : ''} gelöscht!`;
+  }
+  if (currentMultiplier > 1) {
+    messageText += `\n${currentMultiplier}x Multiplier!`;
+  }
+
+  messageDiv.textContent = messageText;
+  messageDiv.style.whiteSpace = 'pre-line';
+
+  document.body.appendChild(messageDiv);
+
+  // Add CSS animation keyframes if they don't exist
+  if (!document.querySelector('#score-animation-styles')) {
+    const styleSheet = document.createElement('style');
+    styleSheet.id = 'score-animation-styles';
+    styleSheet.textContent = `
+      @keyframes scoreMessageAppear {
+        0% {
+          opacity: 0;
+          transform: translate(-50%, -50%) scale(0.8) translateY(20px);
+        }
+        100% {
+          opacity: 1;
+          transform: translate(-50%, -50%) scale(1) translateY(0);
+        }
+      }
+      @keyframes scoreMessageFade {
+        0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9) translateY(-20px); }
+      }
+    `;
+    document.head.appendChild(styleSheet);
+  }
+
+  // Remove message after animation
+  setTimeout(() => {
+    messageDiv.style.animation = 'scoreMessageFade 0.5s ease-in forwards';
+    setTimeout(() => {
+      if (messageDiv.parentNode) {
+        messageDiv.parentNode.removeChild(messageDiv);
+      }
+    }, 500);
+  }, 2000);
+}
+
+function _showMultiplierAnimation(multiplier, comboCount) {
+  console.log(`Showing multiplier animation: ${multiplier}x multiplier, ${comboCount} combo`);
+
+  // Create multiplier animation message
+  const messageDiv = document.createElement("div");
+  messageDiv.className = "multiplier-animation-message";
+  messageDiv.style.cssText = `
+    position: fixed;
+    top: 25%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(135deg, #FF6B6B, #FF5252);
+    color: white;
+    padding: 12px 25px;
+    border-radius: 10px;
+    font-size: 18px;
+    font-weight: bold;
+    box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+    z-index: 1001;
+    animation: multiplierPulse 0.8s ease-out;
+    text-align: center;
+  `;
+
+  let messageText = `🔥 ${multiplier}x Multiplier!`;
+  if (comboCount > 1) {
+    messageText += `\n${comboCount} Combo!`;
+  }
+
+  messageDiv.textContent = messageText;
+  messageDiv.style.whiteSpace = 'pre-line';
+
+  document.body.appendChild(messageDiv);
+
+  // Add CSS animation keyframes if they don't exist
+  if (!document.querySelector('#multiplier-animation-styles')) {
+    const styleSheet = document.createElement('style');
+    styleSheet.id = 'multiplier-animation-styles';
+    styleSheet.textContent = `
+      @keyframes multiplierPulse {
+        0% {
+          opacity: 0;
+          transform: translate(-50%, -50%) scale(0.6);
+        }
+        50% {
+          opacity: 1;
+          transform: translate(-50%, -50%) scale(1.1);
+        }
+        100% {
+          opacity: 1;
+          transform: translate(-50%, -50%) scale(1);
+        }
+      }
+      @keyframes multiplierFade {
+        0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        100% { opacity: 0; transform: translate(-50%, -50%) scale(1.2); }
+      }
+    `;
+    document.head.appendChild(styleSheet);
+  }
+
+  // Remove message after animation
+  setTimeout(() => {
+    messageDiv.style.animation = 'multiplierFade 0.6s ease-in forwards';
+    setTimeout(() => {
+      if (messageDiv.parentNode) {
+        messageDiv.parentNode.removeChild(messageDiv);
+      }
+    }, 600);
+  }, 1500);
+}
+
+function _showPointsAnimation(points) {
+  console.log(`Showing points animation: +${points} points`);
+
+  // Create points animation message
+  const messageDiv = document.createElement("div");
+  messageDiv.className = "points-animation-message";
+  messageDiv.style.cssText = `
+    position: fixed;
+    top: 35%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(135deg, #2196F3, #1976D2);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    box-shadow: 0 4px 15px rgba(33, 150, 243, 0.4);
+    z-index: 999;
+    animation: pointsFloat 1s ease-out;
+    text-align: center;
+  `;
+
+  messageDiv.textContent = `+${points} Punkte`;
+
+  document.body.appendChild(messageDiv);
+
+  // Add CSS animation keyframes if they don't exist
+  if (!document.querySelector('#points-animation-styles')) {
+    const styleSheet = document.createElement('style');
+    styleSheet.id = 'points-animation-styles';
+    styleSheet.textContent = `
+      @keyframes pointsFloat {
+        0% {
+          opacity: 0;
+          transform: translate(-50%, -50%) translateY(20px);
+        }
+        30% {
+          opacity: 1;
+          transform: translate(-50%, -50%) translateY(0);
+        }
+        100% {
+          opacity: 0;
+          transform: translate(-50%, -50%) translateY(-30px);
+        }
+      }
+    `;
+    document.head.appendChild(styleSheet);
+  }
+
+  // Remove message after animation
+  setTimeout(() => {
+    if (messageDiv.parentNode) {
+      messageDiv.parentNode.removeChild(messageDiv);
+    }
+  }, 1000);
+}
+
+/* --------------------------------------------------------------------
  *  Test-Funktion für Animationen (zur Debugging)
  * ------------------------------------------------------------------ */
 function testAnimations() {
@@ -753,191 +1164,6 @@ window.fillTestBlocks = function() {
 
   console.log("Test blocks added to board!");
 };
-
-/* --------------------------------------------------------------------
- *  Animationen für Punkte und Multiplikatoren anzeigen
- * ------------------------------------------------------------------ */
-function _showScoreAnimations(points, multiplier, totalLinesCleared = 0) {
-  console.log("_showScoreAnimations called:", {
-    points,
-    multiplier,
-    totalLinesCleared,
-  });
-
-  // Multiplikator-Animation zeigen bei mehrfach-Linien oder Combos
-  const shouldShowMultiplier = multiplier > 1 || totalLinesCleared > 1;
-  console.log("shouldShowMultiplier:", shouldShowMultiplier);
-
-  if (shouldShowMultiplier) {
-    console.log("Calling _showMultiplierAnimation");
-    _showMultiplierAnimation(multiplier, totalLinesCleared);
-  }
-
-  // Punkte-Animation bei hohen Werten (> 10 Punkte)
-  if (points > 10) {
-    console.log("Calling _showPointsAnimation with points:", points);
-    // Kleine Verzögerung wenn auch Multiplikator-Animation läuft
-    const delay = shouldShowMultiplier ? 500 : 0;
-    setTimeout(() => {
-      _showPointsAnimation(points);
-    }, delay);
-  }
-
-  // Score-Display Combo-Animation
-  if (multiplier > 1 || points > 10) {
-    const scoreDisplay = document.querySelector("#playerArea .scoreDisplay");
-    if (scoreDisplay) {
-      scoreDisplay.classList.add("score-combo");
-      setTimeout(() => {
-        scoreDisplay.classList.remove("score-combo");
-      }, 1500);
-    }
-  }
-}
-
-function _showMultiplierAnimation(multiplier, totalLinesCleared = 0) {
-  console.log("_showMultiplierAnimation called:", {
-    multiplier,
-    totalLinesCleared,
-  });
-
-  // Stelle sicher, dass gameArea sichtbar ist
-  const gameArea = document.getElementById("gameArea");
-  if (!gameArea || gameArea.style.display === "none") {
-    console.log("gameArea not visible, skipping animation");
-    return;
-  }
-
-  let multiplierDisplay = document.getElementById("multiplierDisplay");
-  let multiplierText = multiplierDisplay?.querySelector(".multiplier-text");
-
-  // Falls Elemente nicht existieren, erstelle sie dynamisch
-  if (!multiplierDisplay) {
-    console.log("Creating multiplierDisplay dynamically");
-    const board = document.getElementById("board");
-    if (!board) {
-      console.error("Board element not found!");
-      return;
-    }
-
-    multiplierDisplay = document.createElement("div");
-    multiplierDisplay.id = "multiplierDisplay";
-    multiplierDisplay.className = "multiplier-display";
-    multiplierDisplay.style.display = "none";
-
-    multiplierText = document.createElement("div");
-    multiplierText.className = "multiplier-text";
-    multiplierDisplay.appendChild(multiplierText);
-
-    board.appendChild(multiplierDisplay);
-  }
-
-  if (!multiplierText) {
-    multiplierText = multiplierDisplay.querySelector(".multiplier-text");
-  }
-
-  console.log("DOM elements found:", {
-    multiplierDisplay: !!multiplierDisplay,
-    multiplierText: !!multiplierText,
-  });
-
-  if (!multiplierDisplay || !multiplierText) {
-    console.error("Animation elements still not found after creation!");
-    return;
-  }
-
-  let displayText = "";
-
-  // Zeige entsprechende Animation je nach Situation
-  if (totalLinesCleared >= 2 && multiplier > 1) {
-    // Mehrfach-Linien UND Combo - kürzer und prägnanter
-    displayText = `X${totalLinesCleared} + X${multiplier} COMBO!`;
-  } else if (totalLinesCleared >= 2) {
-    // Nur mehrfach-Linien - einfacher X2, X3, etc.
-    displayText = `X${totalLinesCleared} MULTI!`;
-  } else if (multiplier > 1) {
-    // Nur Combo
-    displayText = `X${multiplier} COMBO!`;
-  }
-
-  multiplierText.textContent = displayText;
-  multiplierDisplay.style.display = "block";
-
-  console.log("Animation started with text:", displayText);
-  console.log(
-    "multiplierDisplay style.display set to:",
-    multiplierDisplay.style.display
-  );
-
-  setTimeout(() => {
-    multiplierDisplay.style.display = "none";
-    console.log("Animation ended, display set to none");
-  }, 2500);
-}
-
-function _showPointsAnimation(points) {
-  console.log("_showPointsAnimation called with points:", points);
-
-  // Stelle sicher, dass gameArea sichtbar ist
-  const gameArea = document.getElementById("gameArea");
-  if (!gameArea || gameArea.style.display === "none") {
-    console.log("gameArea not visible, skipping points animation");
-    return;
-  }
-
-  let pointsAnimation = document.getElementById("pointsAnimation");
-  let pointsText = pointsAnimation?.querySelector(".points-text");
-
-  // Falls Elemente nicht existieren, erstelle sie dynamisch
-  if (!pointsAnimation) {
-    console.log("Creating pointsAnimation dynamically");
-    const board = document.getElementById("board");
-    if (!board) {
-      console.error("Board element not found!");
-      return;
-    }
-
-    pointsAnimation = document.createElement("div");
-    pointsAnimation.id = "pointsAnimation";
-    pointsAnimation.className = "points-animation";
-    pointsAnimation.style.display = "none";
-
-    pointsText = document.createElement("div");
-    pointsText.className = "points-text";
-    pointsAnimation.appendChild(pointsText);
-
-    board.appendChild(pointsAnimation);
-  }
-
-  if (!pointsText) {
-    pointsText = pointsAnimation.querySelector(".points-text");
-  }
-
-  console.log("Points animation DOM elements:", {
-    pointsAnimation: !!pointsAnimation,
-    pointsText: !!pointsText,
-  });
-
-  if (!pointsAnimation || !pointsText) {
-    console.error("Points animation elements still not found after creation!");
-    return;
-  }
-
-  pointsText.textContent = `+${points}`;
-
-  // Reset animation by briefly hiding and showing the element
-  pointsAnimation.style.display = "none";
-  // Force reflow to ensure the style change takes effect
-  pointsAnimation.offsetHeight;
-  pointsAnimation.style.display = "block";
-
-  console.log("Points animation started with text:", `+${points}`);
-
-  setTimeout(() => {
-    pointsAnimation.style.display = "none";
-    console.log("Points animation ended");
-  }, 2000);
-}
 
 /* --------------------------------------------------------------------
  *  Punkteanzeige bumpen
@@ -1125,3 +1351,137 @@ export function handleDrop(shape, row, col) {
     console.error("Fehler beim Platzieren:", err);
   }
 }
+
+// Comprehensive test function for electro stack
+window.testElectroComplete = function() {
+  console.log("=== ELEKTRO STACK COMPLETE TEST ===");
+
+  // Clear the board first
+  for (let r = 0; r < 10; r++) {
+    for (let c = 0; c < 10; c++) {
+      state.playerBoard[r][c] = 0;
+      const cell = state.boardCells[r][c];
+      if (cell) {
+        cell.classList.remove('filled', 'rainbow');
+        cell.style.background = '';
+      }
+    }
+  }
+
+  // Add an electro piece to inventory
+  state.playerPieces = [{
+    shape: [[0, 0]],
+    color: '#FFD700',
+    isElectro: true
+  }];
+  renderPieces();
+  console.log("✅ Elektro piece added to inventory");
+
+  // Add test blocks around position (5,5) in a 3x3 pattern
+  const testBlocks = [
+    [4, 4], [4, 5], [4, 6],
+    [5, 4],         [5, 6],
+    [6, 4], [6, 5], [6, 6]
+  ];
+
+  testBlocks.forEach(([r, c]) => {
+    state.playerBoard[r][c] = 1;
+    const cell = state.boardCells[r][c];
+    if (cell) {
+      cell.classList.add('filled', 'rainbow');
+      cell.style.background = '#FF6B6B';
+    }
+  });
+
+  const oldScore = state.playerScore;
+  const oldMultiplier = state.permanentMultiplier;
+
+  console.log(`✅ Added ${testBlocks.length} test blocks around (5,5)`);
+  console.log(`📊 Score before: ${oldScore}, Permanent Multiplier before: ${oldMultiplier}x`);
+
+  // Test the electro effect
+  setTimeout(() => {
+    console.log("🔥 Executing Elektro Stack effect...");
+    _executeElectroEffect(5, 5);
+
+    // Check results after the effect completes
+    setTimeout(() => {
+      const newScore = state.playerScore;
+      const newMultiplier = state.permanentMultiplier;
+      const scoreDiff = newScore - oldScore;
+      const multiplierDiff = newMultiplier - oldMultiplier;
+
+      console.log(`📊 Score after: ${newScore} (+${scoreDiff})`);
+      console.log(`📊 Permanent Multiplier after: ${newMultiplier}x (+${multiplierDiff})`);
+      console.log(`✅ Expected: 8 blocks cleared, +8 to multiplier, points = 8*50*currentMultiplier*newPermanentMultiplier`);
+
+      // Verify blocks were cleared
+      let remainingBlocks = 0;
+      testBlocks.forEach(([r, c]) => {
+        if (state.playerBoard[r][c] === 1) remainingBlocks++;
+      });
+
+      console.log(`🔍 Remaining blocks: ${remainingBlocks} (should be 0)`);
+
+      if (remainingBlocks === 0 && multiplierDiff === testBlocks.length) {
+        console.log("🎉 TEST PASSED: Elektro Stack working correctly!");
+      } else {
+        console.log("❌ TEST FAILED: Something went wrong");
+      }
+    }, 2000);
+  }, 1000);
+};
+
+console.log("🧪 Elektro Stack Test Functions Available:");
+console.log("- forceElectroPiece() : Add elektro piece to inventory");
+console.log("- testElectroEffect() : Test the elektro effect with sample blocks");
+console.log("- testElectroComplete() : Full comprehensive test");
+
+// Final integration test
+window.testElectroFinal = function() {
+  console.log("=== FINAL ELEKTRO STACK INTEGRATION TEST ===");
+
+  // Clear any existing errors
+  console.clear();
+
+  // Test 1: Check if all functions exist
+  const requiredFunctions = [
+    '_executeElectroEffect',
+    '_showElectroAnimation',
+    '_showElectroCompleteMessage',
+    '_showScoreAnimations',
+    '_showMultiplierAnimation',
+    '_showPointsAnimation'
+  ];
+
+  console.log("🔍 Checking required functions...");
+  let allFunctionsExist = true;
+
+  requiredFunctions.forEach(funcName => {
+    if (typeof window[funcName] === 'function' || funcName in window) {
+      console.log(`✅ ${funcName} - Available`);
+    } else {
+      console.log(`❌ ${funcName} - Missing`);
+      allFunctionsExist = false;
+    }
+  });
+
+  if (!allFunctionsExist) {
+    console.log("❌ Some required functions are missing!");
+    return;
+  }
+
+  // Test 2: Force elektro piece and test placement
+  console.log("\n🧪 Testing Elektro piece generation...");
+  forceElectroPiece();
+
+  // Test 3: Run the comprehensive test
+  console.log("\n🧪 Running comprehensive elektro test...");
+  setTimeout(() => {
+    testElectroComplete();
+  }, 1000);
+
+  console.log("✅ All tests initiated! Check console for results.");
+};
+
+console.log("🚀 NEW: testElectroFinal() - Complete integration test");
