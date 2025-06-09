@@ -238,6 +238,10 @@ export const BASE_SHAPES = [
     [2, 2],
   ],
 ];
+
+// Storm Power-Up Shape (1x1 special block)
+export const STORM_SHAPE = [[0, 0]];
+
 export const ALL_POSSIBLE_SHAPES = [...BASE_SHAPES, ...BASE_SHAPES];
 
 /* ---------- Sprachen -------------------------------------------------- */
@@ -330,7 +334,7 @@ export const LANG = {
     normalPvPDescription: "Entspanntes Spiel ohne Auswirkung auf die Rangliste",
     rankedPvPDescription:
       "Kämpfe um Ranglistenpunkte und steige in der Rangliste auf",
-    
+
     // Matchmaking overlay
     searchingForOpponent: "Suche nach Gegner...",
     waitingForPlayer: "Warte auf Spieler",
@@ -424,7 +428,7 @@ export const LANG = {
     rankedPvP: "Ranked Battle",
     normalPvPDescription: "Casual game with no effect on leaderboard",
     rankedPvPDescription: "Fight for ranking points and climb the leaderboard",
-    
+
     // Matchmaking overlay
     searchingForOpponent: "Searching for Opponent...",
     waitingForPlayer: "Waiting for Player",
@@ -520,7 +524,7 @@ export const LANG = {
     normalPvPDescription: "Jeu décontracté sans effet sur le classement",
     rankedPvPDescription:
       "Combattez pour des points de classement et grimpez dans le classement",
-    
+
     // Matchmaking overlay
     searchingForOpponent: "Recherche d'un adversaire...",
     waitingForPlayer: "En attente d'un joueur",

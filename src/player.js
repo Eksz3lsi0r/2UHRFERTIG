@@ -4,6 +4,7 @@
 import {
   ALL_POSSIBLE_SHAPES,
   LANG,
+  STORM_SHAPE,
   getRandomRainbowColor,
 } from "./constants.js";
 import { GridSnap } from "./drag.js";
@@ -226,6 +227,16 @@ function generatePieces() {
     shape: sh.map((c) => [...c]), // tiefe Kopie
     color: getRandomRainbowColor(),
   }));
+
+  // 10% Chance für Storm Power-Up (ersetzt ein zufälliges Piece)
+  if (Math.random() < 0.1 && state.playerPieces.length > 0) {
+    const randomIndex = Math.floor(Math.random() * state.playerPieces.length);
+    state.playerPieces[randomIndex] = {
+      shape: STORM_SHAPE.map((c) => [...c]),
+      color: '#4a90e2',
+      isStorm: true
+    };
+  }
 }
 
 /* --------------------------------------------------------------------
@@ -247,6 +258,8 @@ function renderPieces() {
   state.playerPieces.forEach((pieceObj, idx) => {
     const shape = pieceObj.shape || pieceObj; // Fallback falls noch altes Format
     const color = pieceObj.color || getRandomRainbowColor();
+    const isStorm = pieceObj.isStorm || false;
+
     // Bestimme die Dimensionen des Shapes für das Grid-Layout
     let maxR = 0,
       maxC = 0;
@@ -256,7 +269,7 @@ function renderPieces() {
     });
 
     const pieceDiv = document.createElement("div");
-    pieceDiv.className = "piece";
+    pieceDiv.className = isStorm ? "piece storm-piece" : "piece";
     pieceDiv.setAttribute("draggable", true);
 
     // Grid-Layout für das Piece konfigurieren
@@ -286,11 +299,23 @@ function renderPieces() {
     // Render blocks mit Grid und Farbe
     shape.forEach(([r, c]) => {
       const block = document.createElement("div");
-      block.className = "block rainbow";
+      block.className = isStorm ? "block storm-block" : "block rainbow";
       block.style.gridRowStart = r + 1;
       block.style.gridColumnStart = c + 1;
       block.style.background = color;
       block.style.transition = "transform 0.15s, box-shadow 0.15s";
+
+      // Add storm-specific styling
+      if (isStorm) {
+        block.innerHTML = '🌪️'; // Storm emoji as content
+        block.style.fontSize = `${cellPx * 0.6}px`;
+        block.style.display = 'flex';
+        block.style.alignItems = 'center';
+        block.style.justifyContent = 'center';
+        block.style.backgroundImage = 'radial-gradient(circle, #4a90e2, #2171b5)';
+        block.style.boxShadow = '0 0 10px rgba(74, 144, 226, 0.6)';
+      }
+
       pieceDiv.appendChild(block);
     });
 
@@ -320,6 +345,23 @@ function placeShape(shape, br, bc) {
       (Array.isArray(p.shape) &&
         JSON.stringify(p.shape) === JSON.stringify(shape))
   );
+
+  // Prüfe ob es sich um ein Storm Piece handelt
+  if (pieceObj?.isStorm) {
+    console.log("Storm piece placed! Executing storm effect...");
+    _executeStormEffect();
+
+    // Entferne das Storm-Piece aus dem Inventar
+    const idx = state.playerPieces.findIndex(
+      (sh) =>
+        (sh.shape || sh) === shape ||
+        (Array.isArray(sh.shape) &&
+          JSON.stringify(sh.shape) === JSON.stringify(shape))
+    );
+    if (idx !== -1) state.playerPieces.splice(idx, 1);
+    return; // Verlasse die Funktion früh für Storm-Pieces
+  }
+
   const color =
     pieceObj?.color || require("./constants.js").getRandomRainbowColor();
   // Update UI cells for placed shape
@@ -374,6 +416,160 @@ function _hasFullLines() {
     if (colFull) return true;
   }
   return false;
+}
+
+/* --------------------------------------------------------------------
+ *  Storm Power-Up Funktionen
+ * ------------------------------------------------------------------ */
+function _isStormPiece(pieceObj) {
+  // Prüft ob es sich um ein Storm-Piece handelt
+  return pieceObj?.isStorm === true;
+}
+
+function _executeStormEffect() {
+  console.log("Storm effect activated!");
+
+  // 1. Sammle alle gefüllten Blöcke vom Spielfeld
+  const filledBlocks = [];
+  for (let r = 0; r < 10; r++) {
+    for (let c = 0; c < 10; c++) {
+      if (state.playerBoard[r][c] === 1) {
+        const cell = state.boardCells[r][c];
+        filledBlocks.push({
+          row: r,
+          col: c,
+          color: cell.style.background,
+          hasRainbow: cell.classList.contains('rainbow')
+        });
+        // Entferne Block vom Brett
+        state.playerBoard[r][c] = 0;
+        cell.classList.remove("filled", "rainbow");
+        cell.style.background = "";
+      }
+    }
+  }
+
+  if (filledBlocks.length === 0) {
+    // Kein Effekt wenn keine Blöcke vorhanden
+    _regenerateInventoryAfterStorm();
+    return;
+  }
+
+  // 2. Storm-Animation auf dem Board
+  _showStormAnimation();
+
+  // 3. Nach kurzer Verzögerung: Blöcke zufällig neu verteilen
+  setTimeout(() => {
+    _shuffleAndPlaceBlocks(filledBlocks);
+  }, 800);
+}
+
+function _showStormAnimation() {
+  const boardElement = document.getElementById("board");
+  if (boardElement) {
+    boardElement.classList.add("storm-effect");
+
+    // Animation für 1.5 Sekunden
+    setTimeout(() => {
+      boardElement.classList.remove("storm-effect");
+    }, 1500);
+  }
+}
+
+function _shuffleAndPlaceBlocks(blocks) {
+  // Erstelle Array mit allen freien Positionen
+  const freePositions = [];
+  for (let r = 0; r < 10; r++) {
+    for (let c = 0; c < 10; c++) {
+      if (state.playerBoard[r][c] === 0) {
+        freePositions.push({ row: r, col: c });
+      }
+    }
+  }
+
+  // Mische die freien Positionen
+  for (let i = freePositions.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [freePositions[i], freePositions[j]] = [freePositions[j], freePositions[i]];
+  }
+
+  // Platziere Blöcke an zufälligen Positionen mit Animation
+  blocks.forEach((block, index) => {
+    if (index < freePositions.length) {
+      const newPos = freePositions[index];
+
+      setTimeout(() => {
+        // Setze Block in neuer Position
+        state.playerBoard[newPos.row][newPos.col] = 1;
+        const cell = state.boardCells[newPos.row][newPos.col];
+
+        if (cell) {
+          cell.classList.add("filled");
+          if (block.hasRainbow) {
+            cell.classList.add("rainbow");
+          }
+          cell.style.background = block.color;
+
+          // Platzierungs-Animation
+          cell.classList.add("storm-placed");
+          setTimeout(() => {
+            cell.classList.remove("storm-placed");
+          }, 300);
+        }
+
+        // Nach dem letzten Block: Inventar neu generieren
+        if (index === blocks.length - 1) {
+          setTimeout(() => {
+            _regenerateInventoryAfterStorm();
+          }, 500);
+        }
+      }, index * 50); // Gestaggerte Animation
+    }
+  });
+}
+
+function _regenerateInventoryAfterStorm() {
+  console.log("Regenerating inventory after storm...");
+
+  // Leere das aktuelle Inventar
+  state.playerPieces = [];
+
+  // Generiere neues Inventar
+  generatePieces();
+  renderPieces();
+
+  // Kurze Benachrichtigung
+  _showStormCompleteMessage();
+}
+
+function _showStormCompleteMessage() {
+  const messageDiv = document.createElement("div");
+  messageDiv.className = "storm-complete-message";
+  messageDiv.textContent = "🌪️ Sturm abgeschlossen! Neues Inventar generiert!";
+  messageDiv.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(138, 43, 226, 0.9);
+    color: white;
+    padding: 15px 25px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    z-index: 10000;
+    box-shadow: 0 0 20px rgba(138, 43, 226, 0.8);
+    backdrop-filter: blur(5px);
+    animation: stormMessageFade 3s ease-out forwards;
+  `;
+
+  document.body.appendChild(messageDiv);
+
+  setTimeout(() => {
+    if (messageDiv.parentNode) {
+      messageDiv.parentNode.removeChild(messageDiv);
+    }
+  }, 3000);
 }
 
 /* --------------------------------------------------------------------
@@ -519,6 +715,43 @@ window.testPermanentMultiplier = function() {
       cpuMultiplierElement.style.display = "none";
     }
   }
+};
+
+// Test function to force storm piece generation (for debugging)
+window.forceStormPiece = function() {
+  if (state.playerPieces.length > 0) {
+    state.playerPieces[0] = {
+      shape: [[0, 0]], // STORM_SHAPE
+      color: '#4a90e2',
+      isStorm: true
+    };
+    renderPieces();
+    console.log("Storm piece forced in inventory!");
+  }
+};
+
+// Test function to fill board with some blocks for storm testing
+window.fillTestBlocks = function() {
+  // Add some test blocks to the board
+  const testPositions = [
+    [2, 2], [2, 3], [2, 4],
+    [4, 1], [4, 2], [4, 3],
+    [6, 5], [6, 6], [6, 7],
+    [8, 2], [8, 3], [8, 4]
+  ];
+
+  testPositions.forEach(([r, c]) => {
+    if (r < 10 && c < 10) {
+      state.playerBoard[r][c] = 1;
+      const cell = state.boardCells[r][c];
+      if (cell) {
+        cell.classList.add('filled', 'rainbow');
+        cell.style.background = '#FF6B6B';
+      }
+    }
+  });
+
+  console.log("Test blocks added to board!");
 };
 
 /* --------------------------------------------------------------------

@@ -255,3 +255,124 @@
   box-shadow: var(--glow-sm) !important;
   background-color: var(--color-accent) !important;
 }
+
+/* ───── Storm Power-Up Styles ───── */
+.storm-piece {
+  position: relative;
+  animation: storm-glow 2s ease-in-out infinite alternate;
+}
+
+.storm-piece::before {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, #4a90e2, #2171b5, #4a90e2);
+  border-radius: 8px;
+  z-index: -1;
+  opacity: 0.7;
+  filter: blur(3px);
+  animation: storm-pulse 1.5s ease-in-out infinite;
+}
+
+.storm-block {
+  background: radial-gradient(circle, #4a90e2, #2171b5) !important;
+  box-shadow: 0 0 15px rgba(74, 144, 226, 0.8) !important;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  animation: storm-rotate 3s linear infinite;
+}
+
+/* Storm Animations */
+@keyframes storm-glow {
+  0% { filter: brightness(1) saturate(1); }
+  100% { filter: brightness(1.3) saturate(1.5); }
+}
+
+@keyframes storm-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.7; }
+  50% { transform: scale(1.1); opacity: 1; }
+}
+
+@keyframes storm-rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Storm Effect Animations on Game Board */
+.storm-effect {
+  animation: storm-shake 0.8s ease-in-out;
+  background: radial-gradient(circle, rgba(74, 144, 226, 0.3) 0%, transparent 70%);
+}
+
+.storm-placed {
+  animation: storm-drop 0.5s ease-out;
+}
+
+@keyframes storm-shake {
+  0%, 100% { transform: translate(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translate(-2px, -2px); }
+  20%, 40%, 60%, 80% { transform: translate(2px, 2px); }
+}
+
+@keyframes storm-drop {
+  0% {
+    transform: translateY(-20px) scale(1.2);
+    opacity: 0.8;
+    box-shadow: 0 0 20px rgba(74, 144, 226, 1);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+    box-shadow: 0 0 5px rgba(74, 144, 226, 0.5);
+  }
+}
+
+/* Storm Complete Message */
+.storm-complete-message {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(135deg, #4a90e2, #2171b5);
+  color: white;
+  padding: 20px 40px;
+  border-radius: 15px;
+  font-size: 18px;
+  font-weight: bold;
+  box-shadow: 0 10px 30px rgba(74, 144, 226, 0.5);
+  z-index: 1000;
+  animation: storm-message-appear 0.5s ease-out;
+}
+
+/* Storm Message Animation */
+@keyframes stormMessageFade {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  80% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+}
+
+@keyframes storm-message-appear {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
