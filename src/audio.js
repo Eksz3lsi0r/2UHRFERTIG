@@ -28,6 +28,70 @@ export const clearSound = createSound("/sounds/clear.wav");
 export const successSound = createSound("/sounds/success.wav");
 export const pickSound = createSound("/sounds/pick.wav");
 
+/* ---------- Power-Up Soundeffekte ------------------------------------ */
+export const stormSound = createSound("/sounds/wind.wav", {
+  rate: 0.8,
+  volume: 0.7,
+  loop: false
+});
+export const electroSound = createSound("/sounds/Electro.wav", {
+  rate: 1.0,
+  volume: 0.8,
+  loop: false
+});
+export const extendSound = createSound("/sounds/extend.flac", {
+  rate: 1.0,
+  volume: 0.6,
+  loop: false
+});
+
+/* ---------- Power-Up Sound Control Functions ------------------------- */
+export function stopPowerUpSounds() {
+  if (howlAvailable) {
+    try {
+      stormSound.stop();
+      electroSound.stop();
+      extendSound.stop();
+      console.log("🔇 All power-up sounds stopped");
+    } catch (err) {
+      console.log("Power-up sound stop failed:", err);
+    }
+  }
+}
+
+export function stopStormSound() {
+  if (howlAvailable) {
+    try {
+      stormSound.stop();
+      console.log("🔇 Storm sound stopped");
+    } catch (err) {
+      console.log("Storm sound stop failed:", err);
+    }
+  }
+}
+
+export function stopElectroSound() {
+  if (howlAvailable) {
+    try {
+      electroSound.stop();
+      console.log("🔇 Electro sound stopped");
+    } catch (err) {
+      console.log("Electro sound stop failed:", err);
+    }
+  }
+}
+
+export function stopExtendSound() {
+  if (howlAvailable) {
+    try {
+      extendSound.stop();
+      console.log("🔇 Extend sound stopped");
+    } catch (err) {
+      console.log("Extend sound stop failed:", err);
+    }
+  }
+}
+
 /* ---------- Hintergrundmusik (zwei Tracks im Wechsel) ---------------- */
 // Check if background music files exist before creating sounds
 let bg1, bg2, bgTracks = [];

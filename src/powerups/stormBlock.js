@@ -77,7 +77,7 @@ export class StormBlock extends BasePowerUp {
       this._showStormAnimation();
       setTimeout(() => {
         this._regenerateInventoryAfterStorm(gameState, false);
-      }, 1500);
+      }, 1000); // 33% faster: 1500 -> 1000
       return;
     }
 
@@ -87,10 +87,8 @@ export class StormBlock extends BasePowerUp {
     // 3. After short delay: redistribute blocks randomly
     setTimeout(() => {
       this._shuffleAndPlaceBlocks(filledBlocks, gameState);
-    }, 800);
-  }
-
-  /**
+    }, 535); // 33% faster: 800 -> 535
+  }  /**
    * Show storm animation effect
    * @private
    */
@@ -99,6 +97,16 @@ export class StormBlock extends BasePowerUp {
     if (boardElement) {
       boardElement.classList.add("storm-effect");
       console.log("🌪️ Storm animation started - effect will run during entire storm event");
+
+      // Show power-up indicator
+      if (window.showPowerUpIndicator) {
+        window.showPowerUpIndicator('storm', 'Storm Block');
+      }
+
+      // Play storm sound effect
+      if (window.audio?.stormSound) {
+        window.audio.stormSound.play();
+      }
 
       // Animation will be removed when the storm is complete
       // Duration is managed by the complete storm process
@@ -114,6 +122,16 @@ export class StormBlock extends BasePowerUp {
     if (boardElement) {
       boardElement.classList.remove("storm-effect");
       console.log("🌪️ Storm animation ended");
+    }
+
+    // Stop storm sound effect
+    if (window.audio?.stopStormSound) {
+      window.audio.stopStormSound();
+    }
+
+    // Hide power-up indicator
+    if (window.hidePowerUpIndicator) {
+      window.hidePowerUpIndicator();
     }
   }
 
@@ -159,17 +177,17 @@ export class StormBlock extends BasePowerUp {
             cell.classList.add("storm-placed");
             setTimeout(() => {
               cell.classList.remove("storm-placed");
-            }, 300);
+            }, 200); // 33% faster: 300 -> 200
           }
 
           // After the last block: check for full lines, then regenerate inventory
           if (index === blocks.length - 1) {
             setTimeout(() => {
               this._checkAndClearLinesAfterStorm(gameState);
-            }, 500);
+            }, 335); // 33% faster: 500 -> 335
           }
         }
-      }, index * 50); // Staggered animation
+      }, index * 33); // 33% faster: 50 -> 33
     });
   }  /**
    * Check for full lines after storm redistribution and clear them
@@ -193,7 +211,7 @@ export class StormBlock extends BasePowerUp {
       // After a short delay, regenerate inventory
       setTimeout(() => {
         this._regenerateInventoryAfterStorm(gameState, true); // true = lines were cleared
-      }, 1000); // Give time for line clearing animations
+      }, 670); // 33% faster: 1000 -> 670
     } else {
       // No full lines, proceed directly to inventory regeneration
       this._regenerateInventoryAfterStorm(gameState, false); // false = no lines cleared
@@ -228,7 +246,7 @@ export class StormBlock extends BasePowerUp {
         // Hide the storm animation when complete
         this._hideStormAnimation();
       });
-    }, 1000); // Wait for storm animations to complete
+    }, 670); // 33% faster: 1000 -> 670
   }
 
   /**
@@ -270,7 +288,7 @@ export class StormBlock extends BasePowerUp {
     if (callback) {
       setTimeout(() => {
         callback();
-      }, 500); // Wait 500ms after message appears before generating inventory
+      }, 335); // 33% faster: 500 -> 335
     }
 
     setTimeout(() => {

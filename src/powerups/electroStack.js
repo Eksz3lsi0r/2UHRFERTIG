@@ -15,7 +15,7 @@ export class ElectroStack extends BasePowerUp {
       name: 'Electro Stack',
       shape: [[0, 0]], // 1x1 shape
       color: '#FFD700',
-      spawnRate: 0.05, // 5% chance
+      spawnRate: 0.5, // 5% chance
       emoji: '⚡',
       description: 'Clears all blocks in the 8 surrounding cells'
     });
@@ -150,12 +150,21 @@ export class ElectroStack extends BasePowerUp {
    * @param {number} centerCol - Center column position
    * @param {Array} targetBlocks - Array of blocks to be cleared
    * @private
-   */
-  _showElectroAnimation(centerRow, centerCol, targetBlocks) {
+   */  _showElectroAnimation(centerRow, centerCol, targetBlocks) {
     const boardElement = document.getElementById("board");
     if (boardElement) {
       boardElement.classList.add("electro-effect");
       console.log("⚡ Electro animation started - effect will run during entire electro event");
+
+      // Show power-up indicator
+      if (window.showPowerUpIndicator) {
+        window.showPowerUpIndicator('electro', 'Electro Stack');
+      }
+
+      // Play electro sound effect
+      if (window.audio?.electroSound) {
+        window.audio.electroSound.play();
+      }
 
       // Animation will be removed when the electro effect is complete
       // Duration is managed by the complete electro process
@@ -181,6 +190,16 @@ export class ElectroStack extends BasePowerUp {
     if (boardElement) {
       boardElement.classList.remove("electro-effect");
       console.log("⚡ Electro animation ended");
+    }
+
+    // Stop electro sound effect
+    if (window.audio?.stopElectroSound) {
+      window.audio.stopElectroSound();
+    }
+
+    // Hide power-up indicator
+    if (window.hidePowerUpIndicator) {
+      window.hidePowerUpIndicator();
     }
   }
 

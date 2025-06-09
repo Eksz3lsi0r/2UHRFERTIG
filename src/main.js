@@ -1,6 +1,7 @@
 /* --------------------------------------------------------------------
  *  src/main.js   –   Bootstrap & High-Level-Flows
  * ------------------------------------------------------------------ */
+import * as audio from "./audio.js";
 import { cpu } from "./cpu.js";
 import { GridSnap } from "./drag.js";
 import { cancelMatchmaking, findGame, socket as networkSocket } from "./network.js";
@@ -20,6 +21,7 @@ window.state = state;
 window.player = player;
 window.ui = ui;
 window.cpu = cpu;
+window.audio = audio; // Expose audio system globally
 window.powerUpRegistry = powerUpRegistry; // Expose power-up registry globally
 window.startCpuMode = startCpuMode;
 window.startCpuGameWithDifficulty = startCpuGameWithDifficulty;

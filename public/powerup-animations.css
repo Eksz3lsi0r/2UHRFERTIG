@@ -160,6 +160,129 @@
   }
 }
 
+/* ───── POWER-UP STATUS INDICATOR ───── */
+
+.power-up-indicator {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 12px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  font-size: 12px;
+  font-weight: bold;
+  z-index: 1001;
+  animation: power-up-indicator-pulse 2s ease-in-out infinite;
+}
+
+.power-up-icon {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  animation: power-up-icon-spin 3s linear infinite;
+}
+
+.power-up-name {
+  color: white;
+  min-width: 60px;
+  text-align: center;
+}
+
+.power-up-progress {
+  width: 40px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+
+.power-up-progress::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, transparent 0%, currentColor 50%, transparent 100%);
+  animation: power-up-progress-flow 1.5s ease-in-out infinite;
+}
+
+/* Power-Up Type Specific Styles */
+.power-up-indicator.storm {
+  border-color: rgba(74, 144, 226, 0.7);
+  background: rgba(74, 144, 226, 0.2);
+}
+
+.power-up-indicator.storm .power-up-icon {
+  background: linear-gradient(135deg, #4a90e2, #2171b5);
+  color: white;
+}
+
+.power-up-indicator.storm .power-up-name {
+  color: #4a90e2;
+}
+
+.power-up-indicator.electro {
+  border-color: rgba(255, 215, 0, 0.7);
+  background: rgba(255, 215, 0, 0.2);
+}
+
+.power-up-indicator.electro .power-up-icon {
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  color: black;
+}
+
+.power-up-indicator.electro .power-up-name {
+  color: #FFD700;
+}
+
+.power-up-indicator.extend {
+  border-color: rgba(255, 149, 0, 0.7);
+  background: rgba(255, 149, 0, 0.2);
+}
+
+.power-up-indicator.extend .power-up-icon {
+  background: linear-gradient(135deg, #ff9500, #e6750e);
+  color: white;
+}
+
+.power-up-indicator.extend .power-up-name {
+  color: #ff9500;
+}
+
+/* Animations */
+@keyframes power-up-indicator-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+}
+
+@keyframes power-up-icon-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes power-up-progress-flow {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
 /* ───── RESPONSIVE ADJUSTMENTS ───── */
 
 @media (max-width: 768px) {
@@ -173,6 +296,28 @@
   .electro-effect .board-cell.filled,
   .extend-effect .board-cell.filled {
     animation-duration: 2s;
+  }
+
+  .power-up-indicator {
+    top: 5px;
+    right: 5px;
+    padding: 6px 8px;
+    font-size: 10px;
+  }
+
+  .power-up-icon {
+    width: 14px;
+    height: 14px;
+    font-size: 8px;
+  }
+
+  .power-up-name {
+    min-width: 50px;
+  }
+
+  .power-up-progress {
+    width: 30px;
+    height: 3px;
   }
 }
 

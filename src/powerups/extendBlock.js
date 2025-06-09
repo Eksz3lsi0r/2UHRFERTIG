@@ -67,10 +67,8 @@ export class ExtendBlock extends BasePowerUp {
     // Start the recursive expansion process
     setTimeout(() => {
       this._startExtendProcess(row, col, gameState);
-    }, 500);
-  }
-
-  /**
+    }, 250); // Doubled speed: 500 -> 250
+  }  /**
    * Show extend animation effect
    * @private
    */
@@ -79,6 +77,16 @@ export class ExtendBlock extends BasePowerUp {
     if (boardElement) {
       boardElement.classList.add("extend-effect");
       console.log("🔄 Extend animation started - effect will run during entire extend event");
+
+      // Show power-up indicator
+      if (window.showPowerUpIndicator) {
+        window.showPowerUpIndicator('extend', 'Extend Block');
+      }
+
+      // Play extend sound effect
+      if (window.audio?.extendSound) {
+        window.audio.extendSound.play();
+      }
 
       // Animation will be removed when the extend effect is complete
       // Duration is managed by the complete extend process
@@ -94,6 +102,16 @@ export class ExtendBlock extends BasePowerUp {
     if (boardElement) {
       boardElement.classList.remove("extend-effect");
       console.log("🔄 Extend animation ended");
+    }
+
+    // Stop extend sound effect
+    if (window.audio?.stopExtendSound) {
+      window.audio.stopExtendSound();
+    }
+
+    // Hide power-up indicator
+    if (window.hidePowerUpIndicator) {
+      window.hidePowerUpIndicator();
     }
   }
 
@@ -134,7 +152,7 @@ export class ExtendBlock extends BasePowerUp {
         console.log(`Extend process completed after ${waveNumber} waves. Total new positions: ${allNewPositions.length}`);
         setTimeout(() => {
           this._finishExtendEffect(gameState, allNewPositions);
-        }, 300);
+        }, 150); // Doubled speed: 300 -> 150
         return;
       }
 
@@ -153,7 +171,7 @@ export class ExtendBlock extends BasePowerUp {
           processedInThisWave++;
           if (processedInThisWave === totalInWave) {
             waveNumber++;
-            setTimeout(processNextWave, 300);
+            setTimeout(processNextWave, 150); // Doubled speed: 300 -> 150
           }
           return;
         }
@@ -177,16 +195,16 @@ export class ExtendBlock extends BasePowerUp {
           // If this was the last position in the current wave, start next wave
           if (processedInThisWave === totalInWave) {
             waveNumber++;
-            setTimeout(processNextWave, 300); // Wait a bit before next wave
+            setTimeout(processNextWave, 150); // Doubled speed: 300 -> 150
           }
-        }, index * 50); // Staggered animation within the wave
+        }, index * 25); // Doubled speed: 50 -> 25
       });
     };
 
     // Start processing after a short delay to show the initial placement
     setTimeout(() => {
       processNextWave();
-    }, 200);
+    }, 100); // Doubled speed: 200 -> 100
   }
 
   /**
@@ -227,7 +245,7 @@ export class ExtendBlock extends BasePowerUp {
           cell.classList.add("extend-placed");
           setTimeout(() => {
             cell.classList.remove("extend-placed");
-          }, 300);
+          }, 150); // Doubled speed: 300 -> 150
         }
 
         // Create visual flying animation (doesn't affect game logic)
@@ -293,8 +311,8 @@ export class ExtendBlock extends BasePowerUp {
         if (flyingBlock.parentNode) {
           flyingBlock.parentNode.removeChild(flyingBlock);
         }
-      }, 400);
-    }, dirIndex * 50); // Staggered delay for each direction
+      }, 200); // Doubled speed: 400 -> 200
+    }, dirIndex * 25); // Doubled speed: 50 -> 25
   }
 
   /**
@@ -329,7 +347,7 @@ export class ExtendBlock extends BasePowerUp {
     // Check for full lines after extend effect
     setTimeout(() => {
       this._checkAndClearLinesAfterExtend(gameState, extendedPositions, totalExtendedCount);
-    }, 500);
+    }, 250); // Doubled speed: 500 -> 250
   }
 
   /**
@@ -355,7 +373,7 @@ export class ExtendBlock extends BasePowerUp {
       // After a short delay, regenerate inventory
       setTimeout(() => {
         this._regenerateInventoryAfterExtend(gameState, true, totalExtendedCount);
-      }, 1000); // Give time for line clearing animations
+      }, 500); // Doubled speed: 1000 -> 500
     } else {
       // No full lines, proceed directly to inventory regeneration
       this._regenerateInventoryAfterExtend(gameState, false, totalExtendedCount);
@@ -393,7 +411,7 @@ export class ExtendBlock extends BasePowerUp {
         // Hide the extend animation when complete
         this._hideExtendAnimation();
       });
-    }, 1000); // Wait for extend animations to complete
+    }, 500); // Doubled speed: 1000 -> 500
   }
 
   /**
@@ -441,7 +459,7 @@ export class ExtendBlock extends BasePowerUp {
     if (callback) {
       setTimeout(() => {
         callback();
-      }, 500); // Wait 500ms after message appears before generating inventory
+      }, 250); // Doubled speed: 500 -> 250
     }
 
     setTimeout(() => {

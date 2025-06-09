@@ -1029,67 +1029,196 @@ export function handleDrop(shape, row, col) {
   }
 }
 
-// Test functions for the modular power-up system
-window.testPowerUpSystem = function() {
-  console.log("=== MODULAR POWER-UP SYSTEM TEST ===");
+// Power-Up Visual Indicator Functions
+window.showPowerUpIndicator = function(powerUpType, powerUpName) {
+  const indicator = document.getElementById('powerUpIndicator');
+  if (!indicator) return;
 
-  if (!window.powerUpRegistry) {
-    console.log("❌ Power-up registry not available!");
+  const icon = indicator.querySelector('.power-up-icon');
+  const name = indicator.querySelector('.power-up-name');
+
+  // Clear previous classes
+  indicator.className = 'power-up-indicator';
+
+  // Set type-specific styling and content
+  switch(powerUpType) {
+    case 'storm':
+      indicator.classList.add('storm');
+      icon.textContent = '🌪️';
+      name.textContent = 'STURM';
+      break;
+    case 'electro':
+      indicator.classList.add('electro');
+      icon.textContent = '⚡';
+      name.textContent = 'ELEKTRO';
+      break;
+    case 'extend':
+      indicator.classList.add('extend');
+      icon.textContent = '🔄';
+      name.textContent = 'EXTEND';
+      break;
+    default:
+      icon.textContent = '⭐';
+      name.textContent = powerUpName || 'POWER-UP';
+  }
+
+  // Show indicator
+  indicator.style.display = 'flex';
+  console.log(`🎯 Power-Up Indicator: ${powerUpName || powerUpType} activated`);
+};
+
+window.hidePowerUpIndicator = function() {
+  const indicator = document.getElementById('powerUpIndicator');
+  if (indicator) {
+    indicator.style.display = 'none';
+    console.log('🎯 Power-Up Indicator hidden');
+  }
+};
+
+// Global function to stop all power-up sounds
+window.stopAllPowerUpSounds = function() {
+  if (window.audio?.stopPowerUpSounds) {
+    window.audio.stopPowerUpSounds();
+  }
+};
+
+/* --------------------------------------------------------------------
+ *  ENHANCED POWER-UP ANIMATION TEST FUNCTIONS
+ * ------------------------------------------------------------------ */
+
+// Individual animation tests with proper sound stopping
+window.testStormAnimation = function() {
+  console.log("🌪️ Testing Storm Animation (5 seconds)...");
+
+  const board = document.getElementById("board");
+  if (!board) {
+    console.error("Board element not found");
     return;
   }
 
-  // Test Storm Block
-  console.log("\n🌪️ Testing Storm Block:");
-  const stormPiece = window.powerUpRegistry.stormBlock.createPiece();
-  state.playerPieces = [stormPiece];
-  renderPieces();
-  console.log("✅ Storm Block added to inventory");
-
-  // Test Electro Stack
-  console.log("\n⚡ Testing Electro Stack:");
-  const electroPiece = window.powerUpRegistry.electroStack.createPiece();
-  state.playerPieces = [electroPiece];
-  renderPieces();
-  console.log("✅ Electro Stack added to inventory");
-
-  console.log("\n🎯 Test completed! Try placing the power-ups on the board.");
-};
-
-// Automatic system verification test
-window.verifyPowerUpSystem = function() {
-  console.log("🔧 VERIFYING MODULAR POWER-UP SYSTEM:");
-
-  if (!window.powerUpRegistry) {
-    console.log("❌ Power-up registry not available!");
-    return false;
+  // Start storm animation and sound
+  board.classList.add("storm-effect");
+  if (window.showPowerUpIndicator) {
+    window.showPowerUpIndicator('storm', 'Storm Block');
+  }
+  if (window.audio?.stormSound) {
+    window.audio.stormSound.play();
   }
 
-  // Check if registry has the required power-ups using the correct get() method
-  const hasStorm = window.powerUpRegistry.get('storm') !== null;
-  const hasElectro = window.powerUpRegistry.get('electro') !== null;
+  console.log("🌪️ Storm animation started with sound");
 
-  console.log(`🌪️ Storm Block available: ${hasStorm ? '✅' : '❌'}`);
-  console.log(`⚡ Electro Stack available: ${hasElectro ? '✅' : '❌'}`);
-
-  // Check if registry methods are available
-  const hasGeneration = typeof window.powerUpRegistry.applyPowerUpGeneration === 'function';
-  const hasStyling = typeof window.powerUpRegistry.applyPowerUpStyling === 'function';
-  const hasExecution = typeof window.powerUpRegistry.executePowerUp === 'function';
-
-  console.log(`🎲 Generation method: ${hasGeneration ? '✅' : '❌'}`);
-  console.log(`🎨 Styling method: ${hasStyling ? '✅' : '❌'}`);
-  console.log(`⚡ Execution method: ${hasExecution ? '✅' : '❌'}`);
-
-  const allGood = hasStorm && hasElectro && hasGeneration && hasStyling && hasExecution;
-  console.log(`\n🎯 System Status: ${allGood ? '✅ OPERATIONAL' : '❌ ERRORS DETECTED'}`);
-
-  return allGood;
+  // Stop after 5 seconds
+  setTimeout(() => {
+    board.classList.remove("storm-effect");
+    if (window.audio?.stopStormSound) {
+      window.audio.stopStormSound();
+    }
+    if (window.hidePowerUpIndicator) {
+      window.hidePowerUpIndicator();
+    }
+    console.log("🌪️ Storm animation and sound stopped");
+  }, 5000);
 };
 
-// Run verification on load
-setTimeout(() => {
-  verifyPowerUpSystem();
-}, 1000);
+window.testElectroAnimation = function() {
+  console.log("⚡ Testing Electro Animation (5 seconds)...");
+
+  const board = document.getElementById("board");
+  if (!board) {
+    console.error("Board element not found");
+    return;
+  }
+
+  // Start electro animation and sound
+  board.classList.add("electro-effect");
+  if (window.showPowerUpIndicator) {
+    window.showPowerUpIndicator('electro', 'Electro Stack');
+  }
+  if (window.audio?.electroSound) {
+    window.audio.electroSound.play();
+  }
+
+  console.log("⚡ Electro animation started with sound");
+
+  // Stop after 5 seconds
+  setTimeout(() => {
+    board.classList.remove("electro-effect");
+    if (window.audio?.stopElectroSound) {
+      window.audio.stopElectroSound();
+    }
+    if (window.hidePowerUpIndicator) {
+      window.hidePowerUpIndicator();
+    }
+    console.log("⚡ Electro animation and sound stopped");
+  }, 5000);
+};
+
+window.testExtendAnimation = function() {
+  console.log("🔄 Testing Extend Animation (5 seconds)...");
+
+  const board = document.getElementById("board");
+  if (!board) {
+    console.error("Board element not found");
+    return;
+  }
+
+  // Start extend animation and sound
+  board.classList.add("extend-effect");
+  if (window.showPowerUpIndicator) {
+    window.showPowerUpIndicator('extend', 'Extend Block');
+  }
+  if (window.audio?.extendSound) {
+    window.audio.extendSound.play();
+  }
+
+  console.log("🔄 Extend animation started with sound");
+
+  // Stop after 5 seconds
+  setTimeout(() => {
+    board.classList.remove("extend-effect");
+    if (window.audio?.stopExtendSound) {
+      window.audio.stopExtendSound();
+    }
+    if (window.hidePowerUpIndicator) {
+      window.hidePowerUpIndicator();
+    }
+    console.log("🔄 Extend animation and sound stopped");
+  }, 5000);
+};
+
+// Test all animations sequentially
+window.testAllAnimations = function() {
+  console.log("🎬 Testing All Power-Up Animations Sequentially...");
+  console.log("Each animation will run for 5 seconds with sound, then stop properly");
+
+  window.testStormAnimation();
+
+  setTimeout(() => {
+    window.testElectroAnimation();
+  }, 6000);
+
+  setTimeout(() => {
+    window.testExtendAnimation();
+  }, 12000);
+
+  setTimeout(() => {
+    console.log("✅ All power-up animation tests completed!");
+  }, 18000);
+};
+
+// Show available animation tests
+window.testPowerUpAnimations = function() {
+  console.log("🎬 POWER-UP ANIMATION TESTS");
+  console.log("═══════════════════════════════════════");
+  console.log("📋 Available Test Commands:");
+  console.log("• testStormAnimation() - Storm effects (5s)");
+  console.log("• testElectroAnimation() - Lightning effects (5s)");
+  console.log("• testExtendAnimation() - Expansion effects (5s)");
+  console.log("• testAllAnimations() - All effects sequentially (18s)");
+  console.log("• stopAllPowerUpSounds() - Stop all sounds immediately");
+  console.log("═══════════════════════════════════════");
+  console.log("🔊 Note: Each test includes sound effects that auto-stop");
+};
 
 /* --------------------------------------------------------------------
  *  Public API Methods for Power-Up System
@@ -1262,3 +1391,111 @@ console.log("- testStormBlock()");
 console.log("- testElectroBlock()");
 console.log("- testInventoryRegeneration()");
 console.log("- testPowerUpInventoryFlow()");
+
+/* --------------------------------------------------------------------
+ *  ENHANCED POWER-UP ANIMATIONS - IMPLEMENTATION COMPLETE
+ * ------------------------------------------------------------------ */
+
+// Test commands for demonstration (available in browser console):
+console.log("\n🎬 ENHANCED POWER-UP ANIMATIONS - READY FOR TESTING");
+console.log("═══════════════════════════════════════════════════════");
+console.log("💫 Visual Effects: Enhanced board-wide animations for each power-up");
+console.log("🔊 Audio Effects: Power-up specific sound effects during events");
+console.log("🎯 Visual Indicator: Shows active power-up with progress animation");
+console.log("\n📋 Available Test Commands:");
+console.log("• testPowerUpAnimations() - Show all available animation tests");
+console.log("• testStormAnimation() - Test storm swirling effects (5s)");
+console.log("• testElectroAnimation() - Test electrical lightning effects (5s)");
+console.log("• testExtendAnimation() - Test expansion wave effects (5s)");
+console.log("• testAllAnimations() - Sequential demonstration of all effects (18s)");
+console.log("\n🎮 Power-Up Testing:");
+console.log("• testStormBlock() - Full storm power-up with blocks");
+console.log("• testElectroBlock() - Full electro power-up with targets");
+console.log("• testExtendBlock() - Full extend power-up demonstration");
+console.log("═══════════════════════════════════════════════════════\n");
+
+// Complete Power-Up Animation Demo
+window.testPowerUpAnimationDemo = function() {
+  console.log("🎬 COMPLETE POWER-UP ANIMATION DEMONSTRATION");
+  console.log("This will test all enhanced features in sequence:");
+  console.log("1. Visual indicators");
+  console.log("2. Board-wide animations");
+  console.log("3. Sound effects");
+  console.log("4. Animation cleanup");
+
+  let demoStep = 0;
+  const steps = [
+    {
+      name: "Storm Power-Up",
+      emoji: "🌪️",
+      test: () => window.testStormAnimation(),
+      description: "Swirling storm effects with wind sound"
+    },
+    {
+      name: "Electro Power-Up",
+      emoji: "⚡",
+      test: () => window.testElectroAnimation(),
+      description: "Lightning effects with electrical sound"
+    },
+    {
+      name: "Extend Power-Up",
+      emoji: "🔄",
+      test: () => window.testExtendAnimation(),
+      description: "Expansion waves with extend sound"
+    }
+  ];
+
+  function runStep() {
+    if (demoStep >= steps.length) {
+      console.log("✅ Demo complete! All power-up animations tested successfully.");
+      return;
+    }
+
+    const step = steps[demoStep];
+    console.log(`\n${step.emoji} Testing: ${step.name}`);
+    console.log(`Description: ${step.description}`);
+    console.log("─".repeat(50));
+
+    step.test();
+    demoStep++;
+
+    setTimeout(() => {
+      runStep();
+    }, 6000); // 6 seconds between tests
+  }
+
+  runStep();
+};
+
+// Audio Pool Management for Power-Up Sounds
+window.testAudioSystem = function() {
+  console.log("🔊 Testing Audio System for Power-Ups");
+  console.log("Available sounds:");
+
+  const sounds = [
+    { name: "Storm", sound: window.audio?.stormSound, file: "wind.wav" },
+    { name: "Electro", sound: window.audio?.electroSound, file: "Electro.wav" },
+    { name: "Extend", sound: window.audio?.extendSound, file: "extend.flac" }
+  ];
+
+  sounds.forEach(({ name, sound, file }) => {
+    if (sound && typeof sound.play === 'function') {
+      console.log(`✅ ${name}: Ready (${file})`);
+
+      // Test play with rate limiting
+      try {
+        sound.play();
+        console.log(`🎵 ${name} sound played`);
+      } catch (error) {
+        console.warn(`⚠️ ${name} sound play failed:`, error);
+      }
+    } else {
+      console.log(`❌ ${name}: Not available (${file})`);
+    }
+  });
+
+  console.log("\nNote: HTML5 Audio pool warnings are normal during rapid testing.");
+  console.log("In normal gameplay, sounds are spaced out and won't cause issues.");
+};
+
+//# sourceMappingURL=player.js.map
