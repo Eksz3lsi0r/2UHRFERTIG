@@ -3,6 +3,7 @@
  * ------------------------------------------------------------------ */
 
 import { electroStack } from './electroStack.js';
+import { extendBlock } from './extendBlock.js';
 import { stormBlock } from './stormBlock.js';
 
 /**
@@ -23,6 +24,7 @@ class PowerUpRegistry {
     // Register built-in power-ups
     this.register(stormBlock);
     this.register(electroStack);
+    this.register(extendBlock);
 
     console.log(`Power-Up Registry initialized with ${this.powerUps.size} power-ups:`,
                 Array.from(this.powerUps.keys()));
@@ -89,6 +91,13 @@ class PowerUpRegistry {
     const powerUp = this.identifyPowerUp(pieceObj);
     if (powerUp) {
       console.log(`Executing ${powerUp.name} power-up...`);
+
+      // Immediately clear the entire inventory when any power-up is executed
+      gameState.playerPieces = [];
+      if (window.player?.renderPieces) {
+        window.player.renderPieces();
+      }
+
       powerUp.execute(row, col, gameState);
       return true;
     }

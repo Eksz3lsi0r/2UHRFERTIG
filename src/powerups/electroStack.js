@@ -49,6 +49,9 @@ export class ElectroStack extends BasePowerUp {
   execute(centerRow, centerCol, gameState) {
     console.log("Elektro Stack effect activated at position:", centerRow, centerCol);
 
+    // Set flag to prevent automatic inventory generation during electro animation
+    gameState.electroAnimationActive = true;
+
     // Define the 8 surrounding positions (all directions)
     const directions = [
       [-1, -1], [-1, 0], [-1, 1],  // top-left, top, top-right
@@ -83,6 +86,11 @@ export class ElectroStack extends BasePowerUp {
     if (totalClearedBlocks === 0) {
       console.log("No blocks found to clear");
       this._showElectroCompleteMessage(0, 0);
+
+      // Still need to regenerate inventory even if no blocks were cleared
+      setTimeout(() => {
+        this._regenerateInventoryAfterElectro(gameState);
+      }, 1000);
       return;
     }
 
@@ -126,6 +134,11 @@ export class ElectroStack extends BasePowerUp {
 
       // Show completion message
       this._showElectroCompleteMessage(totalClearedBlocks, finalPoints);
+
+      // Regenerate inventory after electro effect
+      setTimeout(() => {
+        this._regenerateInventoryAfterElectro(gameState);
+      }, 1000);
 
       console.log(`Elektro Stack: ${totalClearedBlocks} blocks cleared, ${finalPoints} points gained`);
     }, 800);
@@ -206,6 +219,33 @@ export class ElectroStack extends BasePowerUp {
   }
 
   /**
+   * Regenerate inventory after electro effect
+   * @param {Object} gameState - Current game state
+   * @private
+   */
+  _regenerateInventoryAfterElectro(gameState) {
+    console.log("Electro Stack: Starting inventory regeneration...");
+
+    // Use robust inventory regeneration
+    if (window.player?.regenerateInventoryAfterPowerUp) {
+      window.player.regenerateInventoryAfterPowerUp(gameState, "Electro Stack");
+    } else {
+      // Fallback to original method
+      if (window.player?.generatePieces) {
+        window.player.generatePieces();
+      }
+      if (window.player?.renderPieces) {
+        window.player.renderPieces();
+      }
+    }
+
+    // Clear the electro animation flag to allow normal inventory generation
+    gameState.electroAnimationActive = false;
+
+    console.log("Electro Stack: Inventory regenerated after effect completion");
+  }
+
+  /**
    * Test the electro effect with sample blocks
    */
   testEffect() {
@@ -250,7 +290,7 @@ export class ElectroStack extends BasePowerUp {
     const oldScore = window.state.playerScore;
     const oldMultiplier = window.state.permanentMultiplier;
 
-    console.log("✅ Test blocks placed around center (5,5)");
+    console.log("✅ Test blocks placed around position (5,5)");
     console.log(`📊 Before: Score=${oldScore}, Multiplier=${oldMultiplier}x`);
 
     // Execute the electro effect at center position

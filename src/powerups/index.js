@@ -1,4 +1,9 @@
-/* --------------------------------------------------------------------
+/* -------------// Convenience exports for easy access
+export const powerUps = {
+  storm: () => import('./stormBlock.js').then(m => m.stormBlock),
+  electro: () => import('./electroStack.js').then(m => m.electroStack),
+  extend: () => import('./extendBlock.js').then(m => m.extendBlock)
+};--------------------------------------------------
  *  src/powerups/index.js - Power-Up Module Exports
  * ------------------------------------------------------------------ */
 
@@ -7,6 +12,7 @@ export { BasePowerUp } from './basePowerUp.js';
 
 // Individual power-ups
 export { ElectroStack, electroStack } from './electroStack.js';
+export { ExtendBlock, extendBlock } from './extendBlock.js';
 export { powerUpRegistry } from './powerUpRegistry.js';
 export { StormBlock, stormBlock } from './stormBlock.js';
 

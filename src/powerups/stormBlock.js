@@ -52,12 +52,6 @@ export class StormBlock extends BasePowerUp {
     // Set flag to prevent automatic inventory generation during storm animation
     gameState.stormAnimationActive = true;
 
-    // Immediately clear inventory when storm is placed
-    gameState.playerPieces = [];
-    if (window.player?.renderPieces) {
-      window.player.renderPieces();
-    }
-
     // 1. Collect all filled blocks from the board
     const filledBlocks = [];
     for (let r = 0; r < 10; r++) {
@@ -204,14 +198,17 @@ export class StormBlock extends BasePowerUp {
     setTimeout(() => {
       // Show completion message with appropriate text
       this._showStormCompleteMessage(linesWereCleared, () => {
-        // Generate new pieces only after message appears
-        if (window.player?.generatePieces) {
-          window.player.generatePieces();
-        }
-
-        // Re-render pieces
-        if (window.player?.renderPieces) {
-          window.player.renderPieces();
+        // Use robust inventory regeneration
+        if (window.player?.regenerateInventoryAfterPowerUp) {
+          window.player.regenerateInventoryAfterPowerUp(gameState, "Storm Block");
+        } else {
+          // Fallback to original method
+          if (window.player?.generatePieces) {
+            window.player.generatePieces();
+          }
+          if (window.player?.renderPieces) {
+            window.player.renderPieces();
+          }
         }
 
         // Clear the storm animation flag to allow normal inventory generation

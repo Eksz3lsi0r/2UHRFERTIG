@@ -29,6 +29,7 @@ export const player = {
   hasFullLines, // <-- hasFullLines für Power-Ups hinzugefügt
   updateScoreDisplay,
   updatePermanentMultiplierDisplay,
+  regenerateInventoryAfterPowerUp, // <-- new robust inventory regeneration
 };
 
 /* --------------------------------------------------------------------
@@ -127,6 +128,12 @@ function resetGame() {
  *    auf das aktuelle Spieler-Brett passen (inkl. Zwischenclearing)
  * ------------------------------------------------------------------ */
 function generatePieces() {
+  // Prevent inventory generation during power-up animations
+  if (state.stormAnimationActive || state.extendAnimationActive || state.electroAnimationActive) {
+    console.log("Power-up animation active, skipping piece generation");
+    return;
+  }
+
   // 0) Kopie des IST-Boards anlegen
   const boardSnapshot = state.playerBoard.map((row) => [...row]);
 
@@ -347,14 +354,7 @@ function placeShape(shape, br, bc) {
 
   // Use modular power-up system to check and execute power-ups
   if (window.powerUpRegistry && window.powerUpRegistry.executePowerUp(pieceObj, br, bc, state)) {
-    // Remove the power-up piece from inventory
-    const idx = state.playerPieces.findIndex(
-      (sh) =>
-        (sh.shape || sh) === shape ||
-        (Array.isArray(sh.shape) &&
-          JSON.stringify(sh.shape) === JSON.stringify(shape))
-    );
-    if (idx !== -1) state.playerPieces.splice(idx, 1);
+    // Power-up executed - inventory has been cleared by powerUpRegistry
     return; // Exit early for power-up pieces
   }
 
@@ -478,6 +478,7 @@ function _clearLines() {
       if (cell) {
         cell.classList.remove("filled", "rainbow");
         cell.style.background = "";
+        cell.innerHTML = ""; // Clear any content (e.g., power-up emojis)
       }
     }
   });
@@ -488,6 +489,7 @@ function _clearLines() {
       if (cell) {
         cell.classList.remove("filled", "rainbow");
         cell.style.background = "";
+        cell.innerHTML = ""; // Clear any content (e.g., power-up emojis)
       }
     }
   });
@@ -879,9 +881,9 @@ function canPlaceSomewhere(sh) {
 function checkGameOverCondition() {
   console.log("checkGameOverCondition aufgerufen");
 
-  // Skip game over check during storm animation
-  if (state.stormAnimationActive) {
-    console.log("Storm animation active, skipping game over check");
+  // Skip game over check during power-up animations
+  if (state.stormAnimationActive || state.extendAnimationActive || state.electroAnimationActive) {
+    console.log("Power-up animation active, skipping game over check");
     return;
   }
 
@@ -890,8 +892,8 @@ function checkGameOverCondition() {
     console.log("CPU-Modus");
 
     // Wenn keine Pieces mehr, neue Pieces generieren (unabhängig von hasMoves)
-    // ABER NICHT während einer Storm-Animation
-    if (state.playerPieces.length === 0 && !state.stormAnimationActive) {
+    // ABER NICHT während Power-up-Animationen
+    if (state.playerPieces.length === 0 && !state.stormAnimationActive && !state.extendAnimationActive && !state.electroAnimationActive) {
       console.log("Keine Player Pieces mehr, generiere neue");
       generatePieces();
       renderPieces();
@@ -1108,3 +1110,155 @@ function clearLines() {
 function hasFullLines() {
   return _hasFullLines();
 }
+
+/* --------------------------------------------------------------------
+ *  Robust inventory regeneration helper for power-ups
+ * ------------------------------------------------------------------ */
+export function regenerateInventoryAfterPowerUp(gameState, powerUpName = "Power-up") {
+  console.log(`${powerUpName}: Starting inventory regeneration...`);
+
+  // Clear inventory first
+  gameState.playerPieces = [];
+
+  // Force render empty inventory immediately
+  if (window.player?.renderPieces) {
+    window.player.renderPieces();
+  }
+
+  // Generate new pieces with retry logic
+  setTimeout(() => {
+    try {
+      if (window.player?.generatePieces) {
+        window.player.generatePieces();
+        console.log(`${powerUpName}: Generated ${gameState.playerPieces.length} new pieces`);
+      } else {
+        console.error(`${powerUpName}: player.generatePieces not available`);
+      }
+
+      // Render the new pieces
+      if (window.player?.renderPieces) {
+        window.player.renderPieces();
+        console.log(`${powerUpName}: Inventory rendered successfully`);
+      } else {
+        console.error(`${powerUpName}: player.renderPieces not available`);
+      }
+
+      // Final validation
+      if (gameState.playerPieces.length === 0) {
+        console.warn(`${powerUpName}: No pieces generated, retrying...`);
+        // Retry once after a short delay
+        setTimeout(() => {
+          if (window.player?.generatePieces) {
+            window.player.generatePieces();
+            if (window.player?.renderPieces) {
+              window.player.renderPieces();
+            }
+            console.log(`${powerUpName}: Retry successful, ${gameState.playerPieces.length} pieces`);
+          }
+        }, 500);
+      }
+
+    } catch (error) {
+      console.error(`${powerUpName}: Error during inventory regeneration:`, error);
+    }
+  }, 100); // Small delay to ensure DOM is ready
+}
+
+// Global test functions for power-up inventory regeneration
+window.testExtendBlock = function() {
+  console.log("🔬 Testing Extend Block...");
+
+  // Clear board first
+  for (let r = 0; r < 10; r++) {
+    for (let c = 0; c < 10; c++) {
+      window.state.playerBoard[r][c] = 0;
+      const cell = window.state.boardCells[r][c];
+      if (cell) {
+        cell.classList.remove('filled', 'rainbow');
+        cell.style.background = '';
+        cell.innerHTML = '';
+      }
+    }
+  }
+
+  // Add extend block to inventory
+  window.state.playerPieces = [{
+    shape: [[0, 0]],
+    color: '#ff9500',
+    isExtend: true
+  }];
+
+  window.player.renderPieces();
+  console.log("✅ Extend block added to inventory");
+  console.log("Execute extend effect...");
+
+  window.extendBlock.execute(5, 5, window.state);
+};
+
+window.testStormBlock = function() {
+  console.log("🔬 Testing Storm Block...");
+
+  // Add some test blocks
+  const testPositions = [[2, 2], [2, 3], [4, 4], [6, 6]];
+  testPositions.forEach(([r, c]) => {
+    window.state.playerBoard[r][c] = 1;
+    const cell = window.state.boardCells[r][c];
+    if (cell) {
+      cell.classList.add('filled');
+      cell.style.background = '#FF6B6B';
+    }
+  });
+
+  // Add storm block to inventory
+  window.state.playerPieces = [{
+    shape: [[0, 0]],
+    color: '#4a90e2',
+    isStorm: true
+  }];
+
+  window.player.renderPieces();
+  console.log("✅ Storm block added to inventory");
+  console.log("Execute storm effect...");
+
+  window.stormBlock.execute(0, 0, window.state);
+};
+
+window.testElectroBlock = function() {
+  console.log("🔬 Testing Electro Block...");
+
+  // Add test blocks around position (5,5)
+  const testBlocks = [
+    [4, 4], [4, 5], [4, 6],
+    [5, 4],         [5, 6],
+    [6, 4], [6, 5], [6, 6]
+  ];
+
+  testBlocks.forEach(([r, c]) => {
+    window.state.playerBoard[r][c] = 1;
+    const cell = window.state.boardCells[r][c];
+    if (cell) {
+      cell.classList.add('filled');
+      cell.style.background = '#FF6B6B';
+    }
+  });
+
+  // Add electro block to inventory
+  window.state.playerPieces = [{
+    shape: [[0, 0]],
+    color: '#FFD700',
+    isElectro: true
+  }];
+
+  window.player.renderPieces();
+  console.log("✅ Electro block added to inventory");
+  console.log("Execute electro effect...");
+
+  window.electroStack.execute(5, 5, window.state);
+};
+
+console.log("🧪 Power-up test functions available:");
+console.log("- testExtendBlock()");
+console.log("- testStormBlock()");
+console.log("- testElectroBlock()");
+console.log("- testInventoryRegeneration()");
+console.log("- testPowerUpInventoryFlow()");

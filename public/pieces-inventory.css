@@ -523,3 +523,115 @@
     transform: translate(-50%, -50%) scale(1);
   }
 }
+
+/* ───── Extend Power-Up Styles ───── */
+.extend-piece {
+  background: linear-gradient(135deg, #ff9500, #e6750e);
+  border: 2px solid rgba(255, 149, 0, 0.8);
+  box-shadow: 0 0 15px rgba(255, 149, 0, 0.6);
+  animation: extend-glow 2s ease-in-out infinite alternate;
+}
+
+.extend-block {
+  background: linear-gradient(135deg, #ff9500, #e6750e);
+  border: 1px solid rgba(255, 149, 0, 0.9);
+  box-shadow: inset 0 0 10px rgba(255, 149, 0, 0.3);
+}
+
+/* Extend Effect Animations on Game Board */
+.extend-effect {
+  animation: extend-pulse 1s ease-in-out;
+  background: radial-gradient(circle, rgba(255, 149, 0, 0.3) 0%, transparent 70%);
+}
+
+.extend-placed {
+  animation: extend-expand 0.5s ease-out;
+}
+
+@keyframes extend-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(255, 149, 0, 0.3);
+  }
+  25% {
+    transform: scale(1.02);
+    box-shadow: 0 0 20px rgba(255, 149, 0, 0.6);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 30px rgba(255, 149, 0, 0.8);
+  }
+  75% {
+    transform: scale(1.02);
+    box-shadow: 0 0 20px rgba(255, 149, 0, 0.6);
+  }
+}
+
+@keyframes extend-expand {
+  0% {
+    transform: scale(0.5);
+    opacity: 0.5;
+    box-shadow: 0 0 25px rgba(255, 149, 0, 1);
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.8;
+    box-shadow: 0 0 15px rgba(255, 149, 0, 0.8);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+    box-shadow: 0 0 8px rgba(255, 149, 0, 0.5);
+  }
+}
+
+/* Extend Complete Message */
+.extend-complete-message {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(135deg, #ff9500, #e6750e);
+  color: white;
+  padding: 20px 40px;
+  border-radius: 15px;
+  font-size: 18px;
+  font-weight: bold;
+  box-shadow: 0 10px 30px rgba(255, 149, 0, 0.5);
+  z-index: 1000;
+  animation: extend-message-appear 0.5s ease-out;
+}
+
+/* Extend Message Animation */
+@keyframes extendMessageFade {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+  10% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+  20% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  80% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+}
+
+@keyframes extend-message-appear {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
