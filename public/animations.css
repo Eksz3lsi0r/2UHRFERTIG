@@ -313,10 +313,9 @@
   background-clip: text;
   -webkit-background-clip: text;
   -moz-background-clip: text;
-  -webkit-text-fill-color: transparent;
   animation: multiplier-show 2.5s ease-out;
   /* Fallback für Browser ohne background-clip Support */
-  -webkit-text-fill-color: #ffd700;
+  -webkit-text-fill-color: #ffd900;
 }
 
 @keyframes multiplier-show {
@@ -387,7 +386,6 @@
 
 /* ───── Erweiterte Score-Anzeige bei Combos ───── */
 .score-combo {
-  animation: score-combo-pulse 0.8s ease-out;
   background: linear-gradient(45deg, #00d2a8, #8a2be2, #ff4676) !important;
   background-size: 200% 200% !important;
   animation: score-combo-pulse 0.8s ease-out, rainbow-flow 1.5s linear infinite !important;

@@ -78,11 +78,22 @@ export class ExtendBlock extends BasePowerUp {
     const boardElement = document.getElementById("board");
     if (boardElement) {
       boardElement.classList.add("extend-effect");
+      console.log("🔄 Extend animation started - effect will run during entire extend event");
 
-      // Animation for 2 seconds
-      setTimeout(() => {
-        boardElement.classList.remove("extend-effect");
-      }, 2000);
+      // Animation will be removed when the extend effect is complete
+      // Duration is managed by the complete extend process
+    }
+  }
+
+  /**
+   * Hide extend animation effect
+   * @private
+   */
+  _hideExtendAnimation() {
+    const boardElement = document.getElementById("board");
+    if (boardElement) {
+      boardElement.classList.remove("extend-effect");
+      console.log("🔄 Extend animation ended");
     }
   }
 
@@ -378,6 +389,9 @@ export class ExtendBlock extends BasePowerUp {
 
         // Clear the extend animation flag to allow normal inventory generation
         gameState.extendAnimationActive = false;
+
+        // Hide the extend animation when complete
+        this._hideExtendAnimation();
       });
     }, 1000); // Wait for extend animations to complete
   }

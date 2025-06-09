@@ -155,11 +155,10 @@ export class ElectroStack extends BasePowerUp {
     const boardElement = document.getElementById("board");
     if (boardElement) {
       boardElement.classList.add("electro-effect");
+      console.log("⚡ Electro animation started - effect will run during entire electro event");
 
-      // Animation for the board
-      setTimeout(() => {
-        boardElement.classList.remove("electro-effect");
-      }, 1500);
+      // Animation will be removed when the electro effect is complete
+      // Duration is managed by the complete electro process
     }
 
     // Animate each block to be cleared individually
@@ -171,6 +170,18 @@ export class ElectroStack extends BasePowerUp {
         }, 400);
       }, index * 50); // Staggered animation
     });
+  }
+
+  /**
+   * Hide electro animation effect
+   * @private
+   */
+  _hideElectroAnimation() {
+    const boardElement = document.getElementById("board");
+    if (boardElement) {
+      boardElement.classList.remove("electro-effect");
+      console.log("⚡ Electro animation ended");
+    }
   }
 
   /**
@@ -241,6 +252,9 @@ export class ElectroStack extends BasePowerUp {
 
     // Clear the electro animation flag to allow normal inventory generation
     gameState.electroAnimationActive = false;
+
+    // Hide the electro animation when complete
+    this._hideElectroAnimation();
 
     console.log("Electro Stack: Inventory regenerated after effect completion");
   }

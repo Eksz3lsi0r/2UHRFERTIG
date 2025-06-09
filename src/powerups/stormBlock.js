@@ -98,11 +98,22 @@ export class StormBlock extends BasePowerUp {
     const boardElement = document.getElementById("board");
     if (boardElement) {
       boardElement.classList.add("storm-effect");
+      console.log("🌪️ Storm animation started - effect will run during entire storm event");
 
-      // Animation for 1.5 seconds
-      setTimeout(() => {
-        boardElement.classList.remove("storm-effect");
-      }, 1500);
+      // Animation will be removed when the storm is complete
+      // Duration is managed by the complete storm process
+    }
+  }
+
+  /**
+   * Hide storm animation effect
+   * @private
+   */
+  _hideStormAnimation() {
+    const boardElement = document.getElementById("board");
+    if (boardElement) {
+      boardElement.classList.remove("storm-effect");
+      console.log("🌪️ Storm animation ended");
     }
   }
 
@@ -213,6 +224,9 @@ export class StormBlock extends BasePowerUp {
 
         // Clear the storm animation flag to allow normal inventory generation
         gameState.stormAnimationActive = false;
+
+        // Hide the storm animation when complete
+        this._hideStormAnimation();
       });
     }, 1000); // Wait for storm animations to complete
   }
