@@ -3,14 +3,14 @@
  * ------------------------------------------------------------------ */
 import {
   ALL_POSSIBLE_SHAPES,
-  ELECTRO_SHAPE,
   getRandomRainbowColor,
-  LANG,
-  STORM_SHAPE,
+  LANG
 } from "./constants.js";
 import { GridSnap } from "./drag.js";
 import { state } from "./state.js";
 import { ui } from "./ui.js"; // für displayMessage
+
+// Import power-up system
 
 /* --------------------------------------------------------------------
  *  Öffentliche API
@@ -229,31 +229,9 @@ function generatePieces() {
     color: getRandomRainbowColor(),
   }));
 
-  // 10% Chance für Storm Power-Up (ersetzt ein zufälliges Piece)
-  if (Math.random() < 0.1 && state.playerPieces.length > 0) {
-    const randomIndex = Math.floor(Math.random() * state.playerPieces.length);
-    state.playerPieces[randomIndex] = {
-      shape: STORM_SHAPE.map((c) => [...c]),
-      color: '#4a90e2',
-      isStorm: true
-    };
-  }
-
-  // 5% Chance für Elektro Stack Power-Up (ersetzt ein anderes Piece, falls noch verfügbar)
-  if (Math.random() < 0.05 && state.playerPieces.length > 1) {
-    // Finde ein Piece das noch kein Powerup ist
-    const availableIndices = state.playerPieces
-      .map((piece, index) => !piece.isStorm && !piece.isElectro ? index : -1)
-      .filter(index => index !== -1);
-
-    if (availableIndices.length > 0) {
-      const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
-      state.playerPieces[randomIndex] = {
-        shape: ELECTRO_SHAPE.map((c) => [...c]),
-        color: '#FFD700',
-        isElectro: true
-      };
-    }
+  // Apply modular power-up generation system
+  if (window.powerUpRegistry) {
+    state.playerPieces = window.powerUpRegistry.applyPowerUpGeneration(state.playerPieces);
   }
 }
 
@@ -276,8 +254,6 @@ function renderPieces() {
   state.playerPieces.forEach((pieceObj, idx) => {
     const shape = pieceObj.shape || pieceObj; // Fallback falls noch altes Format
     const color = pieceObj.color || getRandomRainbowColor();
-    const isStorm = pieceObj.isStorm || false;
-    const isElectro = pieceObj.isElectro || false;
 
     // Bestimme die Dimensionen des Shapes für das Grid-Layout
     let maxR = 0,
@@ -288,10 +264,7 @@ function renderPieces() {
     });
 
     const pieceDiv = document.createElement("div");
-    let pieceClass = "piece";
-    if (isStorm) pieceClass += " storm-piece";
-    if (isElectro) pieceClass += " electro-piece";
-    pieceDiv.className = pieceClass;
+    pieceDiv.className = "piece"; // Default class, will be updated by power-up system
     pieceDiv.setAttribute("draggable", true);
 
     // Grid-Layout für das Piece konfigurieren
@@ -321,42 +294,21 @@ function renderPieces() {
     // Render blocks mit Grid und Farbe
     shape.forEach(([r, c]) => {
       const block = document.createElement("div");
-      let blockClass = "block";
-      if (isStorm) {
-        blockClass += " storm-block";
-      } else if (isElectro) {
-        blockClass += " electro-block";
-      } else {
-        blockClass += " rainbow";
-      }
-      block.className = blockClass;
+      block.className = "block rainbow"; // Default classes
       block.style.gridRowStart = r + 1;
       block.style.gridColumnStart = c + 1;
       block.style.background = color;
       block.style.transition = "transform 0.15s, box-shadow 0.15s";
 
-      // Add storm-specific styling
-      if (isStorm) {
-        block.innerHTML = '🌪️'; // Storm emoji as content
-        block.style.fontSize = `${cellPx * 0.6}px`;
-        block.style.display = 'flex';
-        block.style.alignItems = 'center';
-        block.style.justifyContent = 'center';
-        block.style.textAlign = 'center';
-        block.style.backgroundImage = 'radial-gradient(circle, #4a90e2, #2171b5)';
-        block.style.boxShadow = '0 0 10px rgba(74, 144, 226, 0.6)';
+      // Apply modular power-up styling if this is a power-up
+      let isPowerUp = false;
+      if (window.powerUpRegistry) {
+        isPowerUp = window.powerUpRegistry.applyPowerUpStyling(pieceObj, pieceDiv, block, cellPx);
       }
 
-      // Add electro-specific styling
-      if (isElectro) {
-        block.innerHTML = '⚡'; // Lightning emoji as content
-        block.style.fontSize = `${cellPx * 0.6}px`;
-        block.style.display = 'flex';
-        block.style.alignItems = 'center';
-        block.style.justifyContent = 'center';
-        block.style.textAlign = 'center';
-        block.style.backgroundImage = 'linear-gradient(135deg, #FFD700, #FFA500)';
-        block.style.boxShadow = '0 0 15px rgba(255, 215, 0, 0.8)';
+      // If not a power-up, keep default styling
+      if (!isPowerUp) {
+        block.classList.add("rainbow");
       }
 
       pieceDiv.appendChild(block);
@@ -389,12 +341,9 @@ function placeShape(shape, br, bc) {
         JSON.stringify(p.shape) === JSON.stringify(shape))
   );
 
-  // Prüfe ob es sich um ein Storm Piece handelt
-  if (pieceObj?.isStorm) {
-    console.log("Storm piece placed! Executing storm effect...");
-    _executeStormEffect();
-
-    // Entferne das Storm-Piece aus dem Inventar
+  // Use modular power-up system to check and execute power-ups
+  if (window.powerUpRegistry && window.powerUpRegistry.executePowerUp(pieceObj, br, bc, state)) {
+    // Remove the power-up piece from inventory
     const idx = state.playerPieces.findIndex(
       (sh) =>
         (sh.shape || sh) === shape ||
@@ -402,23 +351,7 @@ function placeShape(shape, br, bc) {
           JSON.stringify(sh.shape) === JSON.stringify(shape))
     );
     if (idx !== -1) state.playerPieces.splice(idx, 1);
-    return; // Verlasse die Funktion früh für Storm-Pieces
-  }
-
-  // Prüfe ob es sich um ein Elektro Piece handelt
-  if (pieceObj?.isElectro) {
-    console.log("Elektro piece placed! Executing electro effect...");
-    _executeElectroEffect(br, bc);
-
-    // Entferne das Elektro-Piece aus dem Inventar
-    const idx = state.playerPieces.findIndex(
-      (sh) =>
-        (sh.shape || sh) === shape ||
-        (Array.isArray(sh.shape) &&
-          JSON.stringify(sh.shape) === JSON.stringify(shape))
-    );
-    if (idx !== -1) state.playerPieces.splice(idx, 1);
-    return; // Verlasse die Funktion früh für Elektro-Pieces
+    return; // Exit early for power-up pieces
   }
 
   const color =
@@ -477,309 +410,9 @@ function _hasFullLines() {
   return false;
 }
 
-/* --------------------------------------------------------------------
- *  Storm Power-Up Funktionen
- * ------------------------------------------------------------------ */
-function _isStormPiece(pieceObj) {
-  // Prüft ob es sich um ein Storm-Piece handelt
-  return pieceObj?.isStorm === true;
-}
 
-function _executeStormEffect() {
-  console.log("Storm effect activated!");
 
-  // 1. Sammle alle gefüllten Blöcke vom Spielfeld
-  const filledBlocks = [];
-  for (let r = 0; r < 10; r++) {
-    for (let c = 0; c < 10; c++) {
-      if (state.playerBoard[r][c] === 1) {
-        const cell = state.boardCells[r][c];
-        filledBlocks.push({
-          row: r,
-          col: c,
-          color: cell.style.background,
-          hasRainbow: cell.classList.contains('rainbow')
-        });
-        // Entferne Block vom Brett
-        state.playerBoard[r][c] = 0;
-        cell.classList.remove("filled", "rainbow");
-        cell.style.background = "";
-      }
-    }
-  }
 
-  if (filledBlocks.length === 0) {
-    // Kein Effekt wenn keine Blöcke vorhanden
-    _regenerateInventoryAfterStorm();
-    return;
-  }
-
-  // 2. Storm-Animation auf dem Board
-  _showStormAnimation();
-
-  // 3. Nach kurzer Verzögerung: Blöcke zufällig neu verteilen
-  setTimeout(() => {
-    _shuffleAndPlaceBlocks(filledBlocks);
-  }, 800);
-}
-
-function _showStormAnimation() {
-  const boardElement = document.getElementById("board");
-  if (boardElement) {
-    boardElement.classList.add("storm-effect");
-
-    // Animation für 1.5 Sekunden
-    setTimeout(() => {
-      boardElement.classList.remove("storm-effect");
-    }, 1500);
-  }
-}
-
-function _shuffleAndPlaceBlocks(blocks) {
-  // Erstelle Array mit allen freien Positionen
-  const freePositions = [];
-  for (let r = 0; r < 10; r++) {
-    for (let c = 0; c < 10; c++) {
-      if (state.playerBoard[r][c] === 0) {
-        freePositions.push({ row: r, col: c });
-      }
-    }
-  }
-
-  // Mische die freien Positionen
-  for (let i = freePositions.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [freePositions[i], freePositions[j]] = [freePositions[j], freePositions[i]];
-  }
-
-  // Platziere Blöcke an zufälligen Positionen mit Animation
-  blocks.forEach((block, index) => {
-    if (index < freePositions.length) {
-      const newPos = freePositions[index];
-
-      setTimeout(() => {
-        // Setze Block in neuer Position
-        state.playerBoard[newPos.row][newPos.col] = 1;
-        const cell = state.boardCells[newPos.row][newPos.col];
-
-        if (cell) {
-          cell.classList.add("filled");
-          if (block.hasRainbow) {
-            cell.classList.add("rainbow");
-          }
-          cell.style.background = block.color;
-
-          // Platzierungs-Animation
-          cell.classList.add("storm-placed");
-          setTimeout(() => {
-            cell.classList.remove("storm-placed");
-          }, 300);
-        }
-
-        // Nach dem letzten Block: Inventar neu generieren
-        if (index === blocks.length - 1) {
-          setTimeout(() => {
-            _regenerateInventoryAfterStorm();
-          }, 500);
-        }
-      }, index * 50); // Gestaggerte Animation
-    }
-  });
-}
-
-function _regenerateInventoryAfterStorm() {
-  console.log("Regenerating inventory after storm...");
-
-  // Leere das aktuelle Inventar
-  state.playerPieces = [];
-
-  // Generiere neues Inventar
-  generatePieces();
-  renderPieces();
-
-  // Kurze Benachrichtigung
-  _showStormCompleteMessage();
-}
-
-function _showStormCompleteMessage() {
-  const messageDiv = document.createElement("div");
-  messageDiv.className = "storm-complete-message";
-  messageDiv.textContent = "🌪️ Sturm abgeschlossen! Neues Inventar generiert!";
-  messageDiv.style.cssText = `
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(138, 43, 226, 0.9);
-    color: white;
-    padding: 15px 25px;
-    border-radius: 10px;
-    font-size: 16px;
-    font-weight: bold;
-    z-index: 10000;
-    box-shadow: 0 0 20px rgba(138, 43, 226, 0.8);
-    backdrop-filter: blur(5px);
-    animation: stormMessageFade 3s ease-out forwards;
-  `;
-
-  document.body.appendChild(messageDiv);
-
-  setTimeout(() => {
-    if (messageDiv.parentNode) {
-      messageDiv.parentNode.removeChild(messageDiv);
-    }
-  }, 3000);
-}
-
-/* --------------------------------------------------------------------
- *  Elektro Stack Power-Up Funktionen
- * ------------------------------------------------------------------ */
-function _isElectroPiece(pieceObj) {
-  // Prüft ob es sich um ein Elektro-Piece handelt
-  return pieceObj?.isElectro === true;
-}
-
-function _executeElectroEffect(centerRow, centerCol) {
-  console.log("Elektro Stack effect activated at position:", centerRow, centerCol);
-
-  // Definiere die 8 umgebenden Positionen (alle Richtungen)
-  const directions = [
-    [-1, -1], [-1, 0], [-1, 1],  // oben-links, oben, oben-rechts
-    [0, -1],           [0, 1],   // links, rechts
-    [1, -1],  [1, 0],  [1, 1]    // unten-links, unten, unten-rechts
-  ];
-
-  const clearedBlocks = [];
-  let totalClearedBlocks = 0;
-
-  // Sammle alle Blöcke in den umgebenden Feldern
-  directions.forEach(([dRow, dCol]) => {
-    const targetRow = centerRow + dRow;
-    const targetCol = centerCol + dCol;
-
-    // Prüfe ob Position im Board ist
-    if (targetRow >= 0 && targetRow < 10 && targetCol >= 0 && targetCol < 10) {
-      if (state.playerBoard[targetRow][targetCol] === 1) {
-        const cell = state.boardCells[targetRow][targetCol];
-        clearedBlocks.push({
-          row: targetRow,
-          col: targetCol,
-          cell: cell,
-          color: cell.style.background,
-          hasRainbow: cell.classList.contains('rainbow')
-        });
-        totalClearedBlocks++;
-      }
-    }
-  });
-
-  if (totalClearedBlocks === 0) {
-    console.log("Keine Blöcke zum Löschen gefunden");
-    _showElectroCompleteMessage(0, 0);
-    return;
-  }
-
-  // Zeige Elektro-Animation
-  _showElectroAnimation(centerRow, centerCol, clearedBlocks);
-
-  // Nach Animation: Lösche die Blöcke und berechne Punkte
-  setTimeout(() => {
-    clearedBlocks.forEach(block => {
-      state.playerBoard[block.row][block.col] = 0;
-      block.cell.classList.remove("filled", "rainbow");
-      block.cell.style.background = "";
-
-      // Elektrische Lösch-Animation auf jedem Block
-      block.cell.classList.add("electro-zapped");
-      setTimeout(() => {
-        block.cell.classList.remove("electro-zapped");
-      }, 600);
-    });
-
-    // Berechne Punkte: 50 Punkte pro gelöschtem Block
-    const pointsPerBlock = 50;
-    const totalPoints = totalClearedBlocks * pointsPerBlock;
-
-    // Erhöhe permanenten Multiplier um +1 pro gelöschtem Block
-    const oldPermanentMultiplier = state.permanentMultiplier;
-    state.permanentMultiplier += totalClearedBlocks;
-    console.log(`Elektro Stack: Permanent multiplier increased from ${oldPermanentMultiplier.toFixed(0)}x to ${state.permanentMultiplier.toFixed(0)}x (+${totalClearedBlocks})`);
-
-    // Füge Punkte mit aktuellen Multiplikatoren hinzu
-    const finalPoints = totalPoints * state.currentMultiplier * state.permanentMultiplier;
-    state.playerScore += finalPoints;
-
-    // Update Displays
-    updateScoreDisplay();
-    updatePermanentMultiplierDisplay();
-
-    // Zeige Abschlussnachricht
-    _showElectroCompleteMessage(totalClearedBlocks, finalPoints);
-
-    console.log(`Elektro Stack: ${totalClearedBlocks} Blöcke gelöscht, ${finalPoints} Punkte erhalten`);
-  }, 800);
-}
-
-function _showElectroAnimation(centerRow, centerCol, targetBlocks) {
-  const boardElement = document.getElementById("board");
-  if (boardElement) {
-    boardElement.classList.add("electro-effect");
-
-    // Animation für das Board
-    setTimeout(() => {
-      boardElement.classList.remove("electro-effect");
-    }, 1500);
-  }
-
-  // Animiere jeden zu löschenden Block einzeln
-  targetBlocks.forEach((block, index) => {
-    setTimeout(() => {
-      block.cell.classList.add("electro-target");
-      setTimeout(() => {
-        block.cell.classList.remove("electro-target");
-      }, 400);
-    }, index * 50); // Gestaggerte Animation
-  });
-}
-
-function _showElectroCompleteMessage(blocksCleared, pointsGained) {
-  const messageDiv = document.createElement("div");
-  messageDiv.className = "electro-complete-message";
-
-  let messageText = "⚡ Elektro Stack abgefeuert!";
-  if (blocksCleared > 0) {
-    messageText += ` ${blocksCleared} Blöcke gelöscht! +${pointsGained} Punkte!`;
-  } else {
-    messageText += " Keine Blöcke betroffen.";
-  }
-
-  messageDiv.textContent = messageText;
-  messageDiv.style.cssText = `
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: linear-gradient(135deg, #FFD700, #FFA500);
-    color: #000;
-    padding: 15px 25px;
-    border-radius: 10px;
-    font-size: 16px;
-    font-weight: bold;
-    z-index: 10000;
-    box-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
-    backdrop-filter: blur(5px);
-    animation: electroMessageFade 3s ease-out forwards;
-    border: 2px solid #FFD700;
-  `;
-
-  document.body.appendChild(messageDiv);
-
-  setTimeout(() => {
-    if (messageDiv.parentNode) {
-      messageDiv.parentNode.removeChild(messageDiv);
-    }
-  }, 3000);
-}
 
 /* --------------------------------------------------------------------
  *  Zeilen/Spalten räumen - mit erweitertem Punktesystem und Multiplikatoren
@@ -1218,12 +851,19 @@ function canPlaceSomewhere(sh) {
 function checkGameOverCondition() {
   console.log("checkGameOverCondition aufgerufen");
 
+  // Skip game over check during storm animation
+  if (state.stormAnimationActive) {
+    console.log("Storm animation active, skipping game over check");
+    return;
+  }
+
   // CPU-Modus: Spielende wenn beide keine Züge mehr haben oder wenn Spieler CPU nach beendetem KI-Zug überholt
   if (state.currentMode === "cpu") {
     console.log("CPU-Modus");
 
     // Wenn keine Pieces mehr, neue Pieces generieren (unabhängig von hasMoves)
-    if (state.playerPieces.length === 0) {
+    // ABER NICHT während einer Storm-Animation
+    if (state.playerPieces.length === 0 && !state.stormAnimationActive) {
       console.log("Keine Player Pieces mehr, generiere neue");
       generatePieces();
       renderPieces();
@@ -1271,7 +911,14 @@ function checkGameOverCondition() {
   // PvP: nur Pieces nachfüllen, keine lokale Spielbeendigung (Server steuert Ende)
   if (state.currentMode === "player") {
     console.log("PvP-Modus");
-    if (state.playerPieces.length === 0) {
+
+    // Skip game over check during storm animation
+    if (state.stormAnimationActive) {
+      console.log("Storm animation active in PvP, skipping checks");
+      return;
+    }
+
+    if (state.playerPieces.length === 0 && !state.stormAnimationActive) {
       console.log("Keine Player Pieces mehr, generiere neue");
       generatePieces();
       renderPieces();
@@ -1352,136 +999,84 @@ export function handleDrop(shape, row, col) {
   }
 }
 
-// Comprehensive test function for electro stack
-window.testElectroComplete = function() {
-  console.log("=== ELEKTRO STACK COMPLETE TEST ===");
+// Test functions for the modular power-up system
+window.testPowerUpSystem = function() {
+  console.log("=== MODULAR POWER-UP SYSTEM TEST ===");
 
-  // Clear the board first
-  for (let r = 0; r < 10; r++) {
-    for (let c = 0; c < 10; c++) {
-      state.playerBoard[r][c] = 0;
-      const cell = state.boardCells[r][c];
-      if (cell) {
-        cell.classList.remove('filled', 'rainbow');
-        cell.style.background = '';
-      }
-    }
-  }
-
-  // Add an electro piece to inventory
-  state.playerPieces = [{
-    shape: [[0, 0]],
-    color: '#FFD700',
-    isElectro: true
-  }];
-  renderPieces();
-  console.log("✅ Elektro piece added to inventory");
-
-  // Add test blocks around position (5,5) in a 3x3 pattern
-  const testBlocks = [
-    [4, 4], [4, 5], [4, 6],
-    [5, 4],         [5, 6],
-    [6, 4], [6, 5], [6, 6]
-  ];
-
-  testBlocks.forEach(([r, c]) => {
-    state.playerBoard[r][c] = 1;
-    const cell = state.boardCells[r][c];
-    if (cell) {
-      cell.classList.add('filled', 'rainbow');
-      cell.style.background = '#FF6B6B';
-    }
-  });
-
-  const oldScore = state.playerScore;
-  const oldMultiplier = state.permanentMultiplier;
-
-  console.log(`✅ Added ${testBlocks.length} test blocks around (5,5)`);
-  console.log(`📊 Score before: ${oldScore}, Permanent Multiplier before: ${oldMultiplier}x`);
-
-  // Test the electro effect
-  setTimeout(() => {
-    console.log("🔥 Executing Elektro Stack effect...");
-    _executeElectroEffect(5, 5);
-
-    // Check results after the effect completes
-    setTimeout(() => {
-      const newScore = state.playerScore;
-      const newMultiplier = state.permanentMultiplier;
-      const scoreDiff = newScore - oldScore;
-      const multiplierDiff = newMultiplier - oldMultiplier;
-
-      console.log(`📊 Score after: ${newScore} (+${scoreDiff})`);
-      console.log(`📊 Permanent Multiplier after: ${newMultiplier}x (+${multiplierDiff})`);
-      console.log(`✅ Expected: 8 blocks cleared, +8 to multiplier, points = 8*50*currentMultiplier*newPermanentMultiplier`);
-
-      // Verify blocks were cleared
-      let remainingBlocks = 0;
-      testBlocks.forEach(([r, c]) => {
-        if (state.playerBoard[r][c] === 1) remainingBlocks++;
-      });
-
-      console.log(`🔍 Remaining blocks: ${remainingBlocks} (should be 0)`);
-
-      if (remainingBlocks === 0 && multiplierDiff === testBlocks.length) {
-        console.log("🎉 TEST PASSED: Elektro Stack working correctly!");
-      } else {
-        console.log("❌ TEST FAILED: Something went wrong");
-      }
-    }, 2000);
-  }, 1000);
-};
-
-console.log("🧪 Elektro Stack Test Functions Available:");
-console.log("- forceElectroPiece() : Add elektro piece to inventory");
-console.log("- testElectroEffect() : Test the elektro effect with sample blocks");
-console.log("- testElectroComplete() : Full comprehensive test");
-
-// Final integration test
-window.testElectroFinal = function() {
-  console.log("=== FINAL ELEKTRO STACK INTEGRATION TEST ===");
-
-  // Clear any existing errors
-  console.clear();
-
-  // Test 1: Check if all functions exist
-  const requiredFunctions = [
-    '_executeElectroEffect',
-    '_showElectroAnimation',
-    '_showElectroCompleteMessage',
-    '_showScoreAnimations',
-    '_showMultiplierAnimation',
-    '_showPointsAnimation'
-  ];
-
-  console.log("🔍 Checking required functions...");
-  let allFunctionsExist = true;
-
-  requiredFunctions.forEach(funcName => {
-    if (typeof window[funcName] === 'function' || funcName in window) {
-      console.log(`✅ ${funcName} - Available`);
-    } else {
-      console.log(`❌ ${funcName} - Missing`);
-      allFunctionsExist = false;
-    }
-  });
-
-  if (!allFunctionsExist) {
-    console.log("❌ Some required functions are missing!");
+  if (!window.powerUpRegistry) {
+    console.log("❌ Power-up registry not available!");
     return;
   }
 
-  // Test 2: Force elektro piece and test placement
-  console.log("\n🧪 Testing Elektro piece generation...");
-  forceElectroPiece();
+  // Test Storm Block
+  console.log("\n🌪️ Testing Storm Block:");
+  const stormPiece = window.powerUpRegistry.stormBlock.createPiece();
+  state.playerPieces = [stormPiece];
+  renderPieces();
+  console.log("✅ Storm Block added to inventory");
 
-  // Test 3: Run the comprehensive test
-  console.log("\n🧪 Running comprehensive elektro test...");
-  setTimeout(() => {
-    testElectroComplete();
-  }, 1000);
+  // Test Electro Stack
+  console.log("\n⚡ Testing Electro Stack:");
+  const electroPiece = window.powerUpRegistry.electroStack.createPiece();
+  state.playerPieces = [electroPiece];
+  renderPieces();
+  console.log("✅ Electro Stack added to inventory");
 
-  console.log("✅ All tests initiated! Check console for results.");
+  console.log("\n🎯 Test completed! Try placing the power-ups on the board.");
 };
 
-console.log("🚀 NEW: testElectroFinal() - Complete integration test");
+// Automatic system verification test
+window.verifyPowerUpSystem = function() {
+  console.log("🔧 VERIFYING MODULAR POWER-UP SYSTEM:");
+
+  if (!window.powerUpRegistry) {
+    console.log("❌ Power-up registry not available!");
+    return false;
+  }
+
+  // Check if registry has the required power-ups
+  const hasStorm = window.powerUpRegistry.stormBlock !== undefined;
+  const hasElectro = window.powerUpRegistry.electroStack !== undefined;
+
+  console.log(`🌪️ Storm Block available: ${hasStorm ? '✅' : '❌'}`);
+  console.log(`⚡ Electro Stack available: ${hasElectro ? '✅' : '❌'}`);
+
+  // Check if registry methods are available
+  const hasGeneration = typeof window.powerUpRegistry.applyPowerUpGeneration === 'function';
+  const hasStyling = typeof window.powerUpRegistry.applyPowerUpStyling === 'function';
+  const hasExecution = typeof window.powerUpRegistry.executePowerUp === 'function';
+
+  console.log(`🎲 Generation method: ${hasGeneration ? '✅' : '❌'}`);
+  console.log(`🎨 Styling method: ${hasStyling ? '✅' : '❌'}`);
+  console.log(`⚡ Execution method: ${hasExecution ? '✅' : '❌'}`);
+
+  const allGood = hasStorm && hasElectro && hasGeneration && hasStyling && hasExecution;
+  console.log(`\n🎯 System Status: ${allGood ? '✅ OPERATIONAL' : '❌ ERRORS DETECTED'}`);
+
+  return allGood;
+};
+
+// Run verification on load
+setTimeout(() => {
+  verifyPowerUpSystem();
+}, 1000);
+
+/* --------------------------------------------------------------------
+ *  Public API Methods for Power-Up System
+ * ------------------------------------------------------------------ */
+
+/**
+ * Public method to clear full lines on the board
+ * Used by power-ups that need to trigger line clearing
+ */
+function clearLines() {
+  return _clearLines();
+}
+
+/**
+ * Public method to check if there are full lines
+ * Used by power-ups to determine if clearing is needed
+ */
+function hasFullLines() {
+  return _hasFullLines();
+}

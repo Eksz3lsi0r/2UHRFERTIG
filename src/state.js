@@ -64,6 +64,9 @@ export const state = {
   opponentFinished: false, // Flag für PVP: Gegner hat kein Züge mehr
   opponentFinalScore: 0, // Finale Punktzahl des Gegners im PVP
 
+  // Power-up flags
+  stormAnimationActive: false, // Flag to prevent inventory generation during storm animation
+
   // Domänenübergreifende Sprache
   currentLanguage: "de",
   // CPU-Schwierigkeitsgrad

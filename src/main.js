@@ -1,14 +1,18 @@
 /* --------------------------------------------------------------------
  *  src/main.js   –   Bootstrap & High-Level-Flows
  * ------------------------------------------------------------------ */
-import { state } from "./state.js";
-import { ui } from "./ui.js";
-import { player } from "./player.js";
 import { cpu } from "./cpu.js";
 import { GridSnap } from "./drag.js";
-import { findGame, cancelMatchmaking } from "./network.js";
-import { LANG } from "./constants.js";
-import { socket as networkSocket } from "./network.js";
+import { cancelMatchmaking, findGame, socket as networkSocket } from "./network.js";
+import { player } from "./player.js";
+import { state } from "./state.js";
+import { ui } from "./ui.js";
+
+// Import power-up system
+import { initializePowerUps, powerUpRegistry } from "./powerups/index.js";
+
+// Initialize power-ups
+initializePowerUps();
 
 // Globale Referenzen für Zugriff aus anderen Modulen
 // Expose core APIs for global use
@@ -16,6 +20,7 @@ window.state = state;
 window.player = player;
 window.ui = ui;
 window.cpu = cpu;
+window.powerUpRegistry = powerUpRegistry; // Expose power-up registry globally
 window.startCpuMode = startCpuMode;
 window.startCpuGameWithDifficulty = startCpuGameWithDifficulty;
 window.startPvpMode = startPvpMode;
@@ -369,7 +374,7 @@ function startPvpMode(ranked = false) {
   if (typeof window.ui?.buildBoardDOM === "function") {
     window.ui.buildBoardDOM();
   }
-  
+
   // Show matchmaking overlay instead of game area immediately
   ui.showMatchmakingOverlay(ranked);
 
