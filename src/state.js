@@ -29,6 +29,14 @@ export const state = {
   lastClearTurn: -1,
   currentMultiplier: 1,
 
+  // 40x Multiplier Duration System
+  currentMultiplier40xRoundsRemaining: 0,
+  turnCounter: 0,
+
+  // ExtendBlock Special Behavior Tracking
+  lastExtendBlockTurn: -1,
+  lastExtendBlockWasOnEmptyField: false,
+
   // Permanenter Multiplikator (Spieler) - erhöht sich mit jeder Linien-Löschung
   permanentMultiplier: 1,
 
@@ -37,6 +45,13 @@ export const state = {
   cpuLastClearTurn: -1,
   cpuCurrentMultiplier: 1,
   cpuTurnCounter: 0,
+
+  // CPU 40x Multiplier Duration System
+  cpuCurrentMultiplier40xRoundsRemaining: 0,
+
+  // CPU ExtendBlock Special Behavior Tracking
+  cpuLastExtendBlockTurn: -1,
+  cpuLastExtendBlockWasOnEmptyField: false,
 
   // Permanenter Multiplikator (CPU) - erhöht sich mit jeder Linien-Löschung
   cpuPermanentMultiplier: 1,

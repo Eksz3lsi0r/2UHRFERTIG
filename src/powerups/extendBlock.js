@@ -120,6 +120,10 @@ export class ExtendBlock extends BasePowerUp {
   execute(row, col, gameState) {
     debugLog(`Extend Block effect activated at position [${row}, ${col}]!`);
 
+    // Track this ExtendBlock usage
+    gameState.lastExtendBlockTurn = gameState.turnCounter;
+    gameState.lastExtendBlockWasOnEmptyField = gameState.playerBoard.every(row => row.every(cell => cell === 0));
+
     // Set flag to prevent automatic inventory generation during extend animation
     gameState.extendAnimationActive = true;
 
@@ -476,7 +480,7 @@ export class ExtendBlock extends BasePowerUp {
 
       debugLog(`Extend Block: BEFORE - consecutiveClears: ${gameState.consecutiveClears}, currentMultiplier: ${gameState.currentMultiplier}x, permanentMultiplier: ${gameState.permanentMultiplier}x`);
 
-      // Increase current multiplier for each cleared line
+      // Increase consecutive clears counter
       gameState.consecutiveClears += totalLinesCleared;
 
       // Check if entire board is cleared (all 100 cells filled)
@@ -489,15 +493,26 @@ export class ExtendBlock extends BasePowerUp {
         }
       }
 
-      // Set current multiplier: 20x if entire board is cleared, otherwise max 8x
-      if (allCellsFilled) {
-        gameState.currentMultiplier = 20;
-        debugLog(`Extend Block: SPECIAL CASE - Entire board cleared! Current multiplier set to 20x`);
-      } else {
-        gameState.currentMultiplier = Math.min(gameState.consecutiveClears, 8); // Maximum 8x normally
+      // Use normal progression: +1 per line + consecutive bonus
+      gameState.currentMultiplier += totalLinesCleared;
+
+      // Consecutive clear bonus if last clear was recent
+      if (gameState.lastClearTurn === gameState.turnCounter - 1) {
+        gameState.currentMultiplier += 1;
+        debugLog(`Extend Block: Consecutive clear bonus +1`);
+      }
+      gameState.lastClearTurn = gameState.turnCounter;
+
+      // Cap at 40x
+      gameState.currentMultiplier = Math.min(gameState.currentMultiplier, 40);
+
+      // If 40x reached, start 3-round duration
+      if (gameState.currentMultiplier === 40 && gameState.currentMultiplier40xRoundsRemaining === 0) {
+        gameState.currentMultiplier40xRoundsRemaining = 3;
+        debugLog(`Extend Block: 40x multiplier reached! Starting 3-round duration.`);
       }
 
-      debugLog(`Extend Block: AFTER Current multiplier - consecutiveClears: ${gameState.consecutiveClears}, currentMultiplier: ${gameState.currentMultiplier}x`);
+      debugLog(`Extend Block: AFTER Current multiplier - currentMultiplier: ${gameState.currentMultiplier}x (${totalLinesCleared} lines + consecutive bonus)`);
 
       // Clear the lines visually
       fullRows.forEach((r) => {
@@ -659,6 +674,75 @@ export class ExtendBlock extends BasePowerUp {
   }
 
   /**
+   * Show special 40x multiplier activation message
+   * @private
+   */
+  _showSpecial40xMessage() {
+    const messageDiv = document.createElement("div");
+    messageDiv.className = "extend-special-40x-message";
+
+    messageDiv.textContent = "🔥 SPECIAL EXTEND COMBO!\n40x MULTIPLIER ACTIVATED!\n3 Rounds Remaining";
+    messageDiv.style.cssText = `
+      position: fixed;
+      top: 30%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: linear-gradient(135deg, #ff6b35, #ff9500);
+      color: white;
+      padding: 20px 30px;
+      border-radius: 15px;
+      font-size: 20px;
+      font-weight: bold;
+      z-index: 10001;
+      box-shadow: 0 0 30px rgba(255, 107, 53, 0.8), 0 0 60px rgba(255, 149, 0, 0.6);
+      backdrop-filter: blur(5px);
+      animation: special40xPulse 4s ease-out forwards;
+      white-space: pre-line;
+      text-align: center;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+    `;
+
+    document.body.appendChild(messageDiv);
+
+    // Add CSS animation if it doesn't exist
+    if (!document.querySelector('#special-40x-animation-styles')) {
+      const styleSheet = document.createElement('style');
+      styleSheet.id = 'special-40x-animation-styles';
+      styleSheet.textContent = `
+        @keyframes special40xPulse {
+          0% {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0.5);
+          }
+          20% {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1.2);
+          }
+          40% {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+          }
+          80% {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+          }
+          100% {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0.8);
+          }
+        }
+      `;
+      document.head.appendChild(styleSheet);
+    }
+
+    setTimeout(() => {
+      if (messageDiv.parentNode) {
+        messageDiv.parentNode.removeChild(messageDiv);
+      }
+    }, 4000);
+  }
+
+  /**
    * Test the extend effect with a positioned block
    */
   testEffect() {
@@ -787,10 +871,10 @@ export class ExtendBlock extends BasePowerUp {
   }
 
   /**
-   * Test the special 20x multiplier case by filling the entire board except one cell
+   * Test the special 40x multiplier case by filling the entire board except one cell
    */
-  testExtend20xMultiplier() {
-    debugLog("Testing Extend Block 20x multiplier (entire board clear)...");
+  testExtend40xMultiplier() {
+    debugLog("Testing Extend Block 40x multiplier (entire board clear)...");
 
     if (!window.state?.playerBoard || !window.state?.boardCells) {
       console.error("Game state not available for testing");
@@ -826,9 +910,9 @@ export class ExtendBlock extends BasePowerUp {
     const initialPermanentMultiplier = window.state.permanentMultiplier;
 
     debugLog(`📊 Before Extend: Score=${initialScore}, Current Multiplier=${initialCurrentMultiplier}x, Consecutive Clears=${initialConsecutiveClears}, Permanent Multiplier=${initialPermanentMultiplier}x`);
-    debugLog("Setup: Entire board filled except [5,5] - extend block should trigger 20x multiplier!");
+    debugLog("Setup: Entire board filled except [5,5] - extend block should trigger 40x multiplier!");
 
-    // Execute extend at [5,5] - this should fill the entire board and trigger 20x multiplier
+    // Execute extend at [5,5] - this should fill the entire board and trigger 40x multiplier
     this.execute(5, 5, window.state);
 
     // Check results after a delay
@@ -840,14 +924,96 @@ export class ExtendBlock extends BasePowerUp {
 
       debugLog(`📊 After Extend: Score=${newScore} (+${newScore - initialScore}), Current Multiplier=${newCurrentMultiplier}x (+${newCurrentMultiplier - initialCurrentMultiplier}), Consecutive Clears=${newConsecutiveClears} (+${newConsecutiveClears - initialConsecutiveClears}), Permanent Multiplier=${newPermanentMultiplier}x (+${newPermanentMultiplier - initialPermanentMultiplier})`);
 
-      if (newCurrentMultiplier === 20) {
-        debugLog("✅ SUCCESS: 20x multiplier achieved when entire board was cleared!");
+      if (newCurrentMultiplier === 40) {
+        debugLog("✅ SUCCESS: 40x multiplier achieved when entire board was cleared!");
       } else {
-        debugLog(`❌ FAILURE: Expected 20x multiplier, got ${newCurrentMultiplier}x`);
+        debugLog(`❌ FAILURE: Expected 40x multiplier, got ${newCurrentMultiplier}x`);
       }
 
-      debugLog("✅ Extend Block 20x multiplier test completed!");
+      debugLog("✅ Extend Block 40x multiplier test completed!");
     }, 5000); // Longer delay to account for extend animation
+  }
+
+  /**
+   * Test the special ExtendBlock double combo for 40x multiplier
+   */
+  testExtendBlockDoubleCombo() {
+    debugLog("Testing ExtendBlock double combo for 40x multiplier...");
+
+    if (!window.state?.playerBoard || !window.state?.boardCells) {
+      console.error("Game state not available for testing");
+      return;
+    }
+
+    // Clear the board completely
+    for (let r = 0; r < 10; r++) {
+      for (let c = 0; c < 10; c++) {
+        window.state.playerBoard[r][c] = 0;
+        const cell = window.state.boardCells[r][c];
+        if (cell) {
+          cell.classList.remove('filled', 'rainbow');
+          cell.style.background = '';
+          cell.innerHTML = '';
+        }
+      }
+    }
+
+    // Reset multiplier tracking
+    window.state.turnCounter = 0;
+    window.state.lastExtendBlockTurn = -1;
+    window.state.lastExtendBlockWasOnEmptyField = false;
+    window.state.currentMultiplier = 1;
+    window.state.currentMultiplier40xRoundsRemaining = 0;
+
+    debugLog("📊 Setup: Empty board, reset turn counter and ExtendBlock tracking");
+    debugLog("Step 1: First ExtendBlock on empty field");
+
+    // First ExtendBlock - should set tracking but not activate 40x multiplier
+    window.state.turnCounter = 1;
+    this.execute(5, 5, window.state);
+
+    setTimeout(() => {
+      debugLog(`After first ExtendBlock: lastExtendBlockTurn=${window.state.lastExtendBlockTurn}, lastExtendBlockWasOnEmptyField=${window.state.lastExtendBlockWasOnEmptyField}`);
+
+      // Wait for first extend to complete, then clear board and do second ExtendBlock
+      setTimeout(() => {
+        // Clear board again to simulate empty field
+        for (let r = 0; r < 10; r++) {
+          for (let c = 0; c < 10; c++) {
+            window.state.playerBoard[r][c] = 0;
+            const cell = window.state.boardCells[r][c];
+            if (cell) {
+              cell.classList.remove('filled', 'rainbow');
+              cell.style.background = '';
+              cell.innerHTML = '';
+            }
+          }
+        }
+
+        debugLog("Step 2: Second ExtendBlock on empty field (should trigger 40x multiplier)");
+
+        // Second ExtendBlock - should trigger 40x multiplier
+        window.state.turnCounter = 2;
+        const initialMultiplier = window.state.currentMultiplier;
+
+        this.execute(4, 4, window.state);
+
+        setTimeout(() => {
+          const newMultiplier = window.state.currentMultiplier;
+          const duration = window.state.currentMultiplier40xRoundsRemaining;
+
+          debugLog(`📊 After second ExtendBlock: Current Multiplier=${newMultiplier}x, Duration=${duration} rounds`);
+
+          if (newMultiplier === 40 && duration === 3) {
+            debugLog("✅ SUCCESS: 40x multiplier activated with 3 rounds duration!");
+          } else {
+            debugLog(`❌ FAILURE: Expected 40x multiplier with 3 rounds, got ${newMultiplier}x with ${duration} rounds`);
+          }
+
+          debugLog("✅ ExtendBlock double combo test completed!");
+        }, 2000);
+      }, 3000);
+    }, 1000);
   }
 }
 

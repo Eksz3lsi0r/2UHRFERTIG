@@ -74,6 +74,9 @@ function takeTurn() {
   // Increment turn counter for combo tracking
   state.cpuTurnCounter++;
 
+  // Handle 40x multiplier duration
+  _handleCpuMultiplierDuration();
+
   /* Nachschub besorgen */
   if (state.cpuPieces.length === 0) _generatePieces();
   if (!hasMoves()) {
@@ -416,9 +419,16 @@ function _clearLines() {
   }
 
   if (fullRows.length === 0 && fullCols.length === 0) {
-    // Keine Linien gelöscht - Combo zurücksetzen
-    state.cpuConsecutiveClears = 0;
-    state.cpuCurrentMultiplier = 1;
+    // Keine Linien gelöscht - current multiplier zurücksetzen
+    // ABER nur wenn keine 40x Duration aktiv ist
+    if (state.cpuCurrentMultiplier40xRoundsRemaining === 0) {
+      state.cpuCurrentMultiplier = 1;
+      debugLog(`CPU: No lines cleared - current multiplier reset to 1x`);
+    } else {
+      // 40x Duration aktiv - multiplier bleibt bei 40x
+      state.cpuCurrentMultiplier = 40;
+      debugLog(`CPU: No lines cleared but 40x duration active - current multiplier stays at 40x`);
+    }
     updateOpponentCurrentMultiplierDisplay();
     return;
   }
@@ -442,27 +452,33 @@ function _clearLines() {
   if (fullRows.length > 1) basePoints += fullRows.length * 2;
   if (fullCols.length > 1) basePoints += fullCols.length * 2;
 
-  // Combo-System: Aufeinanderfolgende Löschungen
+  // Calculate total lines cleared this turn
+  const totalLinesCleared = fullRows.length + fullCols.length;
+
+  // Simple progression: +1 current multiplier pro gelöschter Linie
+  state.cpuCurrentMultiplier += totalLinesCleared;
+
+  // Consecutive clear bonus: +1 wenn aufeinanderfolgend
   if (state.cpuLastClearTurn === state.cpuTurnCounter - 1) {
-    // Consecutive clear
-    state.cpuConsecutiveClears++;
-  } else {
-    // New combo starts
-    state.cpuConsecutiveClears = 1;
+    state.cpuCurrentMultiplier += 1; // Bonus für consecutive clear
+    debugLog(`CPU Consecutive clear bonus: +1 current multiplier`);
   }
   state.cpuLastClearTurn = state.cpuTurnCounter;
+
+  // Current multiplier cap at 40x
+  state.cpuCurrentMultiplier = Math.min(state.cpuCurrentMultiplier, 40);
+
+  // Wenn 40x erreicht wird, starte 3-Runden Duration
+  if (state.cpuCurrentMultiplier === 40 && state.cpuCurrentMultiplier40xRoundsRemaining === 0) {
+    state.cpuCurrentMultiplier40xRoundsRemaining = 3;
+    debugLog(`CPU 40x multiplier reached! Starting 3-round duration.`);
+  }
 
   // Permanenter Multiplikator erhöhen bei jeder Linien-Löschung
   const oldCpuPermanentMultiplier = state.cpuPermanentMultiplier;
   state.cpuPermanentMultiplier += 1; // +1x für jede gelöschte Linie (summativ)
   debugLog(`CPU Permanent multiplier increased from ${oldCpuPermanentMultiplier.toFixed(0)}x to ${state.cpuPermanentMultiplier.toFixed(0)}x`);
-
-  // Multiplikator berechnen (steigt mit Combos)
-  if (state.cpuConsecutiveClears > 1) {
-    state.cpuCurrentMultiplier = Math.min(state.cpuConsecutiveClears, 8); // Maximum 8x
-  } else {
-    state.cpuCurrentMultiplier = 1;
-  }
+  debugLog(`CPU Current multiplier: ${state.cpuCurrentMultiplier}x (${totalLinesCleared} lines + consecutive bonus)`);
 
   // Finale Punkte mit BEIDEN Multiplikatoren (Combo * Permanent)
   let finalPoints = basePoints * 10 * state.cpuCurrentMultiplier * state.cpuPermanentMultiplier;
@@ -607,4 +623,20 @@ function updateOpponentCurrentMultiplierDisplay() {
 function _noMovesLeft() {
   // CPU hat keine Züge mehr: nur das Flag setzen, Spieler kann weiterspielen
   state.cpuGameActive = false;
+}
+
+/* ---------- CPU 40x Multiplier Duration Handler ----------------------------------- */
+function _handleCpuMultiplierDuration() {
+  // If we have 40x multiplier with duration remaining, decrease it
+  if (state.cpuCurrentMultiplier40xRoundsRemaining > 0) {
+    state.cpuCurrentMultiplier40xRoundsRemaining--;
+    debugLog(`CPU 40x multiplier duration decreased to ${state.cpuCurrentMultiplier40xRoundsRemaining} rounds remaining`);
+
+    // If duration is over, reset current multiplier to 1
+    if (state.cpuCurrentMultiplier40xRoundsRemaining === 0) {
+      state.cpuCurrentMultiplier = 1;
+      debugLog("CPU 40x multiplier duration expired - current multiplier reset to 1x");
+      updateOpponentCurrentMultiplierDisplay();
+    }
+  }
 }

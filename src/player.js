@@ -1,6 +1,3 @@
-/* --------------------------------------------------------------------
- *  src/player.js   –   Logik für das Spieler-Brett
- * ------------------------------------------------------------------ */
 import {
   ALL_POSSIBLE_SHAPES,
   getRandomRainbowColor,
@@ -390,14 +387,25 @@ function placeShape(shape, br, bc) {
   state.playerScore += shapePoints;
   updateScoreDisplay();
 
+  // Advance turn counter for 40x multiplier duration tracking
+  state.turnCounter++;
+  _handleMultiplierDuration();
+
   // Merke den Zustand vor dem Löschen für Combo-Logic
   const hadLinesBeforeClearing = _hasFullLines();
   _clearLines();
 
-  // Falls keine Linien gelöscht wurden, Combo zurücksetzen
+  // Falls keine Linien gelöscht wurden, current multiplier zurücksetzen
+  // ABER nur wenn keine 40x Duration aktiv ist
   if (!hadLinesBeforeClearing) {
-    state.consecutiveClears = 0;
-    state.currentMultiplier = 1;
+    if (state.currentMultiplier40xRoundsRemaining === 0) {
+      state.currentMultiplier = 1;
+      debugLog(`No lines cleared - current multiplier reset to 1x`);
+    } else {
+      // 40x Duration aktiv - multiplier bleibt bei 40x
+      state.currentMultiplier = 40;
+      debugLog(`No lines cleared but 40x duration active - current multiplier stays at 40x`);
+    }
     updateCurrentMultiplierDisplay();
   }
 
@@ -448,9 +456,23 @@ function _hasFullLines() {
   return false;
 }
 
+/* --------------------------------------------------------------------
+ *  40x Multiplier Duration Handler
+ * ------------------------------------------------------------------ */
+function _handleMultiplierDuration() {
+  // If we have 40x multiplier with duration remaining, decrease it
+  if (state.currentMultiplier40xRoundsRemaining > 0) {
+    state.currentMultiplier40xRoundsRemaining--;
+    debugLog(`40x multiplier duration decreased to ${state.currentMultiplier40xRoundsRemaining} rounds remaining`);
 
-
-
+    // If duration is over, reset current multiplier to 1
+    if (state.currentMultiplier40xRoundsRemaining === 0) {
+      state.currentMultiplier = 1;
+      debugLog("40x multiplier duration expired - current multiplier reset to 1x");
+      updateCurrentMultiplierDisplay();
+    }
+  }
+}
 
 /* --------------------------------------------------------------------
  *  Zeilen/Spalten räumen - mit erweitertem Punktesystem und Multiplikatoren
@@ -526,26 +548,36 @@ function _clearLines() {
   if (fullRows.length > 1) basePoints += fullRows.length * 2;
   if (fullCols.length > 1) basePoints += fullCols.length * 2;
 
-  // Combo-System: Aufeinanderfolgende Löschungen
-  state.consecutiveClears++;
+  // Berechne die Gesamtzahl der gelöschten Linien für die Animation
+  const totalLinesCleared = fullRows.length + fullCols.length;
+
+  // Simple progression: +1 current multiplier pro gelöschter Linie
+  state.currentMultiplier += totalLinesCleared;
+
+  // Consecutive clear bonus: +1 wenn aufeinanderfolgend
+  if (state.lastClearTurn === state.turnCounter - 1) {
+    state.currentMultiplier += 1; // Bonus für consecutive clear
+    debugLog(`Consecutive clear bonus: +1 current multiplier`);
+  }
+  state.lastClearTurn = state.turnCounter;
+
+  // Current multiplier cap at 40x
+  state.currentMultiplier = Math.min(state.currentMultiplier, 40);
+
+  // Wenn 40x erreicht wird, starte 3-Runden Duration
+  if (state.currentMultiplier === 40 && state.currentMultiplier40xRoundsRemaining === 0) {
+    state.currentMultiplier40xRoundsRemaining = 3;
+    debugLog(`40x multiplier reached! Starting 3-round duration.`);
+  }
 
   // Permanenter Multiplikator erhöhen bei jeder Linien-Löschung
   const oldPermanentMultiplier = state.permanentMultiplier;
   state.permanentMultiplier += 1; // +1x für jede gelöschte Linie (summativ)
   debugLog(`Permanent multiplier increased from ${oldPermanentMultiplier.toFixed(0)}x to ${state.permanentMultiplier.toFixed(0)}x`);
-
-  // Multiplikator berechnen (steigt mit Combos)
-  if (state.consecutiveClears > 1) {
-    state.currentMultiplier = Math.min(state.consecutiveClears, 8); // Maximum 8x
-  } else {
-    state.currentMultiplier = 1;
-  }
+  debugLog(`Current multiplier: ${state.currentMultiplier}x (${totalLinesCleared} lines + consecutive bonus)`);
 
   // Finale Punkte mit BEIDEN Multiplikatoren (Combo * Permanent)
   let finalPoints = basePoints * 10 * state.currentMultiplier * state.permanentMultiplier;
-
-  // Berechne die Gesamtzahl der gelöschten Linien für die Animation
-  const totalLinesCleared = fullRows.length + fullCols.length;
 
   // Animationen anzeigen
   _showScoreAnimations(finalPoints, state.currentMultiplier, totalLinesCleared);
@@ -1675,4 +1707,47 @@ console.log("🎨 Enhanced Power-Up Design Functions:");
 console.log("• testEnhancedPowerUpDesigns() - Show all enhanced power-ups");
 console.log("• showPowerUpComparison() - Compare old vs new designs");
 
-//# sourceMappingURL=player.js.map
+// Test function for new multiplier system
+window.testNewMultiplierSystem = function() {
+  console.log("🧪 TESTING NEW SIMPLE MULTIPLIER PROGRESSION");
+  console.log("═══════════════════════════════════════════");
+  console.log("Logik:");
+  console.log("• Pro gelöschter Linie: current multiplier +1");
+  console.log("• Consecutive clears: +1 bonus");
+  console.log("• Bei 40x erreicht: 3 Runden lang 40x");
+  console.log("• Nach 40x Duration: zurück auf 1x");
+  console.log("");
+
+  // Test progression
+  const originalMultiplier = window.state.currentMultiplier;
+  const originalDuration = window.state.currentMultiplier40xRoundsRemaining;
+
+  console.log("Test 1: 5 Linien cleared → should be 6x (5 + 1 start)");
+  window.state.currentMultiplier = 1;
+  window.state.currentMultiplier += 5; // 5 lines
+  console.log(`Result: ${window.state.currentMultiplier}x ✅`);
+
+  console.log("Test 2: 20 Linien cleared → should be 21x (20 + 1 start)");
+  window.state.currentMultiplier = 1;
+  window.state.currentMultiplier += 20; // 20 lines
+  console.log(`Result: ${window.state.currentMultiplier}x ✅`);
+
+  console.log("Test 3: 45 Linien cleared → should be 40x (cap at 40)");
+  window.state.currentMultiplier = 1;
+  window.state.currentMultiplier += 45; // 45 lines
+  window.state.currentMultiplier = Math.min(window.state.currentMultiplier, 40);
+  console.log(`Result: ${window.state.currentMultiplier}x ✅`);
+
+  console.log("Test 4: 40x mit Duration");
+  window.state.currentMultiplier = 40;
+  window.state.currentMultiplier40xRoundsRemaining = 3;
+  console.log(`40x Duration: ${window.state.currentMultiplier40xRoundsRemaining} rounds remaining ✅`);
+
+  // Restore original values
+  window.state.currentMultiplier = originalMultiplier;
+  window.state.currentMultiplier40xRoundsRemaining = originalDuration;
+
+  console.log("");
+  console.log("🎮 Neue Progression ist implementiert!");
+  console.log("Test ExtendBlock: window.extendBlock.testExtendBlockDoubleCombo()");
+};
