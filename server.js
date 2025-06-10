@@ -460,6 +460,29 @@ io.on("connection", async (socket) => {
     }
   });
 
+  socket.on("multiplierUpdate", (multiplierData) => {
+    const room = socket.gameRoom;
+    if (!room || !games[room] || games[room].isFinished) return;
+    const game = games[room];
+
+    // Store multiplier data for the player
+    if (!game.multipliers) {
+      game.multipliers = {};
+    }
+    game.multipliers[socket.id] = multiplierData;
+
+    const opponentId = game.players.find((id) => id !== socket.id);
+    if (opponentId && io.sockets.sockets.get(opponentId)) {
+      // Send multiplier update to opponent
+      io.to(opponentId).emit("opponentMultiplierUpdate", multiplierData);
+      console.log(`Multiplier update: ${socket.id} -> ${opponentId}`, {
+        permanent: multiplierData.permanentMultiplier,
+        current: multiplierData.currentMultiplier,
+        duration: multiplierData.currentMultiplier40xRoundsRemaining || 0
+      });
+    }
+  });
+
   socket.on("gameOver", (finalScore) => {
     const room = socket.gameRoom;
     if (!room || !games[room] || games[room].isFinished) return;

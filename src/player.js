@@ -484,6 +484,15 @@ function placeShape(shape, br, bc, pieceObj) {
       } else if (typeof mod.sendScore === "function") {
         mod.sendScore();
       }
+
+      // Send multiplier updates for PvP synchronization when multiplier is reset
+      if (!hadLinesBeforeClearing) {
+        if (typeof mod.debouncedMultiplierUpdate === "function") {
+          mod.debouncedMultiplierUpdate();
+        } else if (typeof mod.sendMultipliers === "function") {
+          mod.sendMultipliers();
+        }
+      }
     });
   }
 }
@@ -521,6 +530,17 @@ function _handleMultiplierDuration() {
       state.currentMultiplier = 1;
       debugLog("40x multiplier duration expired - current multiplier reset to 1x");
       updateCurrentMultiplierDisplay();
+
+      // Sync multiplier change to opponent in PvP
+      if (state.currentMode === "player") {
+        import("./network.js").then((mod) => {
+          if (typeof mod.debouncedMultiplierUpdate === "function") {
+            mod.debouncedMultiplierUpdate();
+          } else if (typeof mod.sendMultipliers === "function") {
+            mod.sendMultipliers();
+          }
+        });
+      }
     }
   }
 }
@@ -620,8 +640,8 @@ function _clearLines() {
     state.currentMultiplier40xRoundsRemaining = 3;
     debugLog(`40x multiplier reached! Starting 3-round duration.`);
 
-    // Show special 40x activation message
-    _show40xActivationMessage();
+    // 40x activation message removed - using operator animations only
+    // _show40xActivationMessage();
   }
 
   // Permanenter Multiplikator erhöhen bei jeder Linien-Löschung
@@ -634,10 +654,10 @@ function _clearLines() {
   const baseLineClearingPoints = basePoints * 10; // Base points with 10x multiplier
   let finalPoints = baseLineClearingPoints * state.currentMultiplier * state.permanentMultiplier;
 
-  // Animationen anzeigen
-  _showScoreAnimations(finalPoints, state.currentMultiplier, totalLinesCleared);
+  // Text animations removed - using operator animations only
+  // _showScoreAnimations(finalPoints, state.currentMultiplier, totalLinesCleared);
 
-  // Score animation mit Faktoren-Aufschlüsselung
+  // Score animation mit Faktoren-Aufschlüsselung (operator animations preserved)
   if (player.animateScore) {
     player.animateScore(finalPoints, baseLineClearingPoints, state.permanentMultiplier, state.currentMultiplier);
   }
@@ -661,6 +681,13 @@ function _clearLines() {
         mod.debouncedScoreUpdate();
       } else if (typeof mod.sendScore === "function") {
         mod.sendScore();
+      }
+
+      // Send multiplier updates for PvP synchronization
+      if (typeof mod.debouncedMultiplierUpdate === "function") {
+        mod.debouncedMultiplierUpdate();
+      } else if (typeof mod.sendMultipliers === "function") {
+        mod.sendMultipliers();
       }
     });
   }
@@ -962,10 +989,12 @@ function _show40xActivationMessage() {
  * ------------------------------------------------------------------ */
 function testAnimations() {
   debugLog("Testing animations...");
-  _showMultiplierAnimation(2, 2);
-  setTimeout(() => {
-    _showPointsAnimation(50);
-  }, 1000);
+  // Text animations disabled - using operator animations only
+  // _showMultiplierAnimation(2, 2);
+  // setTimeout(() => {
+  //   _showPointsAnimation(50);
+  // }, 1000);
+  debugLog("Text animations disabled - operator animations are used instead");
 }
 
 // Test-Funktion global verfügbar machen

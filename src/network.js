@@ -77,6 +77,25 @@ export function sendScore() {
     socket.emit("gameOver", state.playerScore);
   }
 }
+
+export function sendMultipliers() {
+  if (!socket.connected) {
+    console.warn("Socket not connected, unable to send multipliers");
+    return;
+  }
+
+  // Send both permanent and current multipliers for real-time synchronization
+  socket.emit("multiplierUpdate", {
+    permanentMultiplier: state.permanentMultiplier,
+    currentMultiplier: state.currentMultiplier,
+    currentMultiplier40xRoundsRemaining: state.currentMultiplier40xRoundsRemaining
+  });
+  debugLog("Multiplier update sent:", {
+    permanent: state.permanentMultiplier,
+    current: state.currentMultiplier,
+    duration: state.currentMultiplier40xRoundsRemaining
+  });
+}
 export function requestRematch() {
   socket.emit("requestRematch");
 }
@@ -85,9 +104,6 @@ export function cancelMatchmaking() {
   socket.emit("cancelMatchmaking");
   ui.hideMatchmakingOverlay();
 }
-
-// Export debounced functions for use by power-ups and other systems
-export { debouncedBoardUpdate, debouncedScoreUpdate };
 
 /* --------------------------------------------------------------------
  *  Events vom Server
@@ -234,6 +250,56 @@ socket.on("opponentScore", (score) => {
     }
   } else {
     console.warn("Opponent score element not found");
+  }
+});
+
+/* ---- Gegner schickt Multiplier-Updates ----------------------------- */
+socket.on("opponentMultiplierUpdate", (multiplierData) => {
+  try {
+    debugLog("Received opponent multiplier update:", multiplierData);
+
+    // Update opponent permanent multiplier display
+    const opponentPermanentElement = document.getElementById("opponentPermanentMultiplier");
+    const opponentPermanentValueElement = opponentPermanentElement?.querySelector(".multiplier-value");
+
+    if (opponentPermanentElement && opponentPermanentValueElement) {
+      opponentPermanentElement.style.display = "flex";
+      opponentPermanentValueElement.textContent = `${multiplierData.permanentMultiplier}x`;
+      debugLog(`Opponent permanent multiplier updated to: ${multiplierData.permanentMultiplier}x`);
+    }
+
+    // Update opponent current multiplier display
+    const opponentCurrentElement = document.getElementById("opponentCurrentMultiplier");
+    const opponentCurrentValueElement = opponentCurrentElement?.querySelector(".multiplier-value");
+
+    if (opponentCurrentElement && opponentCurrentValueElement) {
+      opponentCurrentElement.style.display = "flex";
+
+      // Special handling for 40x multiplier with duration
+      if (multiplierData.currentMultiplier === 40 && multiplierData.currentMultiplier40xRoundsRemaining > 0) {
+        opponentCurrentElement.classList.add("multiplier-40x-duration");
+        opponentCurrentValueElement.textContent = `40x (${multiplierData.currentMultiplier40xRoundsRemaining})`;
+        opponentCurrentElement.style.animation = "fire-pulse-40x 0.8s infinite ease-in-out";
+        debugLog(`Opponent 40x multiplier active: ${multiplierData.currentMultiplier40xRoundsRemaining} rounds remaining`);
+      } else {
+        opponentCurrentElement.classList.remove("multiplier-40x-duration");
+        opponentCurrentValueElement.textContent = `${multiplierData.currentMultiplier}x`;
+
+        // Add pulsing effect when multiplier is > 1
+        if (multiplierData.currentMultiplier > 1) {
+          opponentCurrentElement.style.animation = "fire-pulse 1s ease-in-out";
+          setTimeout(() => {
+            opponentCurrentElement.style.animation = "fire-pulse 2s infinite ease-in-out";
+          }, 1000);
+        } else {
+          opponentCurrentElement.style.animation = "";
+        }
+      }
+
+      debugLog(`Opponent current multiplier updated to: ${multiplierData.currentMultiplier}x`);
+    }
+  } catch (err) {
+    console.error("Error updating opponent multipliers:", err);
   }
 });
 
@@ -498,8 +564,10 @@ export function ensureOpponentBoardSync() {
 let syncInterval = null;
 let lastSentBoard = null;
 let lastSentScore = null;
+let lastSentMultipliers = null;
 let boardUpdateTimeout = null;
 let scoreUpdateTimeout = null;
+let multiplierUpdateTimeout = null;
 
 // Debounced update functions to prevent excessive network calls
 function debouncedBoardUpdate() {
@@ -524,6 +592,17 @@ function debouncedScoreUpdate() {
   }, 100); // 100ms debounce
 }
 
+function debouncedMultiplierUpdate() {
+  if (multiplierUpdateTimeout) {
+    clearTimeout(multiplierUpdateTimeout);
+  }
+
+  multiplierUpdateTimeout = setTimeout(() => {
+    sendMultipliers();
+    multiplierUpdateTimeout = null;
+  }, 100); // 100ms debounce
+}
+
 export function startRealTimeSynchronization() {
   debugLog("Starting real-time synchronization for opponent area");
 
@@ -535,6 +614,7 @@ export function startRealTimeSynchronization() {
   // Reset tracking variables when starting new sync
   lastSentBoard = null;
   lastSentScore = null;
+  lastSentMultipliers = null;
 
   // Set up periodic sync check every 500ms for real-time feeling
   syncInterval = setInterval(() => {
@@ -542,6 +622,7 @@ export function startRealTimeSynchronization() {
       // Only send updates if data has actually changed
       checkAndSendBoardUpdate();
       checkAndSendScoreUpdate();
+      checkAndSendMultiplierUpdate();
     }
   }, 500);
 }
@@ -564,9 +645,15 @@ export function stopRealTimeSynchronization() {
     scoreUpdateTimeout = null;
   }
 
+  if (multiplierUpdateTimeout) {
+    clearTimeout(multiplierUpdateTimeout);
+    multiplierUpdateTimeout = null;
+  }
+
   // Clear tracking variables when stopping sync
   lastSentBoard = null;
   lastSentScore = null;
+  lastSentMultipliers = null;
 }
 
 /* --------------------------------------------------------------------
@@ -589,3 +676,20 @@ function checkAndSendScoreUpdate() {
     sendScore();
   }
 }
+
+function checkAndSendMultiplierUpdate() {
+  const currentMultipliers = JSON.stringify({
+    permanent: state.permanentMultiplier,
+    current: state.currentMultiplier,
+    duration: state.currentMultiplier40xRoundsRemaining
+  });
+
+  if (lastSentMultipliers !== currentMultipliers) {
+    lastSentMultipliers = currentMultipliers;
+    sendMultipliers();
+  }
+}
+
+// Export the debounced functions for use in player.js
+export { debouncedBoardUpdate, debouncedMultiplierUpdate, debouncedScoreUpdate };
+
