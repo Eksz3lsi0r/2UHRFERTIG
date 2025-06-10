@@ -40,7 +40,7 @@
   --js-block-size: 30px;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   :root {
     --js-block-size: 24px;
   }
