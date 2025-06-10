@@ -409,15 +409,15 @@
 
   /* Gegner-Multiplikatoren repositionieren um Überlappung zu vermeiden */
   #opponentPermanentMultiplier {
-    top: -25px !important;
-    left: -45px !important; /* Weiter nach links verschieben */
+    top: -5px !important;
+    left: -70px !important; /* Weiter nach links verschieben */
     transform: scale(0.65) !important; /* Kleiner für mobile Geräte */
     z-index: 101 !important;
   }
 
   #opponentCurrentMultiplier {
-    top: 5px !important;
-    left: -45px !important; /* Weiter nach links verschieben */
+    top: 30px !important;
+    left: -70px !important; /* Weiter nach links verschieben */
     transform: scale(0.65) !important; /* Kleiner für mobile Geräte */
     z-index: 101 !important;
   }
@@ -425,12 +425,12 @@
   /* Zusätzliche Anpassungen für sehr kleine Bildschirme */
   @media (max-width: 480px) {
     #opponentPermanentMultiplier {
-      left: -55px !important; /* Noch weiter links für sehr kleine Bildschirme */
+      left: -80px !important; /* Noch weiter links für sehr kleine Bildschirme */
       transform: scale(0.55) !important; /* Noch kleiner */
     }
 
     #opponentCurrentMultiplier {
-      left: -55px !important; /* Noch weiter links für sehr kleine Bildschirme */
+      left: -80px !important; /* Noch weiter links für sehr kleine Bildschirme */
       transform: scale(0.55) !important; /* Noch kleiner */
     }
   }
@@ -743,15 +743,15 @@
 @media (hover: none) and (pointer: coarse) {
   /* Gegner-Multiplikatoren für alle Touch-Geräte repositionieren */
   #opponentPermanentMultiplier {
-    top: -25px !important;
-    left: -45px !important;
+    top: -5px !important;
+    left: -70px !important;
     transform: scale(0.65) !important;
     z-index: 101 !important;
   }
 
   #opponentCurrentMultiplier {
-    top: 5px !important;
-    left: -45px !important;
+    top: 30px !important;
+    left: -70px !important;
     transform: scale(0.65) !important;
     z-index: 101 !important;
   }
@@ -779,12 +779,12 @@
 @media (max-width: 1024px) and (hover: none) and (pointer: coarse) {
   /* Für alle modernen Touch-Geräte bis 1024px (inkl. Tablets im Portrait) */
   #opponentPermanentMultiplier {
-    left: -50px !important;
+    left: -75px !important;
     transform: scale(0.6) !important;
   }
 
   #opponentCurrentMultiplier {
-    left: -50px !important;
+    left: -75px !important;
     transform: scale(0.6) !important;
   }
 }
@@ -792,12 +792,12 @@
 /* iPhone 16 Pro und ähnliche Geräte (Landscape Modus) */
 @media (max-width: 900px) and (hover: none) and (pointer: coarse) {
   #opponentPermanentMultiplier {
-    left: -45px !important;
+    left: -70px !important;
     transform: scale(0.65) !important;
   }
 
   #opponentCurrentMultiplier {
-    left: -45px !important;
+    left: -70px !important;
     transform: scale(0.65) !important;
   }
 }
@@ -860,12 +860,12 @@
 /* Zusätzliche Anpassungen für sehr kleine Bildschirme */
 @media (max-width: 480px) {
   #opponentPermanentMultiplier {
-    left: -55px !important; /* Noch weiter links für sehr kleine Bildschirme */
+    left: -80px !important; /* Noch weiter links für sehr kleine Bildschirme */
     transform: scale(0.55) !important; /* Noch kleiner */
   }
 
   #opponentCurrentMultiplier {
-    left: -55px !important; /* Noch weiter links für sehr kleine Bildschirme */
+    left: -80px !important; /* Noch weiter links für sehr kleine Bildschirme */
     transform: scale(0.55) !important; /* Noch kleiner */
   }
 }
