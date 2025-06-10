@@ -27,7 +27,7 @@ export class ExtendBlock extends BasePowerUp {
       name: 'Extend Block',
       shape: [[0, 0]], // 1x1 shape
       color: '#ff9500',
-      spawnRate: 0.5, // 50% chance for testing
+      spawnRate: 0.25, // ~10% individual chance (30% base chance / 3 powerups)
       emoji: '', // No emoji
       description: 'Expands in all directions until no free cells remain'
     });
@@ -150,6 +150,17 @@ export class ExtendBlock extends BasePowerUp {
       }, 300);
     }
 
+    // Add points for the initial extend block placement with permanent multiplier
+    const startBlockPoints = 1 * gameState.permanentMultiplier;
+    gameState.playerScore += startBlockPoints;
+
+    // Update score display immediately
+    if (window.player?.updateScoreDisplay) {
+      window.player.updateScoreDisplay();
+    }
+
+    debugLog(`Extend Block placed at starting position [${startRow}, ${startCol}] - Added ${startBlockPoints} points (1 × ${gameState.permanentMultiplier}x multiplier)`);
+
     // Use a simple queue-based approach for reliable expansion
     const queue = [{row: startRow, col: startCol}];
     const processed = new Set();
@@ -258,11 +269,20 @@ export class ExtendBlock extends BasePowerUp {
           }, 150); // Doubled speed: 300 -> 150
         }
 
+        // Add points for each extended block with permanent multiplier
+        const blockPoints = 1 * gameState.permanentMultiplier;
+        gameState.playerScore += blockPoints;
+
+        // Update score display immediately
+        if (window.player?.updateScoreDisplay) {
+          window.player.updateScoreDisplay();
+        }
+
         // Create visual flying animation (doesn't affect game logic)
         this._createFlyingBlockAnimation(sourceCell, cell, dirIndex);
 
         newPositions.push({row: newRow, col: newCol});
-        debugLog(`Extended to position [${newRow}, ${newCol}]`);
+        debugLog(`Extended to position [${newRow}, ${newCol}] - Added ${blockPoints} points (1 × ${gameState.permanentMultiplier}x multiplier)`);
       }
     });
 

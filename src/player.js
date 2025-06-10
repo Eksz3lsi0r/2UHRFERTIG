@@ -382,7 +382,10 @@ function placeShape(shape, br, bc) {
   for (const [r, c] of shape) {
     state.playerBoard[br + r][bc + c] = 1;
   }
-  state.playerScore += shape.length;
+
+  // Apply permanent multiplier to shape placement points
+  const shapePoints = shape.length * state.permanentMultiplier;
+  state.playerScore += shapePoints;
   updateScoreDisplay();
 
   // Merke den Zustand vor dem Löschen für Combo-Logic
@@ -1257,8 +1260,6 @@ window.testPowerUpAnimations = function() {
   debugLog("• testExtendAnimation() - Expansion effects (5s)");
   debugLog("• testAllAnimations() - All effects sequentially (18s)");
   debugLog("• stopAllPowerUpSounds() - Stop all sounds immediately");
-  debugLog("═══════════════════════════════════════");
-  debugLog("🔊 Note: Each test includes sound effects that auto-stop");
 };
 
 /* --------------------------------------------------------------------
@@ -1549,5 +1550,98 @@ window.testAudioSystem = function() {
   debugLog("\nNote: HTML5 Audio pool warnings are normal during rapid testing.");
   debugLog("In normal gameplay, sounds are spaced out and won't cause issues.");
 };
+
+/* ═══════════════════════════════════════════════════════════════════
+ * ENHANCED POWER-UP TESTING FUNCTIONS
+ * ═══════════════════════════════════════════════════════════════════ */
+
+// Enhanced Power-Up Showcase Functions
+window.testEnhancedPowerUpDesigns = function() {
+  console.log("🎨 ENHANCED POWER-UP DESIGN SHOWCASE");
+  console.log("Testing the new elegant, modern power-up designs:");
+
+  // Clear current inventory
+  if (window.state) {
+    window.state.playerPieces = [];
+  }
+
+  // Add all three enhanced power-ups to inventory
+  const enhancedPowerUps = [
+    {
+      shape: [[0, 0]],
+      color: '#4a90e2',
+      isStorm: true
+    },
+    {
+      shape: [[0, 0]],
+      color: '#FFD700',
+      isElectro: true
+    },
+    {
+      shape: [[0, 0]],
+      color: '#ff9500',
+      isExtend: true
+    }
+  ];
+
+  if (window.state) {
+    window.state.playerPieces = enhancedPowerUps;
+  }
+
+  if (window.player?.renderPieces) {
+    window.player.renderPieces();
+  }
+
+  console.log("✨ Enhanced Power-Up Features:");
+  console.log("🌪️ Storm Block: 40% larger, tornado vortex effect, orbital rotation");
+  console.log("⚡ Electro Stack: 50% larger, lightning flicker, energy field rotation");
+  console.log("🔄 Extend Block: 35% larger, organic growth waves, rhythmic expansion");
+  console.log("💫 All power-ups have unique hover effects and enhanced visual distinction");
+  console.log("🎮 Hover over the power-ups to see the interactive effects!");
+};
+
+window.showPowerUpComparison = function() {
+  console.log("📊 POWER-UP DESIGN COMPARISON");
+  console.log("═══════════════════════════════════════════");
+  console.log("BEFORE (Old Design):");
+  console.log("• Standard 1x1 size in inventory");
+  console.log("• Simple gradient backgrounds");
+  console.log("• Basic rotation/pulse animations");
+  console.log("• Similar visual appearance");
+  console.log("");
+  console.log("AFTER (Enhanced Design):");
+  console.log("🌪️ Storm Block:");
+  console.log("  • 40% larger display");
+  console.log("  • Conic gradient tornado vortex");
+  console.log("  • Orbital rotation background");
+  console.log("  • Spinning tornado emoji");
+  console.log("  • Dynamic color hue rotation");
+  console.log("");
+  console.log("⚡ Electro Stack:");
+  console.log("  • 50% larger display");
+  console.log("  • Lightning flicker animation");
+  console.log("  • Energy field rotation");
+  console.log("  • Bright spark effects");
+  console.log("  • High-contrast white/gold combo");
+  console.log("");
+  console.log("🔄 Extend Block:");
+  console.log("  • 35% larger display");
+  console.log("  • Organic growth wave patterns");
+  console.log("  • Rhythmic expansion animation");
+  console.log("  • Warm orange color palette");
+  console.log("  • Central expansion effects");
+  console.log("");
+  console.log("🎨 All power-ups now have:");
+  console.log("  • Unique visual identity");
+  console.log("  • Enhanced hover interactions");
+  console.log("  • Backdrop blur effects");
+  console.log("  • Distinctive size scaling");
+  console.log("  • Complex multi-layer animations");
+};
+
+// Add to existing debug functions
+console.log("🎨 Enhanced Power-Up Design Functions:");
+console.log("• testEnhancedPowerUpDesigns() - Show all enhanced power-ups");
+console.log("• showPowerUpComparison() - Compare old vs new designs");
 
 //# sourceMappingURL=player.js.map

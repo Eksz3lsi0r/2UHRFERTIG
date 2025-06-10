@@ -12,9 +12,12 @@ export class BasePowerUp {
     this.name = config.name;
     this.shape = config.shape || [[0, 0]]; // Default 1x1 shape
     this.color = config.color;
-    this.spawnRate = config.spawnRate || 0.05; // 5% default
+    this.spawnRate = config.spawnRate || 0.05; // Individual chance (for documentation only)
     this.emoji = config.emoji || '⭐';
     this.description = config.description || '';
+
+    // Note: Actual spawn logic uses equal distribution:
+    // 10% base chance for any power-up, then 1/N chance for each power-up
   }
 
   /**

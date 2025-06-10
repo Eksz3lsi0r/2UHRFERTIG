@@ -5,40 +5,193 @@
 
 /* ───── STORM POWER-UP ENHANCED ANIMATIONS ───── */
 
-/* Additional storm overlay effects */
+/* Tornado effect on individual blocks - being swept around */
 .storm-effect .board-cell.filled {
-  animation: storm-block-swirl 1.5s ease-in-out infinite;
+  animation: tornado-block-sweep 2s ease-in-out infinite, tornado-block-shake 0.8s ease-in-out infinite, tornado-block-wobble 1.2s ease-in-out infinite;
 }
 
-@keyframes storm-block-swirl {
+@keyframes tornado-block-sweep {
   0%, 100% {
-    transform: rotate(0deg) scale(1);
-    filter: hue-rotate(0deg);
+    transform: rotate(0deg) scale(1) translateX(0px);
+    filter: hue-rotate(0deg) brightness(1);
+    box-shadow: 0 0 5px rgba(74, 144, 226, 0.5);
+  }
+  12.5% {
+    transform: rotate(45deg) scale(1.1) translateX(3px);
+    filter: hue-rotate(30deg) brightness(1.2);
+    box-shadow: 0 0 10px rgba(74, 144, 226, 0.8);
   }
   25% {
-    transform: rotate(5deg) scale(1.05);
-    filter: hue-rotate(30deg);
+    transform: rotate(90deg) scale(1.2) translateX(5px);
+    filter: hue-rotate(60deg) brightness(1.3);
+    box-shadow: 0 0 15px rgba(138, 43, 226, 0.9);
+  }
+  37.5% {
+    transform: rotate(135deg) scale(1.15) translateX(4px);
+    filter: hue-rotate(90deg) brightness(1.2);
+    box-shadow: 0 0 12px rgba(200, 200, 200, 0.7);
   }
   50% {
-    transform: rotate(0deg) scale(1.1);
-    filter: hue-rotate(60deg);
+    transform: rotate(180deg) scale(1.3) translateX(6px);
+    filter: hue-rotate(120deg) brightness(1.4);
+    box-shadow: 0 0 20px rgba(74, 144, 226, 1);
+  }
+  62.5% {
+    transform: rotate(225deg) scale(1.15) translateX(4px);
+    filter: hue-rotate(90deg) brightness(1.2);
+    box-shadow: 0 0 12px rgba(138, 43, 226, 0.8);
   }
   75% {
-    transform: rotate(-5deg) scale(1.05);
-    filter: hue-rotate(30deg);
+    transform: rotate(270deg) scale(1.2) translateX(5px);
+    filter: hue-rotate(60deg) brightness(1.3);
+    box-shadow: 0 0 15px rgba(200, 200, 200, 0.9);
+  }
+  87.5% {
+    transform: rotate(315deg) scale(1.1) translateX(3px);
+    filter: hue-rotate(30deg) brightness(1.2);
+    box-shadow: 0 0 10px rgba(74, 144, 226, 0.7);
   }
 }
 
-/* Storm wind lines effect */
-.storm-effect {
-  position: relative;
+@keyframes tornado-block-shake {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(-2px, -1px); }
+  40% { transform: translate(2px, -2px); }
+  60% { transform: translate(-1px, 2px); }
+  80% { transform: translate(1px, -1px); }
 }
 
+@keyframes tornado-block-wobble {
+  0%, 100% {
+    transform: skew(0deg, 0deg);
+  }
+  25% {
+    transform: skew(2deg, -1deg);
+  }
+  50% {
+    transform: skew(-1deg, 2deg);
+  }
+  75% {
+    transform: skew(-2deg, -1deg);
+  }
+}
+
+/* Tornado wind lines and spiral patterns */
 .storm-effect::before {
   background-image:
-    linear-gradient(45deg, rgba(74, 144, 226, 0.6) 1px, transparent 1px),
-    linear-gradient(-45deg, rgba(138, 43, 226, 0.4) 1px, transparent 1px);
-  background-size: 8px 8px, 12px 12px;
+    linear-gradient(30deg, rgba(74, 144, 226, 0.6) 1px, transparent 1px),
+    linear-gradient(60deg, rgba(138, 43, 226, 0.5) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(200, 200, 200, 0.4) 1px, transparent 1px),
+    linear-gradient(120deg, rgba(74, 144, 226, 0.5) 1px, transparent 1px),
+    linear-gradient(150deg, rgba(138, 43, 226, 0.4) 1px, transparent 1px),
+    conic-gradient(from 0deg, transparent 70%, rgba(74, 144, 226, 0.8) 80%, transparent 90%);
+  background-size: 6px 6px, 8px 8px, 10px 10px, 8px 8px, 6px 6px, 100% 100%;
+  animation: tornado-wind-lines 1s linear infinite;
+}
+
+@keyframes tornado-wind-lines {
+  0% {
+    transform: translateX(0) translateY(0) rotate(0deg);
+    background-position: 0px 0px, 2px 2px, 4px 4px, 2px 2px, 0px 0px, center;
+  }
+  25% {
+    transform: translateX(2px) translateY(-1px) rotate(90deg);
+    background-position: 6px 0px, 8px 2px, 10px 4px, 8px 2px, 6px 0px, center;
+  }
+  50% {
+    transform: translateX(0px) translateY(-2px) rotate(180deg);
+    background-position: 0px 6px, 2px 8px, 4px 10px, 2px 8px, 0px 6px, center;
+  }
+  75% {
+    transform: translateX(-2px) translateY(-1px) rotate(270deg);
+    background-position: -6px 0px, -4px 2px, -2px 4px, -4px 2px, -6px 0px, center;
+  }
+  100% {
+    transform: translateX(0) translateY(0) rotate(360deg);
+    background-position: 0px 0px, 2px 2px, 4px 4px, 2px 2px, 0px 0px, center;
+  }
+}
+
+/* Enhanced tornado sweep effect with more dramatic motion */
+.storm-effect {
+  position: relative;
+  /* Add tornado path animation */
+  background:
+    radial-gradient(ellipse 120% 300% at 50% 100%, rgba(74, 144, 226, 0.3) 0%, rgba(138, 43, 226, 0.2) 40%, transparent 70%),
+    linear-gradient(45deg, transparent 0%, rgba(74, 144, 226, 0.1) 25%, transparent 50%, rgba(138, 43, 226, 0.1) 75%, transparent 100%);
+  background-size: 100% 100%, 200px 200px;
+  animation: tornado-path-sweep 4s ease-in-out infinite;
+}
+
+@keyframes tornado-path-sweep {
+  0% {
+    background-position: 0% 0%, -200px 0px;
+    filter: hue-rotate(0deg) brightness(1);
+  }
+  25% {
+    background-position: 0% 0%, -100px -50px;
+    filter: hue-rotate(30deg) brightness(1.2);
+  }
+  50% {
+    background-position: 0% 0%, 50px -100px;
+    filter: hue-rotate(60deg) brightness(1.4);
+  }
+  75% {
+    background-position: 0% 0%, 150px -50px;
+    filter: hue-rotate(30deg) brightness(1.2);
+  }
+  100% {
+    background-position: 0% 0%, 250px 0px;
+    filter: hue-rotate(0deg) brightness(1);
+  }
+}
+
+/* Tornado entrance animation */
+.storm-effect {
+  animation: tornado-entrance 0.8s ease-out, tornado-shake 0.6s ease-in-out infinite 0.8s, tornado-path-sweep 4s ease-in-out infinite 0.8s;
+}
+
+@keyframes tornado-entrance {
+  0% {
+    transform: scale(0) rotate(-180deg);
+    opacity: 0;
+    filter: blur(10px);
+  }
+  30% {
+    transform: scale(0.5) rotate(-90deg);
+    opacity: 0.5;
+    filter: blur(5px);
+  }
+  60% {
+    transform: scale(0.8) rotate(-30deg);
+    opacity: 0.8;
+    filter: blur(2px);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+    filter: blur(0px);
+  }
+}
+
+/* Tornado funnel entrance */
+.storm-effect::before {
+  animation: tornado-funnel-entrance 1s ease-out, tornado-spiral 1.2s linear infinite 1s, tornado-sweep 4s ease-in-out infinite 1s;
+}
+
+@keyframes tornado-funnel-entrance {
+  0% {
+    transform: scale(0) rotate(0deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(0.5) rotate(180deg);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1) rotate(360deg);
+    opacity: 1;
+  }
 }
 
 /* ───── ELECTRO POWER-UP ENHANCED ANIMATIONS ───── */

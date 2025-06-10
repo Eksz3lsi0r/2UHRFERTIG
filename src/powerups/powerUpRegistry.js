@@ -129,23 +129,27 @@ class PowerUpRegistry {
 
     if (availableIndices.length === 0) return pieces;
 
-    // Apply each power-up's spawn logic
-    for (const powerUp of this.powerUps.values()) {
-      if (Math.random() < powerUp.spawnRate && availableIndices.length > 0) {
+    // Step 1: Check if any power-up should be generated (30% base chance)
+    const POWERUP_BASE_CHANCE = 0.3; // 30% chance for any power-up (3x increased)
+
+    if (Math.random() < POWERUP_BASE_CHANCE) {
+      // Step 2: If a power-up should be generated, choose one with equal probability
+      const availablePowerUps = Array.from(this.powerUps.values());
+
+      if (availablePowerUps.length > 0) {
+        // Equal probability: 1 / number of available power-ups
+        const randomPowerUpIndex = Math.floor(Math.random() * availablePowerUps.length);
+        const selectedPowerUp = availablePowerUps[randomPowerUpIndex];
+
         // Choose a random available piece to replace
         const randomIdx = Math.floor(Math.random() * availableIndices.length);
         const targetIndex = availableIndices[randomIdx];
 
-        // Replace the piece with the power-up
-        pieces[targetIndex] = powerUp.createPiece();
+        // Replace the piece with the selected power-up
+        pieces[targetIndex] = selectedPowerUp.createPiece();
 
-        // Remove this index from available indices
-        availableIndices.splice(randomIdx, 1);
-
-        debugLog(`Generated ${powerUp.name} power-up (${(powerUp.spawnRate * 100).toFixed(1)}% chance)`);
-
-        // Prevent multiple power-ups in a single generation cycle
-        break;
+        const individualChance = (POWERUP_BASE_CHANCE / availablePowerUps.length * 100).toFixed(1);
+        debugLog(`Generated ${selectedPowerUp.name} power-up (${individualChance}% individual chance, equal distribution)`);
       }
     }
 
