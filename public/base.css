@@ -74,7 +74,7 @@ select {
 }
 
 body {
-  font-family: "Roboto", sans-serif;
+  font-family: "Trade Winds", cursive, sans-serif;
   margin: 0;
   padding: 15px;
   color: var(--color-text);
@@ -141,7 +141,7 @@ h1,
 h2 {
   color: var(--color-text);
   text-align: center;
-  font-family: "Press Start 2P", cursive;
+  font-family: "Trade Winds", cursive, sans-serif;
   letter-spacing: 1px;
   position: relative;
 }
