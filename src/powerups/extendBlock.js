@@ -1,16 +1,68 @@
 /* --------------------------------------------------------------------
  *  src/powerups/extendBlock.js - Extend Block Power-Up
- * ------------------------------------------------------------------ */
+ * ---------------------    // Add points for the initial extend bl    // Add points for the initial extend block placement with permanent multiplier (reduced by 20x)
+    const startBlockPoints = (1 * gameState.permanentMultiplier) / 20;
+    gameState.playerScore += startBlockPoints;
+
+    // Update score display immediately
+    if (window.player?.updateScoreDisplay) {
+      window.player.updateScoreDisplay();
+    }
+
+    debugLog(`Extend Block placed at starting position [${startRow}, ${startCol}] - Added ${startBlockPoints} points (1 × ${gameState.permanentMultiplier}x multiplier ÷ 20)`);`ent with permanent multiplier (reduced by 20x)
+    const startBlockPoints =        // Add points for each extended block with permanent multiplier (reduced by 20x)
+        const blockPoints = (1 * gameState.permanentMultiplier) / 20;
+         // Increase current multiplier for each cleared line
+      gameState.consecutiveClears += totalLinesCleared;
+
+      // Check if entire board is cleared (all 100 cells filled)
+      let allCellsFilled = true;
+      for (let r = 0; r < 10 && allCellsFilled; r++) {
+        for (let c = 0; c < 10 && allCellsFilled; c++) {
+          if (gameState.playerBoard[r][c] !== 1) {
+            allCellsFilled = false;
+          }
+        }
+      }
+
+      // Set current multiplier: 20x if entire board is cleared, otherwise max 8x
+      if (allCellsFilled) {
+        gameState.currentMultiplier = 20;
+        debugLog(`Extend Block: SPECIAL CASE - Entire board cleared! Current multiplier set to 20x`);
+      } else {
+        gameState.currentMultiplier = Math.min(gameState.consecutiveClears, 8); // Maximum 8x normally
+      }
+
+      debugLog(`Extend Block: AFTER Current multiplier - consecutiveClears: ${gameState.consecutiveClears}, currentMultiplier: ${gameState.currentMultiplier}x`);` gameState.playerScore += blockPoints;
+
+        // Update score display immediately
+        if (window.player?.updateScoreDisplay) {
+          window.player.updateScoreDisplay();
+        }
+
+        // Create visual flying animation (doesn't affect game logic)
+        this._createFlyingBlockAnimation(sourceCell, cell, dirIndex);
+
+        newPositions.push({row: newRow, col: newCol});
+        debugLog(`Extended to position [${newRow}, ${newCol}] - Added ${blockPoints} points (1 × ${gameState.permanentMultiplier}x multiplier ÷ 20)`);`e.permanentMultiplier) / 20;
+    gameState.playerScore += startBlockPoints;
+
+    // Update score display immediately
+    if (window.player?.updateScoreDisplay) {
+      window.player.updateScoreDisplay();
+    }
+
+    debugLog(`Extend Block placed at starting position [${startRow}, ${startCol}] - Added ${startBlockPoints} points (1 × ${gameState.permanentMultiplier}x multiplier ÷ 20)`);`----------------------------------- */
 
 import { BasePowerUp } from './basePowerUp.js';
 
 // Debug mode toggle - set to false for production, true for development
-const DEBUG_MODE = false;
+const DEBUG_MODE = true;
 
 // Utility function for conditional logging
 function debugLog(...args) {
   if (DEBUG_MODE) {
-    debugLog(...args);
+    console.log(...args);
   }
 }
 
@@ -27,7 +79,7 @@ export class ExtendBlock extends BasePowerUp {
       name: 'Extend Block',
       shape: [[0, 0]], // 1x1 shape
       color: '#ff9500',
-      spawnRate: 0.25, // ~10% individual chance (30% base chance / 3 powerups)
+      spawnRate: 0.333, // ~33.33% individual chance (100% base chance / 3 powerups)
       emoji: '', // No emoji
       description: 'Expands in all directions until no free cells remain'
     });
@@ -389,24 +441,129 @@ export class ExtendBlock extends BasePowerUp {
   _checkAndClearLinesAfterExtend(gameState, extendedPositions, totalExtendedCount) {
     debugLog("Checking for full lines after extend effect...");
 
-    // Check if any lines are full after extension using player's public API
-    const hasFullLines = window.player?.hasFullLines?.();
+    // Check for full lines manually to handle current multiplier correctly
+    const fullRows = [];
+    const fullCols = [];
 
-    if (hasFullLines) {
-      debugLog("Full lines detected after extend effect - clearing them!");
-
-      // Clear the full lines using the player's public clearLines function
-      if (window.player?.clearLines) {
-        window.player.clearLines();
+    // Check rows
+    for (let r = 0; r < 10; r++) {
+      if (gameState.playerBoard[r].every((v) => v === 1)) {
+        fullRows.push(r);
       }
+    }
+
+    // Check columns
+    for (let c = 0; c < 10; c++) {
+      let colFull = true;
+      for (let r = 0; r < 10; r++) {
+        if (gameState.playerBoard[r][c] !== 1) {
+          colFull = false;
+          break;
+        }
+      }
+      if (colFull) fullCols.push(c);
+    }
+
+    const totalLinesCleared = fullRows.length + fullCols.length;
+
+    if (totalLinesCleared > 0) {
+      debugLog(`Extend Block: Found ${fullRows.length} rows and ${fullCols.length} columns to clear`);
+
+      // Track values before changes for gain calculation
+      const oldCurrentMultiplier = gameState.currentMultiplier;
+      const oldPermanentMultiplier = gameState.permanentMultiplier;
+      const oldScore = gameState.playerScore;
+
+      debugLog(`Extend Block: BEFORE - consecutiveClears: ${gameState.consecutiveClears}, currentMultiplier: ${gameState.currentMultiplier}x, permanentMultiplier: ${gameState.permanentMultiplier}x`);
+
+      // Increase current multiplier for each cleared line
+      gameState.consecutiveClears += totalLinesCleared;
+
+      // Check if entire board is cleared (all 100 cells filled)
+      let allCellsFilled = true;
+      for (let r = 0; r < 10 && allCellsFilled; r++) {
+        for (let c = 0; c < 10 && allCellsFilled; c++) {
+          if (gameState.playerBoard[r][c] !== 1) {
+            allCellsFilled = false;
+          }
+        }
+      }
+
+      // Set current multiplier: 20x if entire board is cleared, otherwise max 8x
+      if (allCellsFilled) {
+        gameState.currentMultiplier = 20;
+        debugLog(`Extend Block: SPECIAL CASE - Entire board cleared! Current multiplier set to 20x`);
+      } else {
+        gameState.currentMultiplier = Math.min(gameState.consecutiveClears, 8); // Maximum 8x normally
+      }
+
+      debugLog(`Extend Block: AFTER Current multiplier - consecutiveClears: ${gameState.consecutiveClears}, currentMultiplier: ${gameState.currentMultiplier}x`);
+
+      // Clear the lines visually
+      fullRows.forEach((r) => {
+        for (let c = 0; c < 10; c++) {
+          gameState.playerBoard[r][c] = 0;
+          const cell = gameState.boardCells[r][c];
+          if (cell) {
+            cell.classList.remove("filled", "rainbow");
+            cell.style.background = "";
+            cell.innerHTML = "";
+          }
+        }
+      });
+
+      fullCols.forEach((c) => {
+        for (let r = 0; r < 10; r++) {
+          gameState.playerBoard[r][c] = 0;
+          const cell = gameState.boardCells[r][c];
+          if (cell) {
+            cell.classList.remove("filled", "rainbow");
+            cell.style.background = "";
+            cell.innerHTML = "";
+          }
+        }
+      });
+
+      // Calculate and award points for line clearing
+      let basePoints = fullRows.length + fullCols.length;
+      if (fullRows.length && fullCols.length) basePoints += 2; // Bonus for both
+      if (fullRows.length > 1) basePoints += fullRows.length * 2; // Multi-row bonus
+      if (fullCols.length > 1) basePoints += fullCols.length * 2; // Multi-col bonus
+
+      // Update permanent multiplier for line clearing FIRST (before using it in calculation)
+      gameState.permanentMultiplier += 1;
+      debugLog(`Extend Block: Permanent multiplier increased from ${oldPermanentMultiplier}x to ${gameState.permanentMultiplier}x`);
+
+      // Award points with both multipliers (using NEW permanent multiplier, reduced by 20x)
+      const lineClearingPoints = (basePoints * 10 * gameState.currentMultiplier * gameState.permanentMultiplier) / 20;
+      gameState.playerScore += lineClearingPoints;
+
+      // Calculate gains for message display
+      const permanentMultiplierGain = gameState.permanentMultiplier - oldPermanentMultiplier;
+      const currentMultiplierGain = gameState.currentMultiplier - oldCurrentMultiplier;
+      const pointsGained = gameState.playerScore - oldScore;
+
+      // Update displays
+      if (window.player?.updateScoreDisplay) {
+        window.player.updateScoreDisplay();
+      }
+      if (window.player?.updatePermanentMultiplierDisplay) {
+        window.player.updatePermanentMultiplierDisplay();
+      }
+      if (window.player?.updateCurrentMultiplierDisplay) {
+        window.player.updateCurrentMultiplierDisplay();
+      }
+
+      debugLog(`Extend Block: Awarded ${lineClearingPoints} points for line clearing (${basePoints} base * 10 * ${gameState.currentMultiplier}x current * ${gameState.permanentMultiplier}x permanent ÷ 20)`);
+      debugLog(`Extend Block: FINAL STATE - consecutiveClears: ${gameState.consecutiveClears}, currentMultiplier: ${gameState.currentMultiplier}x, permanentMultiplier: ${gameState.permanentMultiplier}x`);
 
       // After a short delay, regenerate inventory
       setTimeout(() => {
-        this._regenerateInventoryAfterExtend(gameState, true, totalExtendedCount);
-      }, 500); // Doubled speed: 1000 -> 500
+        this._regenerateInventoryAfterExtend(gameState, true, permanentMultiplierGain, currentMultiplierGain, pointsGained);
+      }, 500);
     } else {
       // No full lines, proceed directly to inventory regeneration
-      this._regenerateInventoryAfterExtend(gameState, false, totalExtendedCount);
+      this._regenerateInventoryAfterExtend(gameState, false, 0, 0, 0);
     }
   }
 
@@ -414,14 +571,16 @@ export class ExtendBlock extends BasePowerUp {
    * Regenerate inventory after extend effect
    * @param {Object} gameState - Current game state
    * @param {boolean} linesWereCleared - Whether lines were cleared during extend
-   * @param {number} extendedCount - Number of cells that were extended
+   * @param {number} permanentMultiplierGain - Permanent multiplier gained
+   * @param {number} currentMultiplierGain - Current multiplier gained
+   * @param {number} pointsGained - Points gained
    * @private
    */
-  _regenerateInventoryAfterExtend(gameState, linesWereCleared = false, extendedCount = 0) {
+  _regenerateInventoryAfterExtend(gameState, linesWereCleared = false, permanentMultiplierGain = 0, currentMultiplierGain = 0, pointsGained = 0) {
     // Wait for animations to complete, then show message first
     setTimeout(() => {
       // Show completion message with appropriate text
-      this._showExtendCompleteMessage(linesWereCleared, extendedCount, () => {
+      this._showExtendCompleteMessage(linesWereCleared, permanentMultiplierGain, currentMultiplierGain, pointsGained, () => {
         // Use robust inventory regeneration
         if (window.player?.regenerateInventoryAfterPowerUp) {
           window.player.regenerateInventoryAfterPowerUp(gameState, "Extend Block");
@@ -447,22 +606,21 @@ export class ExtendBlock extends BasePowerUp {
   /**
    * Show extend completion message
    * @param {boolean} linesWereCleared - Whether lines were cleared during extend
-   * @param {number} extendedCount - Number of cells that were extended
+   * @param {number} permanentMultiplierGain - Permanent multiplier gained
+   * @param {number} currentMultiplierGain - Current multiplier gained
+   * @param {number} pointsGained - Points gained
    * @param {Function} callback - Function to call after message appears
    * @private
    */
-  _showExtendCompleteMessage(linesWereCleared = false, extendedCount = 0, callback = null) {
+  _showExtendCompleteMessage(linesWereCleared = false, permanentMultiplierGain = 0, currentMultiplierGain = 0, pointsGained = 0, callback = null) {
     const messageDiv = document.createElement("div");
     messageDiv.className = "extend-complete-message";
 
-    // Different message based on whether lines were cleared and extend count
     let messageText;
-    if (linesWereCleared) {
-      messageText = `🔄 Extend abgeschlossen! ${extendedCount} Zellen erweitert, Linien gelöscht!`;
-    } else if (extendedCount > 0) {
-      messageText = `🔄 Extend abgeschlossen! ${extendedCount} Zellen erweitert!`;
+    if (linesWereCleared || permanentMultiplierGain > 0 || currentMultiplierGain > 0 || pointsGained > 0) {
+      messageText = `🔄 Extend abgeschlossen!\nPerm. Blitz + ${permanentMultiplierGain}\nCurrent Flamme + ${currentMultiplierGain}\nScore + ${pointsGained}`;
     } else {
-      messageText = "🔄 Extend abgeschlossen! Keine freien Zellen gefunden.";
+      messageText = "🔄 Extend abgeschlossen!\nKeine Linien gelöscht.";
     }
 
     messageDiv.textContent = messageText;
@@ -481,6 +639,7 @@ export class ExtendBlock extends BasePowerUp {
       box-shadow: 0 0 20px rgba(255, 149, 0, 0.8);
       backdrop-filter: blur(5px);
       animation: extendMessageFade 3s ease-out forwards;
+      white-space: pre-line;
     `;
 
     document.body.appendChild(messageDiv);
@@ -543,6 +702,152 @@ export class ExtendBlock extends BasePowerUp {
 
     // Execute the extend effect from center
     this.execute(5, 5, window.state);
+  }  /**
+   * Test the extend effect with line clearing to verify current multiplier increase
+   */
+  testExtendWithLineClearing() {
+    debugLog("Testing Extend Block with line clearing for current multiplier...");
+
+    if (!window.state?.playerBoard || !window.state?.boardCells) {
+      console.error("Game state not available for testing");
+      return;
+    }
+
+    // Clear the board first
+    for (let r = 0; r < 10; r++) {
+      for (let c = 0; c < 10; c++) {
+        window.state.playerBoard[r][c] = 0;
+        const cell = window.state.boardCells[r][c];
+        if (cell) {
+          cell.classList.remove('filled', 'rainbow');
+          cell.style.background = '';
+          cell.innerHTML = '';
+        }
+      }
+    }
+
+    // Create a scenario where extend block will create full lines
+    // Fill most of row 5, leaving space at [5,5] for extend block
+    for (let c = 0; c < 10; c++) {
+      if (c !== 5) {
+        window.state.playerBoard[5][c] = 1;
+        const cell = window.state.boardCells[5][c];
+        if (cell) {
+          cell.classList.add('filled');
+          cell.style.background = '#666666';
+        }
+      }
+    }
+
+    // Fill most of column 5, leaving space at [5,5] for extend block
+    for (let r = 0; r < 10; r++) {
+      if (r !== 5) {
+        window.state.playerBoard[r][5] = 1;
+        const cell = window.state.boardCells[r][5];
+        if (cell) {
+          cell.classList.add('filled');
+          cell.style.background = '#666666';
+        }
+      }
+    }
+
+    // Record initial state
+    const initialScore = window.state.playerScore;
+    const initialCurrentMultiplier = window.state.currentMultiplier;
+    const initialConsecutiveClears = window.state.consecutiveClears;
+    const initialPermanentMultiplier = window.state.permanentMultiplier;
+
+    debugLog(`📊 Before Extend: Score=${initialScore}, Current Multiplier=${initialCurrentMultiplier}x, Consecutive Clears=${initialConsecutiveClears}, Permanent Multiplier=${initialPermanentMultiplier}x`);
+    debugLog("Setup: Row 5 and Column 5 are almost full, extend block will complete both");
+
+    // Execute extend at [5,5] - this should complete both row 5 and column 5
+    this.execute(5, 5, window.state);
+
+    // Check results after a delay
+    setTimeout(() => {
+      const newScore = window.state.playerScore;
+      const newCurrentMultiplier = window.state.currentMultiplier;
+      const newConsecutiveClears = window.state.consecutiveClears;
+      const newPermanentMultiplier = window.state.permanentMultiplier;
+
+      debugLog(`📊 After Extend: Score=${newScore} (+${newScore - initialScore}), Current Multiplier=${newCurrentMultiplier}x (+${newCurrentMultiplier - initialCurrentMultiplier}), Consecutive Clears=${newConsecutiveClears} (+${newConsecutiveClears - initialConsecutiveClears}), Permanent Multiplier=${newPermanentMultiplier}x (+${newPermanentMultiplier - initialPermanentMultiplier})`);
+
+      if (newConsecutiveClears > initialConsecutiveClears) {
+        debugLog("✅ SUCCESS: Current multiplier increased due to line clearing by Extend Block!");
+      } else {
+        debugLog("❌ FAILURE: Current multiplier did not increase");
+        debugLog("🔍 DEBUG: Check if gameState references are correct");
+        debugLog(`🔍 DEBUG: window.state === gameState? ${window.state === window.state}`);
+        debugLog(`🔍 DEBUG: gameState.consecutiveClears = ${window.state.consecutiveClears}`);
+        debugLog(`🔍 DEBUG: gameState.currentMultiplier = ${window.state.currentMultiplier}`);
+      }
+
+      debugLog("✅ Extend Block line clearing test completed!");
+    }, 3000);
+  }
+
+  /**
+   * Test the special 20x multiplier case by filling the entire board except one cell
+   */
+  testExtend20xMultiplier() {
+    debugLog("Testing Extend Block 20x multiplier (entire board clear)...");
+
+    if (!window.state?.playerBoard || !window.state?.boardCells) {
+      console.error("Game state not available for testing");
+      return;
+    }
+
+    // Fill the entire board except position [5,5]
+    for (let r = 0; r < 10; r++) {
+      for (let c = 0; c < 10; c++) {
+        if (r !== 5 || c !== 5) {
+          window.state.playerBoard[r][c] = 1;
+          const cell = window.state.boardCells[r][c];
+          if (cell) {
+            cell.classList.add('filled');
+            cell.style.background = '#666666';
+          }
+        } else {
+          window.state.playerBoard[r][c] = 0;
+          const cell = window.state.boardCells[r][c];
+          if (cell) {
+            cell.classList.remove('filled', 'rainbow');
+            cell.style.background = '';
+            cell.innerHTML = '';
+          }
+        }
+      }
+    }
+
+    // Record initial state
+    const initialScore = window.state.playerScore;
+    const initialCurrentMultiplier = window.state.currentMultiplier;
+    const initialConsecutiveClears = window.state.consecutiveClears;
+    const initialPermanentMultiplier = window.state.permanentMultiplier;
+
+    debugLog(`📊 Before Extend: Score=${initialScore}, Current Multiplier=${initialCurrentMultiplier}x, Consecutive Clears=${initialConsecutiveClears}, Permanent Multiplier=${initialPermanentMultiplier}x`);
+    debugLog("Setup: Entire board filled except [5,5] - extend block should trigger 20x multiplier!");
+
+    // Execute extend at [5,5] - this should fill the entire board and trigger 20x multiplier
+    this.execute(5, 5, window.state);
+
+    // Check results after a delay
+    setTimeout(() => {
+      const newScore = window.state.playerScore;
+      const newCurrentMultiplier = window.state.currentMultiplier;
+      const newConsecutiveClears = window.state.consecutiveClears;
+      const newPermanentMultiplier = window.state.permanentMultiplier;
+
+      debugLog(`📊 After Extend: Score=${newScore} (+${newScore - initialScore}), Current Multiplier=${newCurrentMultiplier}x (+${newCurrentMultiplier - initialCurrentMultiplier}), Consecutive Clears=${newConsecutiveClears} (+${newConsecutiveClears - initialConsecutiveClears}), Permanent Multiplier=${newPermanentMultiplier}x (+${newPermanentMultiplier - initialPermanentMultiplier})`);
+
+      if (newCurrentMultiplier === 20) {
+        debugLog("✅ SUCCESS: 20x multiplier achieved when entire board was cleared!");
+      } else {
+        debugLog(`❌ FAILURE: Expected 20x multiplier, got ${newCurrentMultiplier}x`);
+      }
+
+      debugLog("✅ Extend Block 20x multiplier test completed!");
+    }, 5000); // Longer delay to account for extend animation
   }
 }
 

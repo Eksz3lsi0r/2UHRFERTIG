@@ -5,12 +5,12 @@
 import { BasePowerUp } from './basePowerUp.js';
 
 // Debug mode toggle - set to false for production, true for development
-const DEBUG_MODE = false;
+const DEBUG_MODE = true;
 
 // Utility function for conditional logging
 function debugLog(...args) {
   if (DEBUG_MODE) {
-    debugLog(...args);
+    console.log(...args);
   }
 }
 
@@ -25,7 +25,7 @@ export class StormBlock extends BasePowerUp {
       name: 'Storm Block',
       shape: [[0, 0]], // 1x1 shape
       color: '#4a90e2',
-      spawnRate: 0.25, // ~10% individual chance (30% base chance / 3 powerups)
+      spawnRate: 0.333, // ~33.33% individual chance (100% base chance / 3 powerups)
       emoji: '🌪️',
       description: 'Collects and redistributes all blocks on the board'
     });
@@ -146,33 +146,82 @@ export class StormBlock extends BasePowerUp {
   }
 
   /**
-   * Shuffle and place blocks randomly on the board
+   * Shuffle and place blocks with weighted distribution favoring outer areas
    * @param {Array} blocks - Array of block objects to place
    * @param {Object} gameState - Current game state
    * @private
    */
   _shuffleAndPlaceBlocks(blocks, gameState) {
-    // Find all empty positions
+    // Find all empty positions and categorize them by distance from center
     const emptyPositions = [];
+    const outerPositions = []; // Edges and corners (higher weight)
+    const middlePositions = []; // One layer in from edges (medium weight)
+    const innerPositions = []; // Center area (lower weight)
+
     for (let r = 0; r < 10; r++) {
       for (let c = 0; c < 10; c++) {
         if (gameState.playerBoard[r][c] === 0) {
-          emptyPositions.push({ row: r, col: c });
+          const position = { row: r, col: c };
+          emptyPositions.push(position);
+
+          // Calculate distance from edges to determine weight category
+          const distanceFromEdge = Math.min(r, c, 9 - r, 9 - c);
+
+          if (distanceFromEdge === 0) {
+            // Edges and corners - highest weight
+            outerPositions.push(position);
+          } else if (distanceFromEdge === 1) {
+            // One layer in - medium weight
+            middlePositions.push(position);
+          } else {
+            // Inner area - lowest weight
+            innerPositions.push(position);
+          }
         }
       }
     }
 
-    // Shuffle the empty positions
-    for (let i = emptyPositions.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [emptyPositions[i], emptyPositions[j]] = [emptyPositions[j], emptyPositions[i]];
+    // Create weighted position pool
+    const weightedPositions = [];
+
+    // Add outer positions multiple times for higher probability (weight: 4x)
+    for (let i = 0; i < 4; i++) {
+      weightedPositions.push(...outerPositions);
     }
 
-    // Place blocks in shuffled positions
+    // Add middle positions with medium weight (weight: 2x)
+    for (let i = 0; i < 2; i++) {
+      weightedPositions.push(...middlePositions);
+    }
+
+    // Add inner positions with lowest weight (weight: 1x)
+    weightedPositions.push(...innerPositions);
+
+    debugLog(`Storm placement distribution: Outer=${outerPositions.length}, Middle=${middlePositions.length}, Inner=${innerPositions.length}`);
+
+    // Shuffle the weighted positions
+    for (let i = weightedPositions.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [weightedPositions[i], weightedPositions[j]] = [weightedPositions[j], weightedPositions[i]];
+    }
+
+    // Select unique positions from the weighted pool
+    const selectedPositions = [];
+    const usedPositions = new Set();
+
+    for (const pos of weightedPositions) {
+      const posKey = `${pos.row},${pos.col}`;
+      if (!usedPositions.has(posKey) && selectedPositions.length < blocks.length) {
+        selectedPositions.push(pos);
+        usedPositions.add(posKey);
+      }
+    }
+
+    // Place blocks in weighted positions
     blocks.forEach((block, index) => {
       setTimeout(() => {
-        if (index < emptyPositions.length) {
-          const newPos = emptyPositions[index];
+        if (index < selectedPositions.length) {
+          const newPos = selectedPositions[index];
           gameState.playerBoard[newPos.row][newPos.col] = 1;
           const cell = gameState.boardCells[newPos.row][newPos.col];
 
@@ -189,6 +238,11 @@ export class StormBlock extends BasePowerUp {
               cell.classList.remove("storm-placed");
             }, 200); // 33% faster: 300 -> 200
           }
+
+          // Debug log to show placement preference
+          const distanceFromEdge = Math.min(newPos.row, newPos.col, 9 - newPos.row, 9 - newPos.col);
+          const zone = distanceFromEdge === 0 ? "OUTER" : distanceFromEdge === 1 ? "MIDDLE" : "INNER";
+          debugLog(`Storm block ${index + 1} placed at [${newPos.row},${newPos.col}] in ${zone} zone (distance from edge: ${distanceFromEdge})`);
 
           // After the last block: check for full lines, then regenerate inventory
           if (index === blocks.length - 1) {
@@ -213,30 +267,43 @@ export class StormBlock extends BasePowerUp {
     if (hasFullLines) {
       debugLog("Full lines detected after storm - clearing them first!");
 
+      // Track values before line clearing for gain calculation
+      const oldScore = gameState.playerScore;
+      const oldPermanentMultiplier = gameState.permanentMultiplier;
+      const oldCurrentMultiplier = gameState.currentMultiplier;
+
       // Clear the full lines using the player's public clearLines function
       if (window.player?.clearLines) {
         window.player.clearLines();
       }
 
+      // Calculate gains after line clearing
+      const permanentMultiplierGain = gameState.permanentMultiplier - oldPermanentMultiplier;
+      const currentMultiplierGain = gameState.currentMultiplier - oldCurrentMultiplier;
+      const pointsGained = gameState.playerScore - oldScore;
+
       // After a short delay, regenerate inventory
       setTimeout(() => {
-        this._regenerateInventoryAfterStorm(gameState, true); // true = lines were cleared
+        this._regenerateInventoryAfterStorm(gameState, true, permanentMultiplierGain, currentMultiplierGain, pointsGained);
       }, 670); // 33% faster: 1000 -> 670
     } else {
       // No full lines, proceed directly to inventory regeneration
-      this._regenerateInventoryAfterStorm(gameState, false); // false = no lines cleared
+      this._regenerateInventoryAfterStorm(gameState, false, 0, 0, 0);
     }
   }  /**
    * Regenerate inventory after storm effect
    * @param {Object} gameState - Current game state
    * @param {boolean} linesWereCleared - Whether lines were cleared during storm
+   * @param {number} permanentMultiplierGain - Permanent multiplier gained
+   * @param {number} currentMultiplierGain - Current multiplier gained
+   * @param {number} pointsGained - Points gained
    * @private
    */
-  _regenerateInventoryAfterStorm(gameState, linesWereCleared = false) {
+  _regenerateInventoryAfterStorm(gameState, linesWereCleared = false, permanentMultiplierGain = 0, currentMultiplierGain = 0, pointsGained = 0) {
     // Wait for animations to complete, then show message first
     setTimeout(() => {
       // Show completion message with appropriate text
-      this._showStormCompleteMessage(linesWereCleared, () => {
+      this._showStormCompleteMessage(linesWereCleared, permanentMultiplierGain, currentMultiplierGain, pointsGained, () => {
         // Use robust inventory regeneration
         if (window.player?.regenerateInventoryAfterPowerUp) {
           window.player.regenerateInventoryAfterPowerUp(gameState, "Storm Block");
@@ -262,17 +329,22 @@ export class StormBlock extends BasePowerUp {
   /**
    * Show storm completion message
    * @param {boolean} linesWereCleared - Whether lines were cleared during storm
+   * @param {number} permanentMultiplierGain - Permanent multiplier increase
+   * @param {number} currentMultiplierGain - Current multiplier increase
+   * @param {number} pointsGained - Points gained from the effect
    * @param {Function} callback - Function to call after message appears
    * @private
    */
-  _showStormCompleteMessage(linesWereCleared = false, callback = null) {
+  _showStormCompleteMessage(linesWereCleared = false, permanentMultiplierGain = 0, currentMultiplierGain = 0, pointsGained = 0, callback = null) {
     const messageDiv = document.createElement("div");
     messageDiv.className = "storm-complete-message";
 
-    // Different message based on whether lines were cleared
-    const messageText = linesWereCleared
-      ? "🌪️ Sturm abgeschlossen! Linien gelöscht und neues Inventar generiert!"
-      : "🌪️ Sturm abgeschlossen! Neues Inventar generiert!";
+    let messageText;
+    if (linesWereCleared || permanentMultiplierGain > 0 || currentMultiplierGain > 0 || pointsGained > 0) {
+      messageText = `🌪️ Sturm abgeschlossen!\nPerm. Blitz + ${permanentMultiplierGain}\nCurrent Flamme + ${currentMultiplierGain}\nScore + ${pointsGained}`;
+    } else {
+      messageText = "🌪️ Sturm abgeschlossen!\nKeine Linien gelöscht.";
+    }
 
     messageDiv.textContent = messageText;
     messageDiv.style.cssText = `
@@ -290,6 +362,7 @@ export class StormBlock extends BasePowerUp {
       box-shadow: 0 0 20px rgba(138, 43, 226, 0.8);
       backdrop-filter: blur(5px);
       animation: stormMessageFade 3s ease-out forwards;
+      white-space: pre-line;
     `;
 
     document.body.appendChild(messageDiv);
@@ -340,6 +413,80 @@ export class StormBlock extends BasePowerUp {
 
     // Execute the storm effect
     this.execute(0, 0, window.state);
+  } /**
+   * Test the storm effect with weighted distribution analysis
+   */
+  testWeightedDistribution() {
+    debugLog("Testing Storm Block weighted distribution...");
+
+    if (!window.state?.playerBoard || !window.state?.boardCells) {
+      console.error("Game state not available for testing");
+      return;
+    }
+
+    // Clear the board first
+    for (let r = 0; r < 10; r++) {
+      for (let c = 0; c < 10; c++) {
+        window.state.playerBoard[r][c] = 0;
+        const cell = window.state.boardCells[r][c];
+        if (cell) {
+          cell.classList.remove('filled', 'rainbow');
+          cell.style.background = '';
+          cell.innerHTML = '';
+        }
+      }
+    }
+
+    // Add test blocks spread across the board to simulate a typical storm scenario
+    const testPositions = [
+      [1, 1], [1, 8], [8, 1], [8, 8], // corners area
+      [3, 3], [3, 6], [6, 3], [6, 6], // middle area
+      [4, 4], [5, 5], [4, 5], [5, 4]  // center area
+    ];
+
+    testPositions.forEach(([r, c]) => {
+      window.state.playerBoard[r][c] = 1;
+      const cell = window.state.boardCells[r][c];
+      if (cell) {
+        cell.classList.add('filled', 'rainbow');
+        cell.style.background = '#FF6B6B';
+      }
+    });
+
+    debugLog(`✅ Added ${testPositions.length} test blocks for weighted distribution test`);
+    debugLog("🌪️ Executing Storm Block with new weighted distribution...");
+    debugLog("📊 Watch the console for placement zone analysis");
+
+    // Execute the storm effect
+    this.execute(0, 0, window.state);
+
+    // Analyze distribution after storm completes
+    setTimeout(() => {
+      let outerCount = 0, middleCount = 0, innerCount = 0;
+
+      for (let r = 0; r < 10; r++) {
+        for (let c = 0; c < 10; c++) {
+          if (window.state.playerBoard[r][c] === 1) {
+            const distanceFromEdge = Math.min(r, c, 9 - r, 9 - c);
+            if (distanceFromEdge === 0) outerCount++;
+            else if (distanceFromEdge === 1) middleCount++;
+            else innerCount++;
+          }
+        }
+      }
+
+      debugLog("📊 FINAL DISTRIBUTION ANALYSIS:");
+      debugLog(`   OUTER zone (edges): ${outerCount} blocks`);
+      debugLog(`   MIDDLE zone: ${middleCount} blocks`);
+      debugLog(`   INNER zone (center): ${innerCount} blocks`);
+      debugLog(`   Outer preference ratio: ${((outerCount / (outerCount + middleCount + innerCount)) * 100).toFixed(1)}%`);
+
+      if (outerCount > innerCount) {
+        debugLog("✅ SUCCESS: Outer zone has more blocks than inner zone!");
+      } else {
+        debugLog("⚠️ WARNING: Distribution may need adjustment - inner zone has more blocks");
+      }
+    }, 5000);
   }
 }
 

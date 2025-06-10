@@ -419,6 +419,7 @@ function _clearLines() {
     // Keine Linien gelöscht - Combo zurücksetzen
     state.cpuConsecutiveClears = 0;
     state.cpuCurrentMultiplier = 1;
+    updateOpponentCurrentMultiplierDisplay();
     return;
   }
 
@@ -469,6 +470,7 @@ function _clearLines() {
   state.cpuScore += finalPoints;
   updateScore();
   updateOpponentPermanentMultiplierDisplay();
+  updateOpponentCurrentMultiplierDisplay();
 }
 
 /* ---------- Shapes erzeugen ---------------------------------------- */
@@ -573,6 +575,31 @@ function updateOpponentPermanentMultiplierDisplay() {
     multiplierValueElement.textContent = `${state.cpuPermanentMultiplier.toFixed(0)}x`;
   } else {
     debugLog("Could not find opponent permanent multiplier elements");
+  }
+}
+
+/* ---------- Opponent Current Multiplier Display Update ----------- */
+function updateOpponentCurrentMultiplierDisplay() {
+  debugLog("updateOpponentCurrentMultiplierDisplay called, cpuCurrentMultiplier:", state.cpuCurrentMultiplier);
+  const multiplierElement = document.getElementById("opponentCurrentMultiplier");
+  const multiplierValueElement = multiplierElement?.querySelector(".multiplier-value");
+
+  if (multiplierElement && multiplierValueElement) {
+    // Always show the multiplier display from the beginning
+    debugLog("Showing CPU current multiplier display:", state.cpuCurrentMultiplier.toFixed(0) + "x");
+    multiplierElement.style.display = "flex";
+    // Format as whole number since we increment by 1
+    multiplierValueElement.textContent = `${state.cpuCurrentMultiplier.toFixed(0)}x`;
+
+    // Add pulsing effect when multiplier is > 1
+    if (state.cpuCurrentMultiplier > 1) {
+      multiplierElement.style.animation = "fire-pulse 1s ease-in-out";
+      setTimeout(() => {
+        multiplierElement.style.animation = "fire-pulse 2s infinite ease-in-out";
+      }, 1000);
+    }
+  } else {
+    debugLog("Could not find opponent current multiplier elements");
   }
 }
 

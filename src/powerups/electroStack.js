@@ -25,7 +25,7 @@ export class ElectroStack extends BasePowerUp {
       name: 'Electro Stack',
       shape: [[0, 0]], // 1x1 shape
       color: '#FFD700',
-      spawnRate: 0.25, // ~10% individual chance (30% base chance / 3 powerups)
+      spawnRate: 0.333, // ~33.33% individual chance (100% base chance / 3 powerups)
       emoji: '⚡',
       description: 'Clears all blocks in the 8 surrounding cells'
     });
@@ -95,7 +95,7 @@ export class ElectroStack extends BasePowerUp {
 
     if (totalClearedBlocks === 0) {
       debugLog("No blocks found to clear");
-      this._showElectroCompleteMessage(0, 0);
+      this._showElectroCompleteMessage(0, 0, 0, 0);
 
       // Still need to regenerate inventory even if no blocks were cleared
       setTimeout(() => {
@@ -128,7 +128,11 @@ export class ElectroStack extends BasePowerUp {
       // Increase permanent multiplier by +1 per cleared block
       const oldPermanentMultiplier = gameState.permanentMultiplier;
       gameState.permanentMultiplier += totalClearedBlocks;
-      debugLog(`Elektro Stack: Permanent multiplier increased from ${oldPermanentMultiplier.toFixed(0)}x to ${gameState.permanentMultiplier.toFixed(0)}x (+${totalClearedBlocks})`);
+      const permanentMultiplierGain = totalClearedBlocks;
+      debugLog(`Elektro Stack: Permanent multiplier increased from ${oldPermanentMultiplier.toFixed(0)}x to ${gameState.permanentMultiplier.toFixed(0)}x (+${permanentMultiplierGain})`);
+
+      // ElectroStack doesn't increase current multiplier, so current multiplier gain is 0
+      const currentMultiplierGain = 0;
 
       // Add points with current multipliers
       const finalPoints = totalPoints * gameState.currentMultiplier * gameState.permanentMultiplier;
@@ -142,8 +146,8 @@ export class ElectroStack extends BasePowerUp {
         window.player.updatePermanentMultiplierDisplay();
       }
 
-      // Show completion message
-      this._showElectroCompleteMessage(totalClearedBlocks, finalPoints);
+      // Show completion message with multiplier gains
+      this._showElectroCompleteMessage(totalClearedBlocks, finalPoints, permanentMultiplierGain, currentMultiplierGain);
 
       // Regenerate inventory after electro effect
       setTimeout(() => {
@@ -217,17 +221,19 @@ export class ElectroStack extends BasePowerUp {
    * Show electro completion message
    * @param {number} blocksCleared - Number of blocks cleared
    * @param {number} pointsGained - Points gained from the effect
+   * @param {number} permanentMultiplierGain - Permanent multiplier increase
+   * @param {number} currentMultiplierGain - Current multiplier increase
    * @private
    */
-  _showElectroCompleteMessage(blocksCleared, pointsGained) {
+  _showElectroCompleteMessage(blocksCleared, pointsGained, permanentMultiplierGain = 0, currentMultiplierGain = 0) {
     const messageDiv = document.createElement("div");
     messageDiv.className = "electro-complete-message";
 
-    let messageText = "⚡ Elektro Stack activated!";
+    let messageText;
     if (blocksCleared > 0) {
-      messageText += ` ${blocksCleared} blocks cleared! +${pointsGained} points!`;
+      messageText = `⚡ Elektro abgeschlossen!\nPerm. Blitz + ${permanentMultiplierGain}\nCurrent Flamme + ${currentMultiplierGain}\nScore + ${pointsGained}`;
     } else {
-      messageText += " No blocks affected.";
+      messageText = "⚡ Elektro abgeschlossen!\nKeine Blöcke betroffen.";
     }
 
     messageDiv.textContent = messageText;
@@ -247,6 +253,7 @@ export class ElectroStack extends BasePowerUp {
       backdrop-filter: blur(5px);
       animation: electroMessageFade 3s ease-out forwards;
       border: 2px solid #FFD700;
+      white-space: pre-line;
     `;
 
     document.body.appendChild(messageDiv);

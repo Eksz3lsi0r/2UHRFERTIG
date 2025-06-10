@@ -39,6 +39,7 @@ export const player = {
   hasFullLines, // <-- hasFullLines für Power-Ups hinzugefügt
   updateScoreDisplay,
   updatePermanentMultiplierDisplay,
+  updateCurrentMultiplierDisplay, // <-- new function to update current multiplier display
   regenerateInventoryAfterPowerUp, // <-- new robust inventory regeneration
 };
 
@@ -120,6 +121,7 @@ function resetGame() {
 
   // Reset permanent multiplier display
   updatePermanentMultiplierDisplay();
+  updateCurrentMultiplierDisplay();
 
   // Nach jedem Reset GridSnap neu initialisieren (wichtig für Touch)
   import("./drag.js").then(({ GridSnap }) => {
@@ -396,6 +398,7 @@ function placeShape(shape, br, bc) {
   if (!hadLinesBeforeClearing) {
     state.consecutiveClears = 0;
     state.currentMultiplier = 1;
+    updateCurrentMultiplierDisplay();
   }
 
   // Entferne das platzte Piece aus dem Inventar
@@ -550,6 +553,7 @@ function _clearLines() {
   state.playerScore += finalPoints;
   updateScoreDisplay();
   updatePermanentMultiplierDisplay();
+  updateCurrentMultiplierDisplay();
 
   // Board-Sync für PvP - sende Board-Update nach Line-Clearing
   if (state.currentMode === "player") {
@@ -892,6 +896,33 @@ function updatePermanentMultiplierDisplay() {
     multiplierValueElement.textContent = `${state.permanentMultiplier.toFixed(0)}x`;
   } else {
     debugLog("Could not find permanent multiplier elements");
+  }
+}
+
+/* --------------------------------------------------------------------
+ *  Current Multiplier Display Update
+ * ------------------------------------------------------------------ */
+function updateCurrentMultiplierDisplay() {
+  debugLog("updateCurrentMultiplierDisplay called, currentMultiplier:", state.currentMultiplier);
+  const multiplierElement = document.getElementById("playerCurrentMultiplier");
+  const multiplierValueElement = multiplierElement?.querySelector(".multiplier-value");
+
+  if (multiplierElement && multiplierValueElement) {
+    // Always show the multiplier display from the beginning
+    debugLog("Showing current multiplier display:", state.currentMultiplier.toFixed(0) + "x");
+    multiplierElement.style.display = "flex";
+    // Format as whole number since we increment by 1
+    multiplierValueElement.textContent = `${state.currentMultiplier.toFixed(0)}x`;
+
+    // Add pulsing effect when multiplier is > 1
+    if (state.currentMultiplier > 1) {
+      multiplierElement.style.animation = "fire-pulse 1s ease-in-out";
+      setTimeout(() => {
+        multiplierElement.style.animation = "fire-pulse 2s infinite ease-in-out";
+      }, 1000);
+    }
+  } else {
+    debugLog("Could not find current multiplier elements");
   }
 }
 

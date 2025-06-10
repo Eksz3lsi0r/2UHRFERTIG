@@ -129,8 +129,8 @@ class PowerUpRegistry {
 
     if (availableIndices.length === 0) return pieces;
 
-    // Step 1: Check if any power-up should be generated (30% base chance)
-    const POWERUP_BASE_CHANCE = 0.3; // 30% chance for any power-up (3x increased)
+    // Step 1: Check if any power-up should be generated (100% base chance)
+    const POWERUP_BASE_CHANCE = 1.0; // 100% chance for any power-up (always spawn)
 
     if (Math.random() < POWERUP_BASE_CHANCE) {
       // Step 2: If a power-up should be generated, choose one with equal probability

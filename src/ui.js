@@ -1452,7 +1452,7 @@ function debugLogUI(...args) {
 }
 
 function initializePermanentMultiplierDisplays() {
-  debugLogUI("Initializing permanent multiplier displays for real-time visibility");
+  debugLogUI("Initializing permanent and current multiplier displays for real-time visibility");
 
   // Initialize player permanent multiplier display
   const playerMultiplierElement = document.getElementById("playerPermanentMultiplier");
@@ -1466,6 +1466,18 @@ function initializePermanentMultiplierDisplays() {
     console.warn("Could not find player permanent multiplier elements");
   }
 
+  // Initialize player current multiplier display
+  const playerCurrentMultiplierElement = document.getElementById("playerCurrentMultiplier");
+  const playerCurrentMultiplierValueElement = playerCurrentMultiplierElement?.querySelector(".multiplier-value");
+
+  if (playerCurrentMultiplierElement && playerCurrentMultiplierValueElement) {
+    playerCurrentMultiplierElement.style.display = "flex";
+    playerCurrentMultiplierValueElement.textContent = "1x";
+    debugLogUI("Player current multiplier display initialized and visible");
+  } else {
+    console.warn("Could not find player current multiplier elements");
+  }
+
   // Initialize opponent permanent multiplier display
   const opponentMultiplierElement = document.getElementById("opponentPermanentMultiplier");
   const opponentMultiplierValueElement = opponentMultiplierElement?.querySelector(".multiplier-value");
@@ -1476,6 +1488,18 @@ function initializePermanentMultiplierDisplays() {
     debugLogUI("Opponent permanent multiplier display initialized and visible");
   } else {
     console.warn("Could not find opponent permanent multiplier elements");
+  }
+
+  // Initialize opponent current multiplier display
+  const opponentCurrentMultiplierElement = document.getElementById("opponentCurrentMultiplier");
+  const opponentCurrentMultiplierValueElement = opponentCurrentMultiplierElement?.querySelector(".multiplier-value");
+
+  if (opponentCurrentMultiplierElement && opponentCurrentMultiplierValueElement) {
+    opponentCurrentMultiplierElement.style.display = "flex";
+    opponentCurrentMultiplierValueElement.textContent = "1x";
+    debugLogUI("Opponent current multiplier display initialized and visible");
+  } else {
+    console.warn("Could not find opponent current multiplier elements");
   }
 }
 
