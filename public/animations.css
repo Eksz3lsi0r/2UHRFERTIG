@@ -289,33 +289,16 @@
 }
 
 /* ───── Multiplikator-Anzeige in der Mitte des Spielfelds ───── */
+/* DISABLED - Text animations are replaced by operator animations */
 .multiplier-display {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 1000;
-  pointer-events: none;
-  /* Fallback für bessere Sichtbarkeit während Debug */
-  background: rgba(0, 0, 0, 0.8);
-  padding: 20px;
-  border-radius: 10px;
-  border: 2px solid #ffd700;
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
 }
 
 .multiplier-text {
-  font-size: 3em;
-  font-weight: bold;
-  color: #fff;
-  text-shadow: 0 0 20px rgba(255, 215, 0, 1), 0 0 40px rgba(255, 165, 0, 0.8),
-    0 0 60px rgba(255, 69, 0, 0.6);
-  background: linear-gradient(45deg, #ffd700, #ff8c00, #ff4500);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -moz-background-clip: text;
-  animation: multiplier-show 2.5s ease-out;
-  /* Fallback für Browser ohne background-clip Support */
-  -webkit-text-fill-color: #ffd900;
+  display: none !important;
+  visibility: hidden !important;
 }
 
 @keyframes multiplier-show {

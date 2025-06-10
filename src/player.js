@@ -697,291 +697,34 @@ function _clearLines() {
  *  Score Animation Functions
  * ------------------------------------------------------------------ */
 function _showScoreAnimations(finalPoints, currentMultiplier, totalLinesCleared) {
-  debugLog(`Showing score animations: ${finalPoints} points, ${currentMultiplier}x multiplier, ${totalLinesCleared} lines cleared`);
+  // Text animations disabled - operator animations are used instead
+  debugLog(`Score animations disabled: ${finalPoints} points, ${currentMultiplier}x multiplier, ${totalLinesCleared} lines cleared`);
+  return;
 
-  // Create score animation message
-  const messageDiv = document.createElement("div");
-  messageDiv.className = "score-animation-message";
-  messageDiv.style.cssText = `
-    position: fixed;
-    top: 30%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: linear-gradient(135deg, #4CAF50, #45a049);
-    color: white;
-    padding: 15px 30px;
-    border-radius: 12px;
-    font-size: 16px;
-    font-weight: bold;
-    box-shadow: 0 8px 25px rgba(76, 175, 80, 0.4);
-    z-index: 1000;
-    animation: scoreMessageAppear 0.6s ease-out;
-    text-align: center;
-  `;
-
-  let messageText = `🎯 ${finalPoints} Punkte!`;
-  if (totalLinesCleared > 0) {
-    messageText += `\n${totalLinesCleared} Linie${totalLinesCleared > 1 ? 'n' : ''} gelöscht!`;
-  }
-  if (currentMultiplier > 1) {
-    messageText += `\n${currentMultiplier}x Multiplier!`;
-  }
-
-  messageDiv.textContent = messageText;
-  messageDiv.style.whiteSpace = 'pre-line';
-
-  document.body.appendChild(messageDiv);
-
-  // Add CSS animation keyframes if they don't exist
-  if (!document.querySelector('#score-animation-styles')) {
-    const styleSheet = document.createElement('style');
-    styleSheet.id = 'score-animation-styles';
-    styleSheet.textContent = `
-      @keyframes scoreMessageAppear {
-        0% {
-          opacity: 0;
-          transform: translate(-50%, -50%) scale(0.8) translateY(20px);
-        }
-        100% {
-          opacity: 1;
-          transform: translate(-50%, -50%) scale(1) translateY(0);
-        }
-      }
-      @keyframes scoreMessageFade {
-        0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-        100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9) translateY(-20px); }
-      }
-    `;
-    document.head.appendChild(styleSheet);
-  }
-
-  // Remove message after animation
-  setTimeout(() => {
-    messageDiv.style.animation = 'scoreMessageFade 0.5s ease-in forwards';
-    setTimeout(() => {
-      if (messageDiv.parentNode) {
-        messageDiv.parentNode.removeChild(messageDiv);
-      }
-    }, 500);
-  }, 2000);
 }
 
 function _showMultiplierAnimation(multiplier, comboCount) {
-  debugLog(`Showing multiplier animation: ${multiplier}x multiplier, ${comboCount} combo`);
+  // Text animations disabled - operator animations are used instead
+  debugLog(`Multiplier animations disabled: ${multiplier}x multiplier, ${comboCount} combo`);
+  return;
 
-  // Create multiplier animation message
-  const messageDiv = document.createElement("div");
-  messageDiv.className = "multiplier-animation-message";
-  messageDiv.style.cssText = `
-    position: fixed;
-    top: 25%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: linear-gradient(135deg, #FF6B6B, #FF5252);
-    color: white;
-    padding: 12px 25px;
-    border-radius: 10px;
-    font-size: 18px;
-    font-weight: bold;
-    box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
-    z-index: 1001;
-    animation: multiplierPulse 0.8s ease-out;
-    text-align: center;
-  `;
-
-  let messageText = `🔥 ${multiplier}x Multiplier!`;
-  if (comboCount > 1) {
-    messageText += `\n${comboCount} Combo!`;
-  }
-
-  messageDiv.textContent = messageText;
-  messageDiv.style.whiteSpace = 'pre-line';
-
-  document.body.appendChild(messageDiv);
-
-  // Add CSS animation keyframes if they don't exist
-  if (!document.querySelector('#multiplier-animation-styles')) {
-    const styleSheet = document.createElement('style');
-    styleSheet.id = 'multiplier-animation-styles';
-    styleSheet.textContent = `
-      @keyframes multiplierPulse {
-        0% {
-          opacity: 0;
-          transform: translate(-50%, -50%) scale(0.6);
-        }
-        50% {
-          opacity: 1;
-          transform: translate(-50%, -50%) scale(1.1);
-        }
-        100% {
-          opacity: 1;
-          transform: translate(-50%, -50%) scale(1);
-        }
-      }
-      @keyframes multiplierFade {
-        0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-        100% { opacity: 0; transform: translate(-50%, -50%) scale(1.2); }
-      }
-    `;
-    document.head.appendChild(styleSheet);
-  }
-
-  // Remove message after animation
-  setTimeout(() => {
-    messageDiv.style.animation = 'multiplierFade 0.6s ease-in forwards';
-    setTimeout(() => {
-      if (messageDiv.parentNode) {
-        messageDiv.parentNode.removeChild(messageDiv);
-      }
-    }, 600);
-  }, 1500);
 }
 
 function _showPointsAnimation(points) {
-  debugLog(`Showing points animation: +${points} points`);
+  // Text animations disabled - operator animations are used instead
+  debugLog(`Points animations disabled: +${points} points`);
+  return;
 
-  // Create points animation message
-  const messageDiv = document.createElement("div");
-  messageDiv.className = "points-animation-message";
-  messageDiv.style.cssText = `
-    position: fixed;
-    top: 35%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: linear-gradient(135deg, #2196F3, #1976D2);
-    color: white;
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: bold;
-    box-shadow: 0 4px 15px rgba(33, 150, 243, 0.4);
-    z-index: 999;
-    animation: pointsFloat 1s ease-out;
-    text-align: center;
-  `;
-
-  messageDiv.textContent = `+${points} Punkte`;
-
-  document.body.appendChild(messageDiv);
-
-  // Add CSS animation keyframes if they don't exist
-  if (!document.querySelector('#points-animation-styles')) {
-    const styleSheet = document.createElement('style');
-    styleSheet.id = 'points-animation-styles';
-    styleSheet.textContent = `
-      @keyframes pointsFloat {
-        0% {
-          opacity: 0;
-          transform: translate(-50%, -50%) translateY(20px);
-        }
-        30% {
-          opacity: 1;
-          transform: translate(-50%, -50%) translateY(0);
-        }
-        100% {
-          opacity: 0;
-          transform: translate(-50%, -50%) translateY(-30px);
-        }
-      }
-    `;
-    document.head.appendChild(styleSheet);
-  }
-
-  // Remove message after animation
-  setTimeout(() => {
-    if (messageDiv.parentNode) {
-      messageDiv.parentNode.removeChild(messageDiv);
-    }
-  }, 1000);
 }
 
 /* --------------------------------------------------------------------
  *  40x Activation Message Animation
  * ------------------------------------------------------------------ */
 function _show40xActivationMessage() {
-  debugLog("Showing 40x activation message with dramatic effects");
+  // Text animations disabled - operator animations are used instead
+  debugLog("40x activation message animations disabled");
+  return;
 
-  // Create 40x activation message with dramatic styling
-  const messageDiv = document.createElement("div");
-  messageDiv.className = "40x-activation-message";
-  messageDiv.style.cssText = `
-    position: fixed;
-    top: 30%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: linear-gradient(135deg, #FF4500, #FF6347, #FF1493, #FF8C00);
-    color: white;
-    padding: 25px 40px;
-    border-radius: 20px;
-    font-size: 24px;
-    font-weight: bold;
-    z-index: 10001;
-    box-shadow:
-      0 0 30px rgba(255, 69, 0, 0.8),
-      0 0 60px rgba(255, 20, 147, 0.6),
-      0 0 90px rgba(255, 140, 0, 0.4);
-    backdrop-filter: blur(5px);
-    animation: fire40xPulse 3s ease-out forwards;
-    text-align: center;
-    white-space: pre-line;
-    border: 3px solid rgba(255, 255, 255, 0.3);
-    text-shadow:
-      0 0 10px rgba(255, 255, 255, 0.8),
-      0 0 20px rgba(255, 69, 0, 0.6),
-      0 0 30px rgba(255, 20, 147, 0.4);
-  `;
-
-  messageDiv.textContent = "🔥 40x MULTIPLIER ACTIVATED! 🔥\n3 ROUNDS REMAINING\nMAXIMUM POWER!";
-
-  document.body.appendChild(messageDiv);
-
-  // Add CSS animation keyframes if they don't exist
-  if (!document.querySelector('#fire-40x-animation-styles')) {
-    const styleSheet = document.createElement('style');
-    styleSheet.id = 'fire-40x-animation-styles';
-    styleSheet.textContent = `
-      @keyframes fire40xPulse {
-        0% {
-          opacity: 0;
-          transform: translate(-50%, -50%) scale(0.5);
-          filter: brightness(1);
-        }
-        20% {
-          opacity: 1;
-          transform: translate(-50%, -50%) scale(1.2);
-          filter: brightness(2);
-        }
-        40% {
-          opacity: 1;
-          transform: translate(-50%, -50%) scale(1);
-          filter: brightness(1.5);
-        }
-        60% {
-          opacity: 1;
-          transform: translate(-50%, -50%) scale(1.1);
-          filter: brightness(1.8);
-        }
-        80% {
-          opacity: 1;
-          transform: translate(-50%, -50%) scale(1);
-          filter: brightness(1.2);
-        }
-        100% {
-          opacity: 0;
-          transform: translate(-50%, -50%) scale(0.8);
-          filter: brightness(0.8);
-        }
-      }
-    `;
-    document.head.appendChild(styleSheet);
-  }
-
-  // Remove message after animation
-  setTimeout(() => {
-    if (messageDiv.parentNode) {
-      messageDiv.parentNode.removeChild(messageDiv);
-    }
-  }, 3000);
 }
 
 /* --------------------------------------------------------------------
