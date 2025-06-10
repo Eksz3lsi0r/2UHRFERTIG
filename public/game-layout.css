@@ -527,70 +527,61 @@
 
 /* Operator-Animation neben Stats */
 .stat-operator {
-  display: inline-block;
-  min-width: 28px;
+  position: absolute !important;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%) translateX(8px) scale(0.8);
+  min-width: 0 !important;
   max-width: 200px;
-  margin-left: 6px;
+  margin-left: 0 !important;
   font-size: 0.9em;
   font-family: "Trade Winds", cursive, sans-serif;
   font-weight: bold;
   color: #fff;
-  background: none;
-  border: none;
-  border-radius: 0;
-  padding: 2px 6px;
-  box-shadow: none;
+  background: none !important;
+  background-color: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  padding: 0 2px !important;
   text-shadow:
     0 0 10px rgba(138, 43, 226, 0.8),
     0 0 20px rgba(0, 210, 168, 0.6),
     0 1px 3px rgba(0, 0, 0, 0.8);
   opacity: 0;
   pointer-events: none;
-  transform: translateY(0) scale(0.8);
-  transition: opacity 0.3s ease, transform 0.3s ease;
-  z-index: 20;
+  z-index: 30;
   white-space: nowrap;
-  overflow: hidden;
+  overflow: visible;
   text-overflow: ellipsis;
+  transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.25, 1.46, 0.45, 0.94);
 }
+
 .stat-operator.stat-operator-show {
   opacity: 1;
-  transform: translateY(-8px) scale(1.1);
+  transform: translateY(-8px) translateX(8px) scale(1.1);
   animation: stat-operator-float 1.2s cubic-bezier(0.25, 1.46, 0.45, 0.94);
 }
 
-@keyframes stat-operator-float {
-  0% {
-    opacity: 0;
-    transform: translateY(10px) scale(0.7);
-    text-shadow:
-      0 0 5px rgba(138, 43, 226, 0.4),
-      0 0 10px rgba(0, 210, 168, 0.3);
-  }
-  20% {
-    opacity: 1;
-    transform: translateY(-2px) scale(1.1);
-    text-shadow:
-      0 0 15px rgba(138, 43, 226, 1),
-      0 0 25px rgba(0, 210, 168, 0.8);
-  }
-  80% {
-    opacity: 1;
-    transform: translateY(-8px) scale(1.1);
-    text-shadow:
-      0 0 15px rgba(138, 43, 226, 1),
-      0 0 25px rgba(0, 210, 168, 0.8);
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(-18px) scale(0.7);
-    text-shadow:
-      0 0 5px rgba(138, 43, 226, 0.4),
-      0 0 10px rgba(0, 210, 168, 0.3);
-  }
+.stat-operator::before, .stat-operator::after {
+  display: none !important;
+  content: none !important;
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
-/* Ensure all score displays use Trade Winds */
-.score-display, .multiplier-display, .stat-value {
-  font-family: "Trade Winds", cursive, sans-serif !important;
+.scoreDisplay .stat-operator,
+.permanent-multiplier .stat-operator,
+.current-multiplier .stat-operator {
+  background: none !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  min-width: 0 !important;
+  padding: 0 2px !important;
 }

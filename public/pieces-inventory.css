@@ -262,12 +262,15 @@
 .extend-piece {
   /* Remove ALL backgrounds, borders, and effects */
   background: transparent !important;
+  background-color: transparent !important;
   border: none !important;
+  border-radius: 0 !important;
   box-shadow: none !important;
+  outline: none !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-  border-radius: 0 !important;
-  outline: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
 /* Remove pseudo-elements completely */
@@ -275,9 +278,12 @@
 .electro-piece::before,
 .extend-piece::before {
   display: none !important;
+  content: none !important;
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
-/* Block styling override for power-ups */
 .storm-piece .block,
 .electro-piece .block,
 .extend-piece .block {
@@ -285,6 +291,8 @@
   border: none !important;
   box-shadow: none !important;
   outline: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 /* ───── Storm Power-Up Styles - Pure Emoji ───── */

@@ -472,3 +472,39 @@ function getHoverPosition(e) {
   const col = Math.floor((x - rect.left - offset.x) / unit);
   return { row, col };
 }
+
+/* --------------------------------------------------------------------
+ *  Test Functions for Operator Animations (Debug)
+ * ------------------------------------------------------------------ */
+window.testOperatorAnimations = function() {
+  console.log("Testing operator animations...");
+
+  // Import the animation functions
+  import('./player.js').then(playerModule => {
+    // Test permanent multiplier animation
+    setTimeout(() => {
+      console.log("Testing permanent multiplier +1");
+      playerModule.animatePermanentMultiplier(1);
+    }, 500);
+
+    // Test current multiplier animation
+    setTimeout(() => {
+      console.log("Testing current multiplier +2");
+      playerModule.animateCurrentMultiplier(2);
+    }, 1500);
+
+    // Test score animation
+    setTimeout(() => {
+      console.log("Testing score +100");
+      playerModule.animateScore(100);
+    }, 2500);
+
+    // Test negative animations
+    setTimeout(() => {
+      console.log("Testing current multiplier -1");
+      playerModule.animateCurrentMultiplier(-1);
+    }, 3500);
+  });
+};
+
+console.log("Operator animation test function available: testOperatorAnimations()");
