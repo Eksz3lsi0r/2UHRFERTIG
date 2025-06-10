@@ -1,7 +1,7 @@
 import { BasePowerUp } from './basePowerUp.js';
 
 // Debug mode toggle - set to false for production, true for development
-const DEBUG_MODE = true;
+const DEBUG_MODE = false;
 
 // Utility function for conditional logging
 function debugLog(...args) {
@@ -23,7 +23,7 @@ export class ExtendBlock extends BasePowerUp {
       name: 'Extend Block',
       shape: [[0, 0]], // 1x1 shape
       color: '#ff9500',
-      spawnRate: 0.333, // ~33.33% individual chance (100% base chance / 3 powerups)
+      spawnRate: 0.11, // ~33.33% individual chance (100% base chance / 3 powerups)
       emoji: '', // No emoji
       description: 'Expands in all directions until no free cells remain'
     });

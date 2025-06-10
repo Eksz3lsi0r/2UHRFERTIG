@@ -25,7 +25,7 @@ export class ElectroStack extends BasePowerUp {
       name: 'Electro Stack',
       shape: [[0, 0]], // 1x1 shape
       color: '#FFD700',
-      spawnRate: 0.333, // ~33.33% individual chance (100% base chance / 3 powerups)
+      spawnRate: 0.11, // ~33.33% individual chance (100% base chance / 3 powerups)
       emoji: '⚡',
       description: 'Clears all blocks in the 8 surrounding cells'
     });

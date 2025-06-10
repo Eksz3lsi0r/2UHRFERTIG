@@ -5,7 +5,7 @@
 import { BasePowerUp } from './basePowerUp.js';
 
 // Debug mode toggle - set to false for production, true for development
-const DEBUG_MODE = true;
+const DEBUG_MODE = false;
 
 // Utility function for conditional logging
 function debugLog(...args) {
@@ -25,7 +25,7 @@ export class StormBlock extends BasePowerUp {
       name: 'Storm Block',
       shape: [[0, 0]], // 1x1 shape
       color: '#4a90e2',
-      spawnRate: 0.333, // ~33.33% individual chance (100% base chance / 3 powerups)
+      spawnRate: 0.11, // ~33.33% individual chance (100% base chance / 3 powerups)
       emoji: '🌪️',
       description: 'Collects and redistributes all blocks on the board'
     });
