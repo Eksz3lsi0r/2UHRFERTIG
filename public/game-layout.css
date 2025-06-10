@@ -16,7 +16,7 @@
   text-align: center;
   border: 1px solid rgba(182, 125, 255, 0.15);
   box-shadow: var(--shadow-md), 0 0 15px rgba(138, 43, 226, 0.3);
-  text-shadow: 0 0 8px var(--color-text-shadow);
+  text-shadow: 0 0 8px var(--color-text);
   animation: pulse 3s ease-in-out infinite;
   letter-spacing: 1px;
 }
@@ -226,6 +226,64 @@
   top: 10px;
   left: -10px;
   transform: scale(0.8);
+}
+
+/* ────────── Special 40x Multiplier Highlighting ────────── */
+.multiplier-40x-duration {
+  background: linear-gradient(135deg, #FF4500, #FF6347, #FF1493) !important;
+  border-color: rgba(255, 69, 0, 0.8) !important;
+  box-shadow:
+    0 0 15px rgba(255, 69, 0, 0.8),
+    0 0 30px rgba(255, 20, 147, 0.6),
+    0 0 45px rgba(255, 140, 0, 0.4) !important;
+}
+
+.multiplier-40x-duration .multiplier-icon {
+  color: #FFD700 !important;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 1) !important;
+}
+
+.multiplier-40x-duration .multiplier-value {
+  color: #FFFFFF !important;
+  text-shadow:
+    0 0 8px rgba(255, 255, 255, 0.8),
+    0 0 16px rgba(255, 69, 0, 0.6) !important;
+  font-weight: 900 !important;
+}
+
+@keyframes fire-pulse-40x {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 12px rgba(255, 69, 0, 0.8));
+    box-shadow:
+      0 0 15px rgba(255, 69, 0, 0.8),
+      0 0 30px rgba(255, 20, 147, 0.6),
+      0 0 45px rgba(255, 140, 0, 0.4);
+  }
+  25% {
+    transform: scale(1.2);
+    filter: drop-shadow(0 0 18px rgba(255, 20, 147, 1));
+    box-shadow:
+      0 0 20px rgba(255, 69, 0, 1),
+      0 0 40px rgba(255, 20, 147, 0.8),
+      0 0 60px rgba(255, 140, 0, 0.6);
+  }
+  50% {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 15px rgba(255, 140, 0, 1));
+    box-shadow:
+      0 0 25px rgba(255, 69, 0, 0.9),
+      0 0 50px rgba(255, 20, 147, 0.7),
+      0 0 75px rgba(255, 140, 0, 0.5);
+  }
+  75% {
+    transform: scale(1.15);
+    filter: drop-shadow(0 0 20px rgba(255, 69, 0, 1));
+    box-shadow:
+      0 0 18px rgba(255, 69, 0, 1),
+      0 0 35px rgba(255, 20, 147, 0.8),
+      0 0 55px rgba(255, 140, 0, 0.6);
+  }
 }
 
 /* ────────── Spielfeld (Spieler) mit Glasmorphismus ────────── */
@@ -442,4 +500,61 @@
   max-width: 50% !important;
   margin: -8px auto -2px !important;
   clip-path: polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%) !important;
+}
+
+/* Stat Animation Styles */
+.stat-animate {
+  animation: stat-bounce 0.9s cubic-bezier(.25,1.5,.5,1) !important;
+}
+.stat-animate-up {
+  box-shadow: 0 0 18px 4px #00d2a8, 0 0 0 2px #fff;
+  background: linear-gradient(90deg, #00d2a8 0%, #8a2be2 100%) !important;
+  color: #fff !important;
+}
+.stat-animate-down {
+  box-shadow: 0 0 18px 4px #ff4676, 0 0 0 2px #fff;
+  background: linear-gradient(90deg, #ff4676 0%, #8a2be2 100%) !important;
+  color: #fff !important;
+}
+@keyframes stat-bounce {
+  0% { transform: scale(1); }
+  20% { transform: scale(1.18); }
+  40% { transform: scale(0.95); }
+  60% { transform: scale(1.08); }
+  80% { transform: scale(0.98); }
+  100% { transform: scale(1); }
+}
+
+/* Operator-Animation neben Stats */
+.stat-operator {
+  display: inline-block;
+  min-width: 28px;
+  max-width: 200px;
+  margin-left: 6px;
+  font-size: 0.9em;
+  font-weight: bold;
+  color: #fff;
+  background: linear-gradient(90deg, #00d2a8 0%, #8a2be2 100%);
+  border-radius: 8px;
+  padding: 2px 8px;
+  box-shadow: 0 0 10px #00d2a8, 0 0 8px #8a2be2;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(0) scale(0.8);
+  transition: opacity 0.2s, transform 0.2s;
+  z-index: 20;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.stat-operator.stat-operator-show {
+  opacity: 1;
+  transform: translateY(-8px) scale(1.1);
+  animation: stat-operator-float 1.1s cubic-bezier(.25,1.5,.5,1);
+}
+@keyframes stat-operator-float {
+  0% { opacity: 0; transform: translateY(10px) scale(0.7); }
+  20% { opacity: 1; transform: translateY(-2px) scale(1.1); }
+  80% { opacity: 1; transform: translateY(-8px) scale(1.1); }
+  100% { opacity: 0; transform: translateY(-18px) scale(0.7); }
 }

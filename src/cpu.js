@@ -607,12 +607,21 @@ function updateOpponentCurrentMultiplierDisplay() {
     // Format as whole number since we increment by 1
     multiplierValueElement.textContent = `${state.cpuCurrentMultiplier.toFixed(0)}x`;
 
-    // Add pulsing effect when multiplier is > 1
-    if (state.cpuCurrentMultiplier > 1) {
-      multiplierElement.style.animation = "fire-pulse 1s ease-in-out";
-      setTimeout(() => {
-        multiplierElement.style.animation = "fire-pulse 2s infinite ease-in-out";
-      }, 1000);
+    // Special highlighting for 40x duration
+    if (state.cpuCurrentMultiplier === 40 && state.cpuCurrentMultiplier40xRoundsRemaining > 0) {
+      multiplierElement.classList.add("multiplier-40x-duration");
+      multiplierValueElement.textContent = `40x (${state.cpuCurrentMultiplier40xRoundsRemaining})`;
+      multiplierElement.style.animation = "fire-pulse-40x 0.8s infinite ease-in-out";
+      debugLog(`CPU 40x Duration active: ${state.cpuCurrentMultiplier40xRoundsRemaining} rounds remaining`);
+    } else {
+      multiplierElement.classList.remove("multiplier-40x-duration");
+      // Add pulsing effect when multiplier is > 1
+      if (state.cpuCurrentMultiplier > 1) {
+        multiplierElement.style.animation = "fire-pulse 1s ease-in-out";
+        setTimeout(() => {
+          multiplierElement.style.animation = "fire-pulse 2s infinite ease-in-out";
+        }, 1000);
+      }
     }
   } else {
     debugLog("Could not find opponent current multiplier elements");

@@ -1,59 +1,3 @@
-/* --------------------------------------------------------------------
- *  src/powerups/extendBlock.js - Extend Block Power-Up
- * ---------------------    // Add points for the initial extend bl    // Add points for the initial extend block placement with permanent multiplier (reduced by 20x)
-    const startBlockPoints = (1 * gameState.permanentMultiplier) / 20;
-    gameState.playerScore += startBlockPoints;
-
-    // Update score display immediately
-    if (window.player?.updateScoreDisplay) {
-      window.player.updateScoreDisplay();
-    }
-
-    debugLog(`Extend Block placed at starting position [${startRow}, ${startCol}] - Added ${startBlockPoints} points (1 × ${gameState.permanentMultiplier}x multiplier ÷ 20)`);`ent with permanent multiplier (reduced by 20x)
-    const startBlockPoints =        // Add points for each extended block with permanent multiplier (reduced by 20x)
-        const blockPoints = (1 * gameState.permanentMultiplier) / 20;
-         // Increase current multiplier for each cleared line
-      gameState.consecutiveClears += totalLinesCleared;
-
-      // Check if entire board is cleared (all 100 cells filled)
-      let allCellsFilled = true;
-      for (let r = 0; r < 10 && allCellsFilled; r++) {
-        for (let c = 0; c < 10 && allCellsFilled; c++) {
-          if (gameState.playerBoard[r][c] !== 1) {
-            allCellsFilled = false;
-          }
-        }
-      }
-
-      // Set current multiplier: 20x if entire board is cleared, otherwise max 8x
-      if (allCellsFilled) {
-        gameState.currentMultiplier = 20;
-        debugLog(`Extend Block: SPECIAL CASE - Entire board cleared! Current multiplier set to 20x`);
-      } else {
-        gameState.currentMultiplier = Math.min(gameState.consecutiveClears, 8); // Maximum 8x normally
-      }
-
-      debugLog(`Extend Block: AFTER Current multiplier - consecutiveClears: ${gameState.consecutiveClears}, currentMultiplier: ${gameState.currentMultiplier}x`);` gameState.playerScore += blockPoints;
-
-        // Update score display immediately
-        if (window.player?.updateScoreDisplay) {
-          window.player.updateScoreDisplay();
-        }
-
-        // Create visual flying animation (doesn't affect game logic)
-        this._createFlyingBlockAnimation(sourceCell, cell, dirIndex);
-
-        newPositions.push({row: newRow, col: newCol});
-        debugLog(`Extended to position [${newRow}, ${newCol}] - Added ${blockPoints} points (1 × ${gameState.permanentMultiplier}x multiplier ÷ 20)`);`e.permanentMultiplier) / 20;
-    gameState.playerScore += startBlockPoints;
-
-    // Update score display immediately
-    if (window.player?.updateScoreDisplay) {
-      window.player.updateScoreDisplay();
-    }
-
-    debugLog(`Extend Block placed at starting position [${startRow}, ${startCol}] - Added ${startBlockPoints} points (1 × ${gameState.permanentMultiplier}x multiplier ÷ 20)`);`----------------------------------- */
-
 import { BasePowerUp } from './basePowerUp.js';
 
 // Debug mode toggle - set to false for production, true for development
@@ -206,8 +150,9 @@ export class ExtendBlock extends BasePowerUp {
       }, 300);
     }
 
-    // Add points for the initial extend block placement with permanent multiplier
-    const startBlockPoints = 1 * gameState.permanentMultiplier;
+    // Add points for the initial extend block placement with BOTH multipliers
+    const basePoints = 1;
+    const startBlockPoints = basePoints * gameState.permanentMultiplier * gameState.currentMultiplier;
     gameState.playerScore += startBlockPoints;
 
     // Update score display immediately
@@ -215,7 +160,12 @@ export class ExtendBlock extends BasePowerUp {
       window.player.updateScoreDisplay();
     }
 
-    debugLog(`Extend Block placed at starting position [${startRow}, ${startCol}] - Added ${startBlockPoints} points (1 × ${gameState.permanentMultiplier}x multiplier)`);
+    // Animate score gain for starting block with breakdown
+    if (window.player?.animateScore) {
+      window.player.animateScore(startBlockPoints, basePoints, gameState.permanentMultiplier, gameState.currentMultiplier);
+    }
+
+    debugLog(`Extend Block placed at starting position [${startRow}, ${startCol}] - Added ${startBlockPoints} points (1 × ${gameState.permanentMultiplier}x × ${gameState.currentMultiplier}x multiplier)`);
 
     // Use a simple queue-based approach for reliable expansion
     const queue = [{row: startRow, col: startCol}];
@@ -325,8 +275,9 @@ export class ExtendBlock extends BasePowerUp {
           }, 150); // Doubled speed: 300 -> 150
         }
 
-        // Add points for each extended block with permanent multiplier
-        const blockPoints = 1 * gameState.permanentMultiplier;
+        // Add points for each extended block with BOTH multipliers
+        const basePoints = 1;
+        const blockPoints = basePoints * gameState.permanentMultiplier * gameState.currentMultiplier;
         gameState.playerScore += blockPoints;
 
         // Update score display immediately
@@ -334,11 +285,16 @@ export class ExtendBlock extends BasePowerUp {
           window.player.updateScoreDisplay();
         }
 
+        // Animate score gain for each extended block with breakdown
+        if (window.player?.animateScore) {
+          window.player.animateScore(blockPoints, basePoints, gameState.permanentMultiplier, gameState.currentMultiplier);
+        }
+
         // Create visual flying animation (doesn't affect game logic)
         this._createFlyingBlockAnimation(sourceCell, cell, dirIndex);
 
         newPositions.push({row: newRow, col: newCol});
-        debugLog(`Extended to position [${newRow}, ${newCol}] - Added ${blockPoints} points (1 × ${gameState.permanentMultiplier}x multiplier)`);
+        debugLog(`Extended to position [${newRow}, ${newCol}] - Added ${blockPoints} points (1 × ${gameState.permanentMultiplier}x × ${gameState.currentMultiplier}x multiplier)`);
       }
     });
 
@@ -550,13 +506,19 @@ export class ExtendBlock extends BasePowerUp {
       debugLog(`Extend Block: Permanent multiplier increased from ${oldPermanentMultiplier}x to ${gameState.permanentMultiplier}x`);
 
       // Award points with both multipliers (using NEW permanent multiplier, reduced by 20x)
-      const lineClearingPoints = (basePoints * 10 * gameState.currentMultiplier * gameState.permanentMultiplier) / 20;
+      const baseLineClearingPoints = (basePoints * 10) / 20; // Base points with 10x multiplier but reduced by 20x
+      const lineClearingPoints = baseLineClearingPoints * gameState.currentMultiplier * gameState.permanentMultiplier;
       gameState.playerScore += lineClearingPoints;
 
       // Calculate gains for message display
       const permanentMultiplierGain = gameState.permanentMultiplier - oldPermanentMultiplier;
       const currentMultiplierGain = gameState.currentMultiplier - oldCurrentMultiplier;
       const pointsGained = gameState.playerScore - oldScore;
+
+      // Nach Score/Multiplier-Änderung Animationen triggern mit Faktoren-Aufschlüsselung
+      if (window.player?.animateScore) window.player.animateScore(lineClearingPoints, baseLineClearingPoints, gameState.permanentMultiplier, gameState.currentMultiplier);
+      if (window.player?.animatePermanentMultiplier) window.player.animatePermanentMultiplier(permanentMultiplierGain);
+      if (window.player?.animateCurrentMultiplier) window.player.animateCurrentMultiplier(currentMultiplierGain);
 
       // Update displays
       if (window.player?.updateScoreDisplay) {
@@ -594,152 +556,25 @@ export class ExtendBlock extends BasePowerUp {
   _regenerateInventoryAfterExtend(gameState, linesWereCleared = false, permanentMultiplierGain = 0, currentMultiplierGain = 0, pointsGained = 0) {
     // Wait for animations to complete, then show message first
     setTimeout(() => {
-      // Show completion message with appropriate text
-      this._showExtendCompleteMessage(linesWereCleared, permanentMultiplierGain, currentMultiplierGain, pointsGained, () => {
-        // Use robust inventory regeneration
-        if (window.player?.regenerateInventoryAfterPowerUp) {
-          window.player.regenerateInventoryAfterPowerUp(gameState, "Extend Block");
-        } else {
-          // Fallback to original method
-          if (window.player?.generatePieces) {
-            window.player.generatePieces();
-          }
-          if (window.player?.renderPieces) {
-            window.player.renderPieces();
-          }
+      // Use robust inventory regeneration
+      if (window.player?.regenerateInventoryAfterPowerUp) {
+        window.player.regenerateInventoryAfterPowerUp(gameState, "Extend Block");
+      } else {
+        // Fallback to original method
+        if (window.player?.generatePieces) {
+          window.player.generatePieces();
         }
+        if (window.player?.renderPieces) {
+          window.player.renderPieces();
+        }
+      }
 
-        // Clear the extend animation flag to allow normal inventory generation
-        gameState.extendAnimationActive = false;
+      // Clear the extend animation flag to allow normal inventory generation
+      gameState.extendAnimationActive = false;
 
-        // Hide the extend animation when complete
-        this._hideExtendAnimation();
-      });
+      // Hide the extend animation when complete
+      this._hideExtendAnimation();
     }, 500); // Doubled speed: 1000 -> 500
-  }
-
-  /**
-   * Show extend completion message
-   * @param {boolean} linesWereCleared - Whether lines were cleared during extend
-   * @param {number} permanentMultiplierGain - Permanent multiplier gained
-   * @param {number} currentMultiplierGain - Current multiplier gained
-   * @param {number} pointsGained - Points gained
-   * @param {Function} callback - Function to call after message appears
-   * @private
-   */
-  _showExtendCompleteMessage(linesWereCleared = false, permanentMultiplierGain = 0, currentMultiplierGain = 0, pointsGained = 0, callback = null) {
-    const messageDiv = document.createElement("div");
-    messageDiv.className = "extend-complete-message";
-
-    let messageText;
-    if (linesWereCleared || permanentMultiplierGain > 0 || currentMultiplierGain > 0 || pointsGained > 0) {
-      messageText = `🔄 Extend abgeschlossen!\nPerm. Blitz + ${permanentMultiplierGain}\nCurrent Flamme + ${currentMultiplierGain}\nScore + ${pointsGained}`;
-    } else {
-      messageText = "🔄 Extend abgeschlossen!\nKeine Linien gelöscht.";
-    }
-
-    messageDiv.textContent = messageText;
-    messageDiv.style.cssText = `
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(255, 149, 0, 0.9);
-      color: white;
-      padding: 15px 25px;
-      border-radius: 10px;
-      font-size: 16px;
-      font-weight: bold;
-      z-index: 10000;
-      box-shadow: 0 0 20px rgba(255, 149, 0, 0.8);
-      backdrop-filter: blur(5px);
-      animation: extendMessageFade 3s ease-out forwards;
-      white-space: pre-line;
-    `;
-
-    document.body.appendChild(messageDiv);
-
-    // Execute callback after message is shown
-    if (callback) {
-      setTimeout(() => {
-        callback();
-      }, 250); // Doubled speed: 500 -> 250
-    }
-
-    setTimeout(() => {
-      if (messageDiv.parentNode) {
-        messageDiv.parentNode.removeChild(messageDiv);
-      }
-    }, 3000);
-  }
-
-  /**
-   * Show special 40x multiplier activation message
-   * @private
-   */
-  _showSpecial40xMessage() {
-    const messageDiv = document.createElement("div");
-    messageDiv.className = "extend-special-40x-message";
-
-    messageDiv.textContent = "🔥 SPECIAL EXTEND COMBO!\n40x MULTIPLIER ACTIVATED!\n3 Rounds Remaining";
-    messageDiv.style.cssText = `
-      position: fixed;
-      top: 30%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: linear-gradient(135deg, #ff6b35, #ff9500);
-      color: white;
-      padding: 20px 30px;
-      border-radius: 15px;
-      font-size: 20px;
-      font-weight: bold;
-      z-index: 10001;
-      box-shadow: 0 0 30px rgba(255, 107, 53, 0.8), 0 0 60px rgba(255, 149, 0, 0.6);
-      backdrop-filter: blur(5px);
-      animation: special40xPulse 4s ease-out forwards;
-      white-space: pre-line;
-      text-align: center;
-      border: 3px solid rgba(255, 255, 255, 0.3);
-    `;
-
-    document.body.appendChild(messageDiv);
-
-    // Add CSS animation if it doesn't exist
-    if (!document.querySelector('#special-40x-animation-styles')) {
-      const styleSheet = document.createElement('style');
-      styleSheet.id = 'special-40x-animation-styles';
-      styleSheet.textContent = `
-        @keyframes special40xPulse {
-          0% {
-            opacity: 0;
-            transform: translate(-50%, -50%) scale(0.5);
-          }
-          20% {
-            opacity: 1;
-            transform: translate(-50%, -50%) scale(1.2);
-          }
-          40% {
-            opacity: 1;
-            transform: translate(-50%, -50%) scale(1);
-          }
-          80% {
-            opacity: 1;
-            transform: translate(-50%, -50%) scale(1);
-          }
-          100% {
-            opacity: 0;
-            transform: translate(-50%, -50%) scale(0.8);
-          }
-        }
-      `;
-      document.head.appendChild(styleSheet);
-    }
-
-    setTimeout(() => {
-      if (messageDiv.parentNode) {
-        messageDiv.parentNode.removeChild(messageDiv);
-      }
-    }, 4000);
   }
 
   /**

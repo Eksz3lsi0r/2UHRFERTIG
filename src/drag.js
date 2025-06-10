@@ -30,11 +30,12 @@ export const GridSnap = {
     this._onTouchEnd = this.onTouchEnd.bind(this);
   },
 
-  onTouchStart(e, shape) {
+  onTouchStart(e, shape, pieceObj) {
     if (e.touches.length !== 1) return;
     e.preventDefault();
     this.recalcMetrics(); // Immer aktuelle Werte!
     this.currentShape = shape;
+    this.currentPiece = pieceObj; // Store the full piece object
     const touch = e.touches[0];
     // Finde den Mittelpunkt des ersten Blocks (Shape-Array ist [r, c])
     let minR = Math.min(...shape.map(([r]) => r));
@@ -45,6 +46,7 @@ export const GridSnap = {
       y: touch.clientY - firstBlock.top - firstBlock.height / 2 - 200,
     };
     window.state.currentDragShape = shape;
+    window.state.currentDragPiece = pieceObj; // Store piece object in state
     window.state.currentDragOffset = this.currentOffset;
     this.createGhost(shape);
 
@@ -99,6 +101,7 @@ export const GridSnap = {
     this.removeGhost();
     this.removePreview();
     this.currentShape = null;
+    this.currentPiece = null; // Clear piece object reference
     this.currentOffset = { x: 0, y: 0 };
     // Fix: gebundene Methoden verwenden
     document.removeEventListener("touchmove", this._onTouchMove, true);
@@ -309,7 +312,7 @@ export const GridSnap = {
   },
   placeShapeAt(row, col) {
     if (window.player && typeof window.player.handleDrop === "function") {
-      window.player.handleDrop(this.currentShape, row, col);
+      window.player.handleDrop(this.currentShape, row, col, this.currentPiece);
     }
   },
   recalcMetrics() {
@@ -337,8 +340,8 @@ export const GridSnap = {
     return v < min ? min : v > max ? max : v;
   },
   // Hilfsmethode für korrekt gebundenen TouchStart-Handler
-  getTouchStartHandler(shape) {
-    return (e) => this.onTouchStart(e, shape);
+  getTouchStartHandler(shape, pieceObj) {
+    return (e) => this.onTouchStart(e, shape, pieceObj);
   },
 
   /* --------------------------------------------------------------------

@@ -95,7 +95,6 @@ export class ElectroStack extends BasePowerUp {
 
     if (totalClearedBlocks === 0) {
       debugLog("No blocks found to clear");
-      this._showElectroCompleteMessage(0, 0, 0, 0);
 
       // Still need to regenerate inventory even if no blocks were cleared
       setTimeout(() => {
@@ -134,8 +133,9 @@ export class ElectroStack extends BasePowerUp {
       // ElectroStack doesn't increase current multiplier, so current multiplier gain is 0
       const currentMultiplierGain = 0;
 
-      // Add points with current multipliers
-      const finalPoints = totalPoints * gameState.currentMultiplier * gameState.permanentMultiplier;
+      // Add points with both multipliers
+      const basePoints = totalPoints;
+      const finalPoints = basePoints * gameState.currentMultiplier * gameState.permanentMultiplier;
       gameState.playerScore += finalPoints;
 
       // Update displays
@@ -146,8 +146,10 @@ export class ElectroStack extends BasePowerUp {
         window.player.updatePermanentMultiplierDisplay();
       }
 
-      // Show completion message with multiplier gains
-      this._showElectroCompleteMessage(totalClearedBlocks, finalPoints, permanentMultiplierGain, currentMultiplierGain);
+      // Nach Score/Multiplier-Änderung Animationen triggern mit Faktoren-Aufschlüsselung
+      if (window.player?.animateScore) window.player.animateScore(finalPoints, basePoints, gameState.permanentMultiplier, gameState.currentMultiplier);
+      if (window.player?.animatePermanentMultiplier) window.player.animatePermanentMultiplier(permanentMultiplierGain);
+      if (window.player?.animateCurrentMultiplier) window.player.animateCurrentMultiplier(currentMultiplierGain);
 
       // Regenerate inventory after electro effect
       setTimeout(() => {
@@ -215,54 +217,6 @@ export class ElectroStack extends BasePowerUp {
     if (window.hidePowerUpIndicator) {
       window.hidePowerUpIndicator();
     }
-  }
-
-  /**
-   * Show electro completion message
-   * @param {number} blocksCleared - Number of blocks cleared
-   * @param {number} pointsGained - Points gained from the effect
-   * @param {number} permanentMultiplierGain - Permanent multiplier increase
-   * @param {number} currentMultiplierGain - Current multiplier increase
-   * @private
-   */
-  _showElectroCompleteMessage(blocksCleared, pointsGained, permanentMultiplierGain = 0, currentMultiplierGain = 0) {
-    const messageDiv = document.createElement("div");
-    messageDiv.className = "electro-complete-message";
-
-    let messageText;
-    if (blocksCleared > 0) {
-      messageText = `⚡ Elektro abgeschlossen!\nPerm. Blitz + ${permanentMultiplierGain}\nCurrent Flamme + ${currentMultiplierGain}\nScore + ${pointsGained}`;
-    } else {
-      messageText = "⚡ Elektro abgeschlossen!\nKeine Blöcke betroffen.";
-    }
-
-    messageDiv.textContent = messageText;
-    messageDiv.style.cssText = `
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: linear-gradient(135deg, #FFD700, #FFA500);
-      color: #000;
-      padding: 15px 25px;
-      border-radius: 10px;
-      font-size: 16px;
-      font-weight: bold;
-      z-index: 10000;
-      box-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
-      backdrop-filter: blur(5px);
-      animation: electroMessageFade 3s ease-out forwards;
-      border: 2px solid #FFD700;
-      white-space: pre-line;
-    `;
-
-    document.body.appendChild(messageDiv);
-
-    setTimeout(() => {
-      if (messageDiv.parentNode) {
-        messageDiv.parentNode.removeChild(messageDiv);
-      }
-    }, 3000);
   }
 
   /**

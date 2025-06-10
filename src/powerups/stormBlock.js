@@ -152,11 +152,13 @@ export class StormBlock extends BasePowerUp {
    * @private
    */
   _shuffleAndPlaceBlocks(blocks, gameState) {
-    // Find all empty positions and categorize them by distance from center
+    // Find all empty positions and categorize them by distance from edge
     const emptyPositions = [];
-    const outerPositions = []; // Edges and corners (higher weight)
-    const middlePositions = []; // One layer in from edges (medium weight)
-    const innerPositions = []; // Center area (lower weight)
+    const outerPositions = []; // Distance 0 - Edges and corners
+    const secondLayerPositions = []; // Distance 1 - Second layer from edge
+    const innerMostPositions = []; // Distance 2
+    const centerPositions = []; // Distance 3+ - Center area
+    const middlePositions = []; // Distance 1 (legacy middle)
 
     for (let r = 0; r < 10; r++) {
       for (let c = 0; c < 10; c++) {
@@ -168,36 +170,55 @@ export class StormBlock extends BasePowerUp {
           const distanceFromEdge = Math.min(r, c, 9 - r, 9 - c);
 
           if (distanceFromEdge === 0) {
-            // Edges and corners - highest weight
             outerPositions.push(position);
           } else if (distanceFromEdge === 1) {
-            // One layer in - medium weight
-            middlePositions.push(position);
+            secondLayerPositions.push(position);
+            middlePositions.push(position); // for legacy logic
+          } else if (distanceFromEdge === 2) {
+            innerMostPositions.push(position);
           } else {
-            // Inner area - lowest weight
-            innerPositions.push(position);
+            centerPositions.push(position);
           }
         }
       }
     }
 
-    // Create weighted position pool
-    const weightedPositions = [];
-
-    // Add outer positions multiple times for higher probability (weight: 4x)
-    for (let i = 0; i < 4; i++) {
-      weightedPositions.push(...outerPositions);
+    // Determine which weighting to use
+    let weightedPositions = [];
+    if (blocks.length <= 64) {
+      // New logic: 75% outer, 25% second layer, 0% elsewhere
+      // 75 units outer, 25 units second layer
+      for (let i = 0; i < 75; i++) {
+        weightedPositions.push(...outerPositions);
+      }
+      for (let i = 0; i < 25; i++) {
+        weightedPositions.push(...secondLayerPositions);
+      }
+      // If not enough positions, add center as overflow
+      const preferredPositionsCount = outerPositions.length + secondLayerPositions.length;
+      if (blocks.length > preferredPositionsCount) {
+        debugLog(`Storm overflow: Need ${blocks.length} positions but only ${preferredPositionsCount} preferred positions available. Using center positions.`);
+        weightedPositions.push(...centerPositions);
+      }
+      debugLog(`Storm placement distribution (<=64): Outer=${outerPositions.length} (75%), SecondLayer=${secondLayerPositions.length} (25%), Center=${centerPositions.length} (0%/overflow)`);
+    } else {
+      // Legacy logic: 50% outer, 25% middle, 25% inner-most, 0% center
+      for (let i = 0; i < 50; i++) {
+        weightedPositions.push(...outerPositions);
+      }
+      for (let i = 0; i < 25; i++) {
+        weightedPositions.push(...middlePositions);
+      }
+      for (let i = 0; i < 25; i++) {
+        weightedPositions.push(...innerMostPositions);
+      }
+      const preferredPositionsCount = outerPositions.length + middlePositions.length + innerMostPositions.length;
+      if (blocks.length > preferredPositionsCount) {
+        debugLog(`Storm overflow: Need ${blocks.length} positions but only ${preferredPositionsCount} preferred positions available. Using center positions.`);
+        weightedPositions.push(...centerPositions);
+      }
+      debugLog(`Storm placement distribution (>64): Outer=${outerPositions.length} (50%), Middle=${middlePositions.length} (25%), Inner-most=${innerMostPositions.length} (25%), Center=${centerPositions.length} (0%/overflow)`);
     }
-
-    // Add middle positions with medium weight (weight: 2x)
-    for (let i = 0; i < 2; i++) {
-      weightedPositions.push(...middlePositions);
-    }
-
-    // Add inner positions with lowest weight (weight: 1x)
-    weightedPositions.push(...innerPositions);
-
-    debugLog(`Storm placement distribution: Outer=${outerPositions.length}, Middle=${middlePositions.length}, Inner=${innerPositions.length}`);
 
     // Shuffle the weighted positions
     for (let i = weightedPositions.length - 1; i > 0; i--) {
@@ -241,7 +262,17 @@ export class StormBlock extends BasePowerUp {
 
           // Debug log to show placement preference
           const distanceFromEdge = Math.min(newPos.row, newPos.col, 9 - newPos.row, 9 - newPos.col);
-          const zone = distanceFromEdge === 0 ? "OUTER" : distanceFromEdge === 1 ? "MIDDLE" : "INNER";
+          let zone;
+          if (blocks.length <= 64) {
+            zone = distanceFromEdge === 0 ? "OUTER(75%)" :
+                   distanceFromEdge === 1 ? "SECOND-LAYER(25%)" :
+                   "CENTER(0%/overflow)";
+          } else {
+            zone = distanceFromEdge === 0 ? "OUTER(50%)" :
+                   distanceFromEdge === 1 ? "MIDDLE(25%)" :
+                   distanceFromEdge === 2 ? "INNER-MOST(25%)" :
+                   "CENTER(0%/overflow)";
+          }
           debugLog(`Storm block ${index + 1} placed at [${newPos.row},${newPos.col}] in ${zone} zone (distance from edge: ${distanceFromEdge})`);
 
           // After the last block: check for full lines, then regenerate inventory
@@ -302,83 +333,31 @@ export class StormBlock extends BasePowerUp {
   _regenerateInventoryAfterStorm(gameState, linesWereCleared = false, permanentMultiplierGain = 0, currentMultiplierGain = 0, pointsGained = 0) {
     // Wait for animations to complete, then show message first
     setTimeout(() => {
-      // Show completion message with appropriate text
-      this._showStormCompleteMessage(linesWereCleared, permanentMultiplierGain, currentMultiplierGain, pointsGained, () => {
-        // Use robust inventory regeneration
-        if (window.player?.regenerateInventoryAfterPowerUp) {
-          window.player.regenerateInventoryAfterPowerUp(gameState, "Storm Block");
-        } else {
-          // Fallback to original method
-          if (window.player?.generatePieces) {
-            window.player.generatePieces();
-          }
-          if (window.player?.renderPieces) {
-            window.player.renderPieces();
-          }
+      // Nach Score/Multiplier-Änderung Animationen triggern
+      // Note: Score animation is already handled by the clearLines() function with factor breakdown
+      // if (window.player?.animateScore) window.player.animateScore(pointsGained); // Removed to avoid duplicate animations
+      if (window.player?.animatePermanentMultiplier) window.player.animatePermanentMultiplier(permanentMultiplierGain);
+      if (window.player?.animateCurrentMultiplier) window.player.animateCurrentMultiplier(currentMultiplierGain);
+
+      // Use robust inventory regeneration
+      if (window.player?.regenerateInventoryAfterPowerUp) {
+        window.player.regenerateInventoryAfterPowerUp(gameState, "Storm Block");
+      } else {
+        // Fallback to original method
+        if (window.player?.generatePieces) {
+          window.player.generatePieces();
         }
-
-        // Clear the storm animation flag to allow normal inventory generation
-        gameState.stormAnimationActive = false;
-
-        // Hide the storm animation when complete
-        this._hideStormAnimation();
-      });
-    }, 670); // 33% faster: 1000 -> 670
-  }
-
-  /**
-   * Show storm completion message
-   * @param {boolean} linesWereCleared - Whether lines were cleared during storm
-   * @param {number} permanentMultiplierGain - Permanent multiplier increase
-   * @param {number} currentMultiplierGain - Current multiplier increase
-   * @param {number} pointsGained - Points gained from the effect
-   * @param {Function} callback - Function to call after message appears
-   * @private
-   */
-  _showStormCompleteMessage(linesWereCleared = false, permanentMultiplierGain = 0, currentMultiplierGain = 0, pointsGained = 0, callback = null) {
-    const messageDiv = document.createElement("div");
-    messageDiv.className = "storm-complete-message";
-
-    let messageText;
-    if (linesWereCleared || permanentMultiplierGain > 0 || currentMultiplierGain > 0 || pointsGained > 0) {
-      messageText = `🌪️ Sturm abgeschlossen!\nPerm. Blitz + ${permanentMultiplierGain}\nCurrent Flamme + ${currentMultiplierGain}\nScore + ${pointsGained}`;
-    } else {
-      messageText = "🌪️ Sturm abgeschlossen!\nKeine Linien gelöscht.";
-    }
-
-    messageDiv.textContent = messageText;
-    messageDiv.style.cssText = `
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(138, 43, 226, 0.9);
-      color: white;
-      padding: 15px 25px;
-      border-radius: 10px;
-      font-size: 16px;
-      font-weight: bold;
-      z-index: 10000;
-      box-shadow: 0 0 20px rgba(138, 43, 226, 0.8);
-      backdrop-filter: blur(5px);
-      animation: stormMessageFade 3s ease-out forwards;
-      white-space: pre-line;
-    `;
-
-    document.body.appendChild(messageDiv);
-
-    // Execute callback after message is shown (short delay for visibility)
-    if (callback) {
-      setTimeout(() => {
-        callback();
-      }, 335); // 33% faster: 500 -> 335
-    }
-
-    setTimeout(() => {
-      if (messageDiv.parentNode) {
-        messageDiv.parentNode.removeChild(messageDiv);
+        if (window.player?.renderPieces) {
+          window.player.renderPieces();
+        }
       }
-    }, 3000);
+
+      // Clear the storm animation flag to allow normal inventory generation
+      gameState.stormAnimationActive = false;
+
+      // Hide the storm animation when complete
+      this._hideStormAnimation();
+    }, 670); // 33% faster: 1000 -> 670
   }
 
   /**

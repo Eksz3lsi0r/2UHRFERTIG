@@ -264,8 +264,9 @@ function onDropDesktop(ev) {
     (ev.clientX - rect.left - state.currentDragOffset.x) / unit
   );
 
-  player.handleDrop(state.currentDragShape, row, col);
+  player.handleDrop(state.currentDragShape, row, col, state.currentDragPiece);
   state.currentDragShape = null;
+  state.currentDragPiece = null; // Clear piece object reference
 }
 
 /* --------------------------------------------------------------------

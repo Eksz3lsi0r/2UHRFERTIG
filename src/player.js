@@ -38,6 +38,10 @@ export const player = {
   updatePermanentMultiplierDisplay,
   updateCurrentMultiplierDisplay, // <-- new function to update current multiplier display
   regenerateInventoryAfterPowerUp, // <-- new robust inventory regeneration
+  // Animation functions
+  animateScore,
+  animatePermanentMultiplier,
+  animateCurrentMultiplier,
 };
 
 /* --------------------------------------------------------------------
@@ -287,12 +291,25 @@ function renderPieces() {
     pieceDiv.className = "piece"; // Default class, will be updated by power-up system
     pieceDiv.setAttribute("draggable", true);
 
-    // Grid-Layout für das Piece konfigurieren
-    pieceDiv.style.display = "grid";
-    pieceDiv.style.gridTemplateRows = `repeat(${maxR + 1}, ${cellPx}px)`;
-    pieceDiv.style.gridTemplateColumns = `repeat(${maxC + 1}, ${cellPx}px)`;
-    pieceDiv.style.gap = "2px";
-    pieceDiv.style.padding = "4px";
+    // Check if this is a power-up before applying grid layout
+    const isPowerUpPiece = window.powerUpRegistry?.identifyPowerUp(pieceObj);
+
+    if (isPowerUpPiece) {
+      // For power-ups, use simpler positioning to avoid grid conflicts
+      pieceDiv.style.display = "flex";
+      pieceDiv.style.alignItems = "center";
+      pieceDiv.style.justifyContent = "center";
+      pieceDiv.style.width = `${cellPx}px`;
+      pieceDiv.style.height = `${cellPx}px`;
+      pieceDiv.style.position = "relative";
+    } else {
+      // Grid-Layout für normale Pieces konfigurieren
+      pieceDiv.style.display = "grid";
+      pieceDiv.style.gridTemplateRows = `repeat(${maxR + 1}, ${cellPx}px)`;
+      pieceDiv.style.gridTemplateColumns = `repeat(${maxC + 1}, ${cellPx}px)`;
+      pieceDiv.style.gap = "2px";
+      pieceDiv.style.padding = "4px";
+    }
 
     // Desktop Drag
     pieceDiv.addEventListener("dragstart", (e) => {
@@ -300,6 +317,7 @@ function renderPieces() {
         import("./audio.js").then((mod) => mod.pickSound?.play());
       } catch (e) {}
       state.currentDragShape = shape;
+      state.currentDragPiece = pieceObj; // Store the full piece object
       state.currentDragOffset = { x: e.offsetX, y: e.offsetY };
     });
 
@@ -307,7 +325,7 @@ function renderPieces() {
     pieceDiv.style.touchAction = "none";
     pieceDiv.addEventListener(
       "touchstart",
-      GridSnap.getTouchStartHandler(shape),
+      GridSnap.getTouchStartHandler(shape, pieceObj), // Pass both shape and piece object
       { passive: false }
     );
 
@@ -315,8 +333,20 @@ function renderPieces() {
     shape.forEach(([r, c]) => {
       const block = document.createElement("div");
       block.className = "block rainbow"; // Default classes
-      block.style.gridRowStart = r + 1;
-      block.style.gridColumnStart = c + 1;
+
+      if (!isPowerUpPiece) {
+        // For normal pieces, use grid positioning
+        block.style.gridRowStart = r + 1;
+        block.style.gridColumnStart = c + 1;
+      } else {
+        // For power-ups, use absolute positioning within flex container
+        block.style.position = "absolute";
+        block.style.top = "0";
+        block.style.left = "0";
+        block.style.width = "100%";
+        block.style.height = "100%";
+      }
+
       block.style.background = color;
       block.style.transition = "transform 0.15s, box-shadow 0.15s";
 
@@ -352,23 +382,38 @@ function canPlace(shape, br, bc) {
   return true;
 }
 
-function placeShape(shape, br, bc) {
-  // Finde das Piece-Objekt, um die Farbe zu bekommen
-  let pieceObj = state.playerPieces.find(
-    (p) =>
-      (p.shape || p) === shape ||
-      (Array.isArray(p.shape) &&
-        JSON.stringify(p.shape) === JSON.stringify(shape))
-  );
+function placeShape(shape, br, bc, pieceObj) {
+  // Use the passed piece object if available, otherwise try to find it
+  let targetPieceObj = pieceObj;
+
+  if (!targetPieceObj) {
+    // Fallback: try to find the piece object (old behavior)
+    targetPieceObj = state.playerPieces.find(
+      (p) =>
+        (p.shape || p) === shape ||
+        (Array.isArray(p.shape) &&
+          JSON.stringify(p.shape) === JSON.stringify(shape))
+    );
+  }
+
+  // Debug logging for power-up identification
+  if (targetPieceObj) {
+    debugLog(`🎯 Placing piece:`, targetPieceObj);
+    const isPowerUp = window.powerUpRegistry?.identifyPowerUp(targetPieceObj);
+    if (isPowerUp) {
+      debugLog(`⚡ Power-up identified: ${isPowerUp.name}`, targetPieceObj);
+    }
+  }
 
   // Use modular power-up system to check and execute power-ups
-  if (window.powerUpRegistry && window.powerUpRegistry.executePowerUp(pieceObj, br, bc, state)) {
+  if (window.powerUpRegistry && window.powerUpRegistry.executePowerUp(targetPieceObj, br, bc, state)) {
     // Power-up executed - inventory has been cleared by powerUpRegistry
+    debugLog(`✅ Power-up executed successfully`);
     return; // Exit early for power-up pieces
   }
 
   const color =
-    pieceObj?.color || require("./constants.js").getRandomRainbowColor();
+    targetPieceObj?.color || require("./constants.js").getRandomRainbowColor();
   // Update UI cells for placed shape
   shape.forEach(([r, c]) => {
     const cellEl = state.boardCells[br + r]?.[bc + c];
@@ -383,9 +428,15 @@ function placeShape(shape, br, bc) {
   }
 
   // Apply permanent multiplier to shape placement points
-  const shapePoints = shape.length * state.permanentMultiplier;
+  const baseShapePoints = shape.length;
+  const shapePoints = baseShapePoints * state.permanentMultiplier;
   state.playerScore += shapePoints;
   updateScoreDisplay();
+
+  // Animate score gain when piece is placed with breakdown
+  if (player.animateScore) {
+    player.animateScore(shapePoints, baseShapePoints, state.permanentMultiplier, 1);
+  }
 
   // Advance turn counter for 40x multiplier duration tracking
   state.turnCounter++;
@@ -568,6 +619,9 @@ function _clearLines() {
   if (state.currentMultiplier === 40 && state.currentMultiplier40xRoundsRemaining === 0) {
     state.currentMultiplier40xRoundsRemaining = 3;
     debugLog(`40x multiplier reached! Starting 3-round duration.`);
+
+    // Show special 40x activation message
+    _show40xActivationMessage();
   }
 
   // Permanenter Multiplikator erhöhen bei jeder Linien-Löschung
@@ -577,10 +631,16 @@ function _clearLines() {
   debugLog(`Current multiplier: ${state.currentMultiplier}x (${totalLinesCleared} lines + consecutive bonus)`);
 
   // Finale Punkte mit BEIDEN Multiplikatoren (Combo * Permanent)
-  let finalPoints = basePoints * 10 * state.currentMultiplier * state.permanentMultiplier;
+  const baseLineClearingPoints = basePoints * 10; // Base points with 10x multiplier
+  let finalPoints = baseLineClearingPoints * state.currentMultiplier * state.permanentMultiplier;
 
   // Animationen anzeigen
   _showScoreAnimations(finalPoints, state.currentMultiplier, totalLinesCleared);
+
+  // Score animation mit Faktoren-Aufschlüsselung
+  if (player.animateScore) {
+    player.animateScore(finalPoints, baseLineClearingPoints, state.permanentMultiplier, state.currentMultiplier);
+  }
 
   state.playerScore += finalPoints;
   updateScoreDisplay();
@@ -809,6 +869,95 @@ function _showPointsAnimation(points) {
 }
 
 /* --------------------------------------------------------------------
+ *  40x Activation Message Animation
+ * ------------------------------------------------------------------ */
+function _show40xActivationMessage() {
+  debugLog("Showing 40x activation message with dramatic effects");
+
+  // Create 40x activation message with dramatic styling
+  const messageDiv = document.createElement("div");
+  messageDiv.className = "40x-activation-message";
+  messageDiv.style.cssText = `
+    position: fixed;
+    top: 30%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(135deg, #FF4500, #FF6347, #FF1493, #FF8C00);
+    color: white;
+    padding: 25px 40px;
+    border-radius: 20px;
+    font-size: 24px;
+    font-weight: bold;
+    z-index: 10001;
+    box-shadow:
+      0 0 30px rgba(255, 69, 0, 0.8),
+      0 0 60px rgba(255, 20, 147, 0.6),
+      0 0 90px rgba(255, 140, 0, 0.4);
+    backdrop-filter: blur(5px);
+    animation: fire40xPulse 3s ease-out forwards;
+    text-align: center;
+    white-space: pre-line;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    text-shadow:
+      0 0 10px rgba(255, 255, 255, 0.8),
+      0 0 20px rgba(255, 69, 0, 0.6),
+      0 0 30px rgba(255, 20, 147, 0.4);
+  `;
+
+  messageDiv.textContent = "🔥 40x MULTIPLIER ACTIVATED! 🔥\n3 ROUNDS REMAINING\nMAXIMUM POWER!";
+
+  document.body.appendChild(messageDiv);
+
+  // Add CSS animation keyframes if they don't exist
+  if (!document.querySelector('#fire-40x-animation-styles')) {
+    const styleSheet = document.createElement('style');
+    styleSheet.id = 'fire-40x-animation-styles';
+    styleSheet.textContent = `
+      @keyframes fire40xPulse {
+        0% {
+          opacity: 0;
+          transform: translate(-50%, -50%) scale(0.5);
+          filter: brightness(1);
+        }
+        20% {
+          opacity: 1;
+          transform: translate(-50%, -50%) scale(1.2);
+          filter: brightness(2);
+        }
+        40% {
+          opacity: 1;
+          transform: translate(-50%, -50%) scale(1);
+          filter: brightness(1.5);
+        }
+        60% {
+          opacity: 1;
+          transform: translate(-50%, -50%) scale(1.1);
+          filter: brightness(1.8);
+        }
+        80% {
+          opacity: 1;
+          transform: translate(-50%, -50%) scale(1);
+          filter: brightness(1.2);
+        }
+        100% {
+          opacity: 0;
+          transform: translate(-50%, -50%) scale(0.8);
+          filter: brightness(0.8);
+        }
+      }
+    `;
+    document.head.appendChild(styleSheet);
+  }
+
+  // Remove message after animation
+  setTimeout(() => {
+    if (messageDiv.parentNode) {
+      messageDiv.parentNode.removeChild(messageDiv);
+    }
+  }, 3000);
+}
+
+/* --------------------------------------------------------------------
  *  Test-Funktion für Animationen (zur Debugging)
  * ------------------------------------------------------------------ */
 function testAnimations() {
@@ -946,16 +1095,111 @@ function updateCurrentMultiplierDisplay() {
     // Format as whole number since we increment by 1
     multiplierValueElement.textContent = `${state.currentMultiplier.toFixed(0)}x`;
 
-    // Add pulsing effect when multiplier is > 1
-    if (state.currentMultiplier > 1) {
-      multiplierElement.style.animation = "fire-pulse 1s ease-in-out";
-      setTimeout(() => {
-        multiplierElement.style.animation = "fire-pulse 2s infinite ease-in-out";
-      }, 1000);
+    // Special highlighting for 40x duration
+    if (state.currentMultiplier === 40 && state.currentMultiplier40xRoundsRemaining > 0) {
+      multiplierElement.classList.add("multiplier-40x-duration");
+      multiplierValueElement.textContent = `40x (${state.currentMultiplier40xRoundsRemaining})`;
+      multiplierElement.style.animation = "fire-pulse-40x 0.8s infinite ease-in-out";
+      debugLog(`40x Duration active: ${state.currentMultiplier40xRoundsRemaining} rounds remaining`);
+    } else {
+      multiplierElement.classList.remove("multiplier-40x-duration");
+      // Add pulsing effect when multiplier is > 1
+      if (state.currentMultiplier > 1) {
+        multiplierElement.style.animation = "fire-pulse 1s ease-in-out";
+        setTimeout(() => {
+          multiplierElement.style.animation = "fire-pulse 2s infinite ease-in-out";
+        }, 1000);
+      }
     }
   } else {
     debugLog("Could not find current multiplier elements");
   }
+}
+
+// Zeigt für kurze Zeit einen Operator (z.B. +1, *2) rechts neben dem Stat an
+function showStatOperator(stat, operatorText) {
+  let el;
+  if (stat === 'permanent') {
+    el = document.querySelector('#playerPermanentMultiplier .stat-operator');
+  } else if (stat === 'current') {
+    el = document.querySelector('#playerCurrentMultiplier .stat-operator');
+  } else if (stat === 'score') {
+    el = document.querySelector('.scoreDisplay .stat-operator');
+  }
+  if (!el) return;
+  el.textContent = operatorText;
+  el.style.display = 'inline-block';
+  el.classList.add('stat-operator-show');
+  setTimeout(() => {
+    el.classList.remove('stat-operator-show');
+    setTimeout(() => { el.style.display = 'none'; }, 300);
+  }, 1100);
+}
+
+// Animation für Permanent Multiplier
+export function animatePermanentMultiplier(gain) {
+  const el = document.getElementById('playerPermanentMultiplier');
+  if (!el) return;
+  el.classList.add('stat-animate');
+  if (gain > 0) {
+    el.classList.add('stat-animate-up');
+    showStatOperator('permanent', gain > 1 ? `+${gain}` : '+1');
+  } else if (gain < 0) {
+    el.classList.add('stat-animate-down');
+    showStatOperator('permanent', `${gain}`);
+  }
+  setTimeout(() => {
+    el.classList.remove('stat-animate', 'stat-animate-up', 'stat-animate-down');
+  }, 900);
+}
+
+// Animation für Current Multiplier
+export function animateCurrentMultiplier(gain) {
+  const el = document.getElementById('playerCurrentMultiplier');
+  if (!el) return;
+  el.classList.add('stat-animate');
+  if (gain > 0) {
+    el.classList.add('stat-animate-up');
+    showStatOperator('current', gain > 1 ? `+${gain}` : '+1');
+  } else if (gain < 0) {
+    el.classList.add('stat-animate-down');
+    showStatOperator('current', `${gain}`);
+  }
+  setTimeout(() => {
+    el.classList.remove('stat-animate', 'stat-animate-up', 'stat-animate-down');
+  }, 900);
+}
+
+// Animation für Score mit Faktoren-Aufschlüsselung
+export function animateScore(totalGain, basePoints = null, permanentMultiplier = null, currentMultiplier = null) {
+  const el = document.getElementById('score');
+  if (!el) return;
+  el.classList.add('stat-animate');
+
+  let operatorText;
+  if (basePoints !== null && permanentMultiplier !== null && currentMultiplier !== null) {
+    if (currentMultiplier === 1 && permanentMultiplier === 1) {
+      // Simple case: just base points
+      operatorText = `+${totalGain}`;
+    } else {
+      // Complex case with breakdown: totalGain = (basePoints * permanentMultiplier * currentMultiplier)
+      operatorText = `${totalGain} = (${basePoints} × ${permanentMultiplier} × ${currentMultiplier})`;
+    }
+  } else {
+    // Fallback for simple gain display
+    operatorText = totalGain > 0 ? `+${totalGain}` : `${totalGain}`;
+  }
+
+  if (totalGain > 0) {
+    el.classList.add('stat-animate-up');
+    showStatOperator('score', operatorText);
+  } else if (totalGain < 0) {
+    el.classList.add('stat-animate-down');
+    showStatOperator('score', operatorText);
+  }
+  setTimeout(() => {
+    el.classList.remove('stat-animate', 'stat-animate-up', 'stat-animate-down');
+  }, 900);
 }
 
 /* --------------------------------------------------------------------
@@ -1095,12 +1339,12 @@ function finishGame(playerWon, msgOverride) {
 /* --------------------------------------------------------------------
  *  Hilfsfunktion: Preview & Board-Sync (von GridSnap drop)
  * ------------------------------------------------------------------ */
-export function handleDrop(shape, row, col) {
+export function handleDrop(shape, row, col, pieceObj) {
   if (!state.gameActive) return;
   if (!player.canPlace(shape, row, col)) return;
 
   try {
-    player.placeShape(shape, row, col);
+    player.placeShape(shape, row, col, pieceObj);
     player.renderPieces();
 
     // Sound abspielen
@@ -1499,255 +1743,4 @@ window.testElectroBlock = function() {
   debugLog("Execute electro effect...");
 
   window.electroStack.execute(5, 5, window.state);
-};
-
-debugLog("🧪 Power-up test functions available:");
-debugLog("- testExtendBlock()");
-debugLog("- testStormBlock()");
-debugLog("- testElectroBlock()");
-debugLog("- testInventoryRegeneration()");
-debugLog("- testPowerUpInventoryFlow()");
-
-/* --------------------------------------------------------------------
- *  ENHANCED POWER-UP ANIMATIONS - IMPLEMENTATION COMPLETE
- * ------------------------------------------------------------------ */
-
-// Test commands for demonstration (available in browser console):
-debugLog("\n🎬 ENHANCED POWER-UP ANIMATIONS - READY FOR TESTING");
-debugLog("═══════════════════════════════════════════════════════");
-debugLog("💫 Visual Effects: Enhanced board-wide animations for each power-up");
-debugLog("🔊 Audio Effects: Power-up specific sound effects during events");
-debugLog("🎯 Visual Indicator: Shows active power-up with progress animation");
-debugLog("\n📋 Available Test Commands:");
-debugLog("• testPowerUpAnimations() - Show all available animation tests");
-debugLog("• testStormAnimation() - Test storm swirling effects (5s)");
-debugLog("• testElectroAnimation() - Test electrical lightning effects (5s)");
-debugLog("• testExtendAnimation() - Test expansion wave effects (5s)");
-debugLog("• testAllAnimations() - Sequential demonstration of all effects (18s)");
-debugLog("\n🎮 Power-Up Testing:");
-debugLog("• testStormBlock() - Full storm power-up with blocks");
-debugLog("• testElectroBlock() - Full electro power-up with targets");
-debugLog("• testExtendBlock() - Full extend power-up demonstration");
-debugLog("═══════════════════════════════════════════════════════\n");
-
-// Complete Power-Up Animation Demo
-window.testPowerUpAnimationDemo = function() {
-  debugLog("🎬 COMPLETE POWER-UP ANIMATION DEMONSTRATION");
-  debugLog("This will test all enhanced features in sequence:");
-  debugLog("1. Visual indicators");
-  debugLog("2. Board-wide animations");
-  debugLog("3. Sound effects");
-  debugLog("4. Animation cleanup");
-
-  let demoStep = 0;
-  const steps = [
-    {
-      name: "Storm Power-Up",
-      emoji: "🌪️",
-      test: () => window.testStormAnimation(),
-      description: "Swirling storm effects with wind sound"
-    },
-    {
-      name: "Electro Power-Up",
-      emoji: "⚡",
-      test: () => window.testElectroAnimation(),
-      description: "Lightning effects with electrical sound"
-    },
-    {
-      name: "Extend Power-Up",
-      emoji: "🔄",
-      test: () => window.testExtendAnimation(),
-      description: "Expansion waves with extend sound"
-    }
-  ];
-
-  function runStep() {
-    if (demoStep >= steps.length) {
-      debugLog("✅ Demo complete! All power-up animations tested successfully.");
-      return;
-    }
-
-    const step = steps[demoStep];
-    debugLog(`\n${step.emoji} Testing: ${step.name}`);
-    debugLog(`Description: ${step.description}`);
-    debugLog("─".repeat(50));
-
-    step.test();
-    demoStep++;
-
-    setTimeout(() => {
-      runStep();
-    }, 6000); // 6 seconds between tests
-  }
-
-  runStep();
-};
-
-// Audio Pool Management for Power-Up Sounds
-window.testAudioSystem = function() {
-  debugLog("🔊 Testing Audio System for Power-Ups");
-  debugLog("Available sounds:");
-
-  const sounds = [
-    { name: "Storm", sound: window.audio?.stormSound, file: "wind.wav" },
-    { name: "Electro", sound: window.audio?.electroSound, file: "Electro.wav" },
-    { name: "Extend", sound: window.audio?.extendSound, file: "extend.flac" }
-  ];
-
-  sounds.forEach(({ name, sound, file }) => {
-    if (sound && typeof sound.play === 'function') {
-      debugLog(`✅ ${name}: Ready (${file})`);
-
-      // Test play with rate limiting
-      try {
-        sound.play();
-        debugLog(`🎵 ${name} sound played`);
-      } catch (error) {
-        console.warn(`⚠️ ${name} sound play failed:`, error);
-      }
-    } else {
-      debugLog(`❌ ${name}: Not available (${file})`);
-    }
-  });
-
-  debugLog("\nNote: HTML5 Audio pool warnings are normal during rapid testing.");
-  debugLog("In normal gameplay, sounds are spaced out and won't cause issues.");
-};
-
-/* ═══════════════════════════════════════════════════════════════════
- * ENHANCED POWER-UP TESTING FUNCTIONS
- * ═══════════════════════════════════════════════════════════════════ */
-
-// Enhanced Power-Up Showcase Functions
-window.testEnhancedPowerUpDesigns = function() {
-  console.log("🎨 ENHANCED POWER-UP DESIGN SHOWCASE");
-  console.log("Testing the new elegant, modern power-up designs:");
-
-  // Clear current inventory
-  if (window.state) {
-    window.state.playerPieces = [];
-  }
-
-  // Add all three enhanced power-ups to inventory
-  const enhancedPowerUps = [
-    {
-      shape: [[0, 0]],
-      color: '#4a90e2',
-      isStorm: true
-    },
-    {
-      shape: [[0, 0]],
-      color: '#FFD700',
-      isElectro: true
-    },
-    {
-      shape: [[0, 0]],
-      color: '#ff9500',
-      isExtend: true
-    }
-  ];
-
-  if (window.state) {
-    window.state.playerPieces = enhancedPowerUps;
-  }
-
-  if (window.player?.renderPieces) {
-    window.player.renderPieces();
-  }
-
-  console.log("✨ Enhanced Power-Up Features:");
-  console.log("🌪️ Storm Block: 40% larger, tornado vortex effect, orbital rotation");
-  console.log("⚡ Electro Stack: 50% larger, lightning flicker, energy field rotation");
-  console.log("🔄 Extend Block: 35% larger, organic growth waves, rhythmic expansion");
-  console.log("💫 All power-ups have unique hover effects and enhanced visual distinction");
-  console.log("🎮 Hover over the power-ups to see the interactive effects!");
-};
-
-window.showPowerUpComparison = function() {
-  console.log("📊 POWER-UP DESIGN COMPARISON");
-  console.log("═══════════════════════════════════════════");
-  console.log("BEFORE (Old Design):");
-  console.log("• Standard 1x1 size in inventory");
-  console.log("• Simple gradient backgrounds");
-  console.log("• Basic rotation/pulse animations");
-  console.log("• Similar visual appearance");
-  console.log("");
-  console.log("AFTER (Enhanced Design):");
-  console.log("🌪️ Storm Block:");
-  console.log("  • 40% larger display");
-  console.log("  • Conic gradient tornado vortex");
-  console.log("  • Orbital rotation background");
-  console.log("  • Spinning tornado emoji");
-  console.log("  • Dynamic color hue rotation");
-  console.log("");
-  console.log("⚡ Electro Stack:");
-  console.log("  • 50% larger display");
-  console.log("  • Lightning flicker animation");
-  console.log("  • Energy field rotation");
-  console.log("  • Bright spark effects");
-  console.log("  • High-contrast white/gold combo");
-  console.log("");
-  console.log("🔄 Extend Block:");
-  console.log("  • 35% larger display");
-  console.log("  • Organic growth wave patterns");
-  console.log("  • Rhythmic expansion animation");
-  console.log("  • Warm orange color palette");
-  console.log("  • Central expansion effects");
-  console.log("");
-  console.log("🎨 All power-ups now have:");
-  console.log("  • Unique visual identity");
-  console.log("  • Enhanced hover interactions");
-  console.log("  • Backdrop blur effects");
-  console.log("  • Distinctive size scaling");
-  console.log("  • Complex multi-layer animations");
-};
-
-// Add to existing debug functions
-console.log("🎨 Enhanced Power-Up Design Functions:");
-console.log("• testEnhancedPowerUpDesigns() - Show all enhanced power-ups");
-console.log("• showPowerUpComparison() - Compare old vs new designs");
-
-// Test function for new multiplier system
-window.testNewMultiplierSystem = function() {
-  console.log("🧪 TESTING NEW SIMPLE MULTIPLIER PROGRESSION");
-  console.log("═══════════════════════════════════════════");
-  console.log("Logik:");
-  console.log("• Pro gelöschter Linie: current multiplier +1");
-  console.log("• Consecutive clears: +1 bonus");
-  console.log("• Bei 40x erreicht: 3 Runden lang 40x");
-  console.log("• Nach 40x Duration: zurück auf 1x");
-  console.log("");
-
-  // Test progression
-  const originalMultiplier = window.state.currentMultiplier;
-  const originalDuration = window.state.currentMultiplier40xRoundsRemaining;
-
-  console.log("Test 1: 5 Linien cleared → should be 6x (5 + 1 start)");
-  window.state.currentMultiplier = 1;
-  window.state.currentMultiplier += 5; // 5 lines
-  console.log(`Result: ${window.state.currentMultiplier}x ✅`);
-
-  console.log("Test 2: 20 Linien cleared → should be 21x (20 + 1 start)");
-  window.state.currentMultiplier = 1;
-  window.state.currentMultiplier += 20; // 20 lines
-  console.log(`Result: ${window.state.currentMultiplier}x ✅`);
-
-  console.log("Test 3: 45 Linien cleared → should be 40x (cap at 40)");
-  window.state.currentMultiplier = 1;
-  window.state.currentMultiplier += 45; // 45 lines
-  window.state.currentMultiplier = Math.min(window.state.currentMultiplier, 40);
-  console.log(`Result: ${window.state.currentMultiplier}x ✅`);
-
-  console.log("Test 4: 40x mit Duration");
-  window.state.currentMultiplier = 40;
-  window.state.currentMultiplier40xRoundsRemaining = 3;
-  console.log(`40x Duration: ${window.state.currentMultiplier40xRoundsRemaining} rounds remaining ✅`);
-
-  // Restore original values
-  window.state.currentMultiplier = originalMultiplier;
-  window.state.currentMultiplier40xRoundsRemaining = originalDuration;
-
-  console.log("");
-  console.log("🎮 Neue Progression ist implementiert!");
-  console.log("Test ExtendBlock: window.extendBlock.testExtendBlockDoubleCombo()");
 };
