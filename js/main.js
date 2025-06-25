@@ -20,6 +20,7 @@ const gameState = {
 
 // Game Objects
 let player = null;
+let playerLevelSprite = null; // Global tracker for player level text sprite
 let projectiles = [];
 let enemies = [];
 let gates = [];

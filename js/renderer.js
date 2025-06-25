@@ -144,9 +144,9 @@ function initRenderer() {
     directionalLight.shadow.mapSize.height = 2048;
     scene.add(directionalLight);
 
-    // Create materials
-    waterMaterial = new THREE.MeshLambertMaterial({ color: 0x326496 });
-    bridgeMaterial = new THREE.MeshLambertMaterial({ color: 0x646464 });
+    // Create materials with Python colors
+    waterMaterial = new THREE.MeshLambertMaterial({ color: 0x3296c8 }); // Python: WATER_COLOR = (50,150,200)
+    bridgeMaterial = new THREE.MeshLambertMaterial({ color: 0x646464 }); // Python: BRIDGE_COLOR = (100,100,100)
 
     // Create water plane
     const waterGeometry = new THREE.PlaneGeometry(2000, 2000);
@@ -160,11 +160,12 @@ function initRenderer() {
 }
 
 function createBridge() {
-    // Create bridge segments that repeat - adjusted for proper bridge width
+    // Python: pygame.draw.rect(screen, BRIDGE_COLOR, (BRIDGE_X, bridge_y, BRIDGE_WIDTH, HEIGHT * 2))
+    // Create bridge segments that repeat - matching Python's bridge dimensions
     for (let i = -30; i <= 30; i++) {
-        const bridgeGeometry = new THREE.BoxGeometry(CONFIG.BRIDGE_WIDTH, 5, 300); // Adjusted to match walkable width
+        const bridgeGeometry = new THREE.BoxGeometry(CONFIG.BRIDGE_WIDTH, 5, CONFIG.HEIGHT * 2);
         const bridgeMesh = new THREE.Mesh(bridgeGeometry, bridgeMaterial);
-        bridgeMesh.position.set(0, 0, i * 300); // 3x spacing between segments
+        bridgeMesh.position.set(CONFIG.BRIDGE_X + CONFIG.BRIDGE_WIDTH / 2 - CONFIG.WIDTH / 2, 0, i * CONFIG.HEIGHT * 2);
         bridgeMesh.receiveShadow = true;
         scene.add(bridgeMesh);
     }
@@ -173,8 +174,8 @@ function createBridge() {
 function updateCamera() {
     if (!player) return;
 
-    // Third person camera following the player - reduced distance
-    const cameraOffset = new THREE.Vector3(0, 100, 160);
+    // Camera with steeper angle for better distance view - doubled bridge distance
+    const cameraOffset = new THREE.Vector3(0, 150, 240); // Doubled z-distance from 120 to 240
     const targetPosition = new THREE.Vector3(
         player.mesh.position.x + cameraOffset.x,
         player.mesh.position.y + cameraOffset.y,
@@ -184,11 +185,11 @@ function updateCamera() {
     // Smooth camera movement
     camera.position.lerp(targetPosition, 0.1);
 
-    // Look at player with adjusted forward offset
+    // Look at point much further ahead for better distance view
     const lookAtTarget = new THREE.Vector3(
         player.mesh.position.x,
-        player.mesh.position.y + 10,
-        player.mesh.position.z - 60
+        player.mesh.position.y + 5, // Lower target height
+        player.mesh.position.z - 200 // Much further ahead
     );
     camera.lookAt(lookAtTarget);
 }

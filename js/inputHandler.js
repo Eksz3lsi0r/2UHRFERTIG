@@ -96,14 +96,21 @@ document.addEventListener('keydown', (e) => {
             break;
         case 'KeyA':
         case 'ArrowLeft':
-            // Continuous movement now handled in player.update()
+            // Python: if event.key == pygame.K_a: player.move(-1)
+            if (!gameState.paused && !gameState.gameOver && player) {
+                player.move(-1);
+            }
             break;
         case 'KeyD':
         case 'ArrowRight':
-            // Continuous movement now handled in player.update()
+            // Python: elif event.key == pygame.K_d: player.move(1)
+            if (!gameState.paused && !gameState.gameOver && player) {
+                player.move(1);
+            }
             break;
         case 'Space':
-            if (!gameState.paused && !gameState.gameOver && player) {
+            // Python: elif event.key == pygame.K_SPACE and player.shoot_cd == 0:
+            if (!gameState.paused && !gameState.gameOver && player && player.shootCooldown === 0) {
                 const proj = player.shoot();
                 if (proj) {
                     projectiles.push(proj);
@@ -112,6 +119,7 @@ document.addEventListener('keydown', (e) => {
             e.preventDefault();
             break;
         case 'KeyU':
+            // Python: elif event.key == pygame.K_u and distance > 3000 and not player.weapon_upgraded:
             if (!gameState.paused && !gameState.gameOver && player &&
                 gameState.distance > 3000 && !player.weaponUpgraded) {
                 player.weapon = "upgraded";

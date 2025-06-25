@@ -63,16 +63,21 @@ class GameSprite {
 
 class Player extends GameSprite {
     constructor() {
-        const startX = CONFIG.LANE_POSITIONS[Math.floor(CONFIG.LANE_COUNT / 2)] - CONFIG.BRIDGE_X / 2;
+        // Position player in center lane using bridge coordinate system
+        const startLane = Math.floor(CONFIG.LANE_COUNT / 2); // lane 1 (middle)
+        const bridgeCenterX = CONFIG.BRIDGE_X + CONFIG.BRIDGE_WIDTH / 2 - CONFIG.WIDTH / 2;
+        const sectionWidth = CONFIG.BRIDGE_WIDTH / CONFIG.LANE_COUNT;
+        const laneOffsetFromCenter = (startLane - 1) * sectionWidth; // 0 for middle lane
+        const startX = bridgeCenterX + laneOffsetFromCenter;
         super(startX, 20, 0, 40, 40, 40);
         this.level = 1;
-        this.lane = Math.floor(CONFIG.LANE_COUNT / 2);
+        this.lane = startLane;
         this.shootCooldown = 0;
         this.autoTimer = 0;
         this.weapon = "basic"; // Initialize weapon
         this.weaponUpgraded = false;
         this.gateCollision = 0;
-        this.color = 0x00ff00; // Bright green for player
+        this.color = 0x0078ff; // Python: PLAYER_COLOR = (0,120,255)
         this.textSprite = null;
     }
 
@@ -90,45 +95,74 @@ class Player extends GameSprite {
             scene.add(this.mesh);
         }
 
-        // Create text sprite for level AFTER mesh is positioned and added to scene
+        // Create level text sprite above player
         this.updateTextSprite();
-    }    updateTextSprite() {
-        // Remove old text sprite
-        if (this.textSprite && scene) {
-            scene.remove(this.textSprite);
-        }
 
-        // Create new text sprite for player strength with proper positioning
-        // Display level multiplied by 50 for player strength
-        this.textSprite = createTextSprite(`${Math.round((this.level || 1) * 50)}`, '#ffffff', 200, null, 1);
+        // Ensure the text position is correct after creation
+        setTimeout(() => {
+            if (this.textSprite && this.mesh) {
+                this.updateTextPositions();
+            }
+        }, 10); // Small delay to ensure everything is properly initialized
+    }
 
-        if (scene) {
-            scene.add(this.textSprite);
-            // Always update positions, even if mesh isn't ready yet
-            this.updateTextPositions();
+    updateTextSprite() {
+        // Update CSS-based level display instead of 3D sprite
+        const levelDisplay = document.getElementById('levelDisplay');
+        if (levelDisplay) {
+            const oldLevel = levelDisplay.textContent;
+            levelDisplay.textContent = `Level: ${Math.round(this.level || 1)}`;
+
+            // Add animation class if level changed
+            if (oldLevel !== levelDisplay.textContent) {
+                levelDisplay.classList.add('level-changed');
+                setTimeout(() => levelDisplay.classList.remove('level-changed'), 300);
+            }
+
+            this.updateLevelDisplayPosition();
         }
     }
 
-    updateTextPositions() {
-        if (this.textSprite) {
-            if (this.mesh) {
-                this.textSprite.position.copy(this.mesh.position);
-                this.textSprite.position.y += this.height/2 + 20; // Position text above the player
-                this.textSprite.position.z += 5; // Slightly forward for visibility
-            } else {
-                // Fallback position if mesh isn't ready yet
-                this.textSprite.position.set(0, 40, 5);
-            }
-        }
+    updateLevelDisplayPosition() {
+        const levelDisplay = document.getElementById('levelDisplay');
+        if (!levelDisplay || !this.mesh) return;
+
+        // Project 3D player position to screen coordinates
+        const vector = new THREE.Vector3();
+        vector.copy(this.mesh.position);
+        vector.y += this.height/2 + 10; // Position above player
+        vector.project(camera);
+
+        // Convert to screen coordinates
+        const canvas = document.getElementById('gameCanvas');
+        const rect = canvas.getBoundingClientRect();
+        const x = (vector.x * 0.5 + 0.5) * rect.width + rect.left;
+        const y = (-vector.y * 0.5 + 0.5) * rect.height + rect.top;
+
+        // Use CSS custom properties instead of inline styles
+        levelDisplay.style.setProperty('--player-x', x + 'px');
+        levelDisplay.style.setProperty('--player-y', y + 'px');
+        levelDisplay.style.left = 'var(--player-x)';
+        levelDisplay.style.top = 'var(--player-y)';
+
+        // Use CSS classes for visibility
+        levelDisplay.classList.remove('hidden');
+        levelDisplay.classList.add('visible');
     }
 
     move(direction) {
+        // Python: self.lane = max(0, min(LANE_COUNT-1, self.lane+dir))
         this.lane = Math.max(0, Math.min(CONFIG.LANE_COUNT - 1, this.lane + direction));
-        const targetX = CONFIG.LANE_POSITIONS[this.lane] - CONFIG.BRIDGE_X / 2;
+        // Position using bridge coordinate system
+        const bridgeCenterX = CONFIG.BRIDGE_X + CONFIG.BRIDGE_WIDTH / 2 - CONFIG.WIDTH / 2;
+        const sectionWidth = CONFIG.BRIDGE_WIDTH / CONFIG.LANE_COUNT;
+        const laneOffsetFromCenter = (this.lane - 1) * sectionWidth;
+        const targetX = bridgeCenterX + laneOffsetFromCenter;
 
         if (this.mesh) {
-            // Reduced movement speed from 0.25 to 0.15 for better control
-            this.mesh.position.x = THREE.MathUtils.lerp(this.mesh.position.x, targetX, 0.15);
+            this.mesh.position.x = targetX;
+            // Update CSS level display position immediately after moving
+            this.updateLevelDisplayPosition();
         }
     }
 
@@ -137,22 +171,12 @@ class Player extends GameSprite {
             this.shootCooldown--;
         }
 
-        // Handle continuous movement when keys are held down
-        if (keys && !gameState.paused && !gameState.gameOver) {
-            if (keys['KeyA'] || keys['ArrowLeft']) {
-                this.move(-1);
-            }
-            if (keys['KeyD'] || keys['ArrowRight']) {
-                this.move(1);
-            }
-        }
-
         this.autoTimer++;
-        // Limit the auto-shooting rate to prevent screen spam
-        const threshold = Math.max(30, 60 / (1 + 0.01 * Math.min(this.level - 1, 50)));
+        // Python's threshold formula: 60 / (1 + 0.02*(self.level - 1))
+        const threshold = 60 / (1 + 0.02 * (this.level - 1));
 
-        // Update text sprite position
-        this.updateTextPositions();
+        // Update CSS level display position every frame
+        this.updateLevelDisplayPosition();
 
         if (this.autoTimer >= threshold) {
             this.autoTimer = 0;
@@ -162,15 +186,28 @@ class Player extends GameSprite {
     }
 
     destroy() {
+        // Hide CSS level display using CSS classes
+        const levelDisplay = document.getElementById('levelDisplay');
+        if (levelDisplay) {
+            levelDisplay.classList.remove('visible');
+            levelDisplay.classList.add('hidden');
+        }
+
+        // Clear old text sprite if it exists
         if (this.textSprite && scene) {
             scene.remove(this.textSprite);
             this.textSprite = null;
+        }
+        // Clear global tracker
+        if (typeof playerLevelSprite !== 'undefined' && playerLevelSprite === this.textSprite) {
+            playerLevelSprite = null;
         }
         super.destroy();
     }
 
     shoot() {
         if (this.shootCooldown === 0 && this.mesh) {
+            // Python's shoot cooldown: 15 if player.level < 20 else 8
             this.shootCooldown = this.level < 20 ? 15 : 8;
             return new Projectile(
                 this.mesh.position.x,
@@ -221,11 +258,16 @@ class Projectile extends GameSprite {
 
 class Enemy extends GameSprite {
     constructor(lane, gateCollision) {
-        const startX = CONFIG.LANE_POSITIONS[lane] - CONFIG.BRIDGE_X / 2;
-        super(startX, 20, -400, 30, 30, 30); // Increased spawn distance from -200 to -400
+        // Position enemy using bridge coordinate system
+        const bridgeCenterX = CONFIG.BRIDGE_X + CONFIG.BRIDGE_WIDTH / 2 - CONFIG.WIDTH / 2;
+        const sectionWidth = CONFIG.BRIDGE_WIDTH / CONFIG.LANE_COUNT;
+        const laneOffsetFromCenter = (lane - 1) * sectionWidth;
+        const startX = bridgeCenterX + laneOffsetFromCenter + 5; // +5 like Python
+        super(startX, 20, -800, 30, 30, 30); // Much further spawn distance (-800 instead of -30)
         this.speed = CONFIG.ENEMY_SPEED;
-        this.color = 0xff3333; // Bright red for enemies
+        this.color = 0xff3232; // Python: ENEMY_COLOR = (255,50,50)
 
+        // Python's health calculation: 5 * lvl_mult * enemy_health_multiplier * gate_mult
         const levelMult = Math.pow(1.2, gameState.startLevel - 1);
         const gateMult = gateCollision > 1 ? Math.pow(2.0, gateCollision - 1) : 1;
         this.health = 5 * levelMult * gameState.enemyHealthMultiplier * gateMult;
@@ -324,7 +366,15 @@ class Enemy extends GameSprite {
 
 class Gate extends GameSprite {
     constructor(lane, enemyKillCount) {
-        const startX = CONFIG.LANE_POSITIONS[lane] - CONFIG.BRIDGE_X / 2;
+        const gateWidth = 200;
+        const gateHeight = 80;
+        // Position gate to match bridge coordinate system
+        // Bridge center in 3D = CONFIG.BRIDGE_X + CONFIG.BRIDGE_WIDTH / 2 - CONFIG.WIDTH / 2
+        const bridgeCenterX = CONFIG.BRIDGE_X + CONFIG.BRIDGE_WIDTH / 2 - CONFIG.WIDTH / 2;
+        const sectionWidth = CONFIG.BRIDGE_WIDTH / CONFIG.LANE_COUNT; // 200 pixels per section
+        // Calculate position relative to bridge center
+        const laneOffsetFromCenter = (lane - 1) * sectionWidth; // lane 0=-200, lane 1=0, lane 2=+200
+        const startX = bridgeCenterX + laneOffsetFromCenter;
 
         // Initialize display value first
         const extra = Math.floor(enemyKillCount / 5);
@@ -344,11 +394,11 @@ class Gate extends GameSprite {
         }
 
         // Call super constructor
-        super(startX, 30, -600, 200, 80, 20); // Increased spawn distance from -300 to -600
+        super(startX, 30, -600, gateWidth, gateHeight, 20); // Much further spawn distance (-600 instead of -gateHeight)
 
         // Set properties after super call
         this.speed = CONFIG.GATE_SPEED;
-        this.color = 0x00ff88; // Bright cyan-green for gates
+        this.color = 0x32ff32; // Python: GATE_COLOR = (50,255,50)
         this.textSprite = null;
         this.isOperator = isOperator;
         this.operator = operator;
@@ -454,10 +504,16 @@ class Gate extends GameSprite {
 
 class Boss extends GameSprite {
     constructor(player) {
-        super(0, 50, -800, 120, 120, 120); // Increased spawn distance from -400 to -800
+        const bossWidth = 120;
+        const bossHeight = 120;
+        // Position boss at center of bridge
+        const bridgeCenterX = CONFIG.BRIDGE_X + CONFIG.BRIDGE_WIDTH / 2 - CONFIG.WIDTH / 2;
+        const startX = bridgeCenterX;
+        super(startX, 50, -1200, bossWidth, bossHeight, bossHeight); // Much further spawn distance (-1200)
         this.speed = CONFIG.BOSS_SPEED;
-        this.color = 0x880000; // Dark red for boss
+        this.color = 0xc80000; // Python: BOSS_COLOR = (200,0,0)
 
+        // Python's boss health calculation: 250 * lvl_mult * enemy_health_multiplier * gate_mult
         const levelMult = Math.pow(1.2, gameState.startLevel - 1);
         const gateMult = Math.pow(2.0, Math.max(0, player.gateCollision - 1));
         this.health = 250 * levelMult * gameState.enemyHealthMultiplier * gateMult;
@@ -598,7 +654,7 @@ class Particle {
 }
 
 class FloatingText {
-    constructor(text, x, y, z, lifetime = 80, color = '#ffff00') {
+    constructor(text, x, y, z, lifetime = 30, color = '#ff0000') { // Default lifetime 30 like Python
         this.text = text;
         this.startLifetime = lifetime;
         this.lifetime = lifetime;
@@ -606,7 +662,7 @@ class FloatingText {
         this.color = color;
         this.velocity = {
             x: (Math.random() - 0.5) * 2,
-            y: 2.5, // Float upward
+            y: 1, // Python: self.y -= 1 per frame
             z: (Math.random() - 0.5) * 2
         };
 
@@ -625,21 +681,18 @@ class FloatingText {
     update() {
         if (!this.alive || !this.sprite) return;
 
-        // Float with velocity
-        this.sprite.position.x += this.velocity.x;
+        // Python movement: self.y -= 1
         this.sprite.position.y += this.velocity.y;
-        this.sprite.position.z += this.velocity.z;
-
-        // Slow down movement over time
-        this.velocity.x *= 0.95;
-        this.velocity.z *= 0.95;
-        this.velocity.y *= 0.98;
+        this.sprite.position.x += this.velocity.x * 0.3; // Slower horizontal movement
+        this.sprite.position.z += this.velocity.z * 0.3;
 
         this.lifetime--;
 
         // Fade out effect based on remaining lifetime
         const fadeRatio = this.lifetime / this.startLifetime;
-        this.sprite.material.opacity = Math.max(0, fadeRatio);        // Scale effect - more visible scaling
+        this.sprite.material.opacity = Math.max(0, fadeRatio);
+
+        // Scale effect - more visible scaling
         const scaleProgress = 1 - fadeRatio;
         let scaleFactor;
         if (scaleProgress < 0.2) {
