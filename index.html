@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Runner-Shooter: Squad Assault</title>
+    <!-- Favicon to prevent 404 error -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/ui.css">
+    <link rel="stylesheet" href="css/game.css">
+</head>
+<body>
+    <div class="game-container">
+        <canvas id="gameCanvas" width="1200" height="800"></canvas>
+
+        <!-- Main Menu -->
+        <div id="menuOverlay" class="menu-overlay">
+            <div class="game-info">
+                <div>Coins: <span id="menuCoins">1000</span></div>
+                <div>Level: <span id="menuLevel">1</span></div>
+            </div>
+            <button class="menu-button" id="newGameBtn">Neues Spiel</button>
+            <button class="menu-button" id="connectBtn">Server Verbinden (Optional)</button>
+        </div>
+
+        <!-- Pause Menu -->
+        <div id="pauseOverlay" class="pause-overlay hidden">
+            <h2>Pausiert</h2>
+            <p>Drücke R zum Neustarten</p>
+        </div>
+
+        <!-- Game Over Menu -->
+        <div id="gameOverOverlay" class="pause-overlay hidden">
+            <h2 id="gameOverText">Game Over!</h2>
+            <p>Drücke R zum Neustarten</p>
+        </div>
+
+        <!-- UI Overlay -->
+        <div id="uiOverlay" class="ui-overlay hidden">
+            <div>Coins: <span id="gameCoins">1000</span></div>
+            <div id="connectionStatus" class="connection-status">Offline Mode</div>
+        </div>
+
+        <!-- Character Window -->
+        <div id="characterWindow" class="character-window hidden">
+            <h3>Charakter Info</h3>
+            <div id="characterStats"></div>
+        </div>
+
+        <!-- Talents Window -->
+        <div id="talentsWindow" class="talents-window hidden">
+            <h3>Talente</h3>
+            <div>Verfügbar: <span id="availableTalents">0</span></div>
+            <p>Drücke T zum Zurücksetzen (-100 Coins)</p>
+        </div>
+
+        <!-- Weapon Upgrade Prompt -->
+        <div id="weaponPrompt" class="pause-overlay hidden" style="background: rgba(0,0,0,0.5);">
+            <h2>Wähle deine Waffe (U)</h2>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/websocket.js"></script>
+    <script src="js/gameObjects.js"></script>
+    <script src="js/gameLogic.js"></script>
+    <script src="js/renderer.js"></script>
+    <script src="js/inputHandler.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
