@@ -1,0 +1,27 @@
+{
+  "name": "oldgame",
+  "version": "1.0.0",
+  "description": "A JavaScript-based game with multiplayer capabilities",
+  "main": "js/main.js",
+  "scripts": {
+    "start": "serve -s . -l 3000",
+    "build": "echo 'Build complete - static files ready'",
+    "dev": "serve -s . -l 3000"
+  },
+  "keywords": [
+    "game",
+    "javascript",
+    "canvas",
+    "multiplayer",
+    "websocket"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "serve": "^14.2.0"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
