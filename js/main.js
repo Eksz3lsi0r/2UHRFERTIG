@@ -96,6 +96,9 @@ function init() {
     loadGameData();
     updateUI();
 
+    // Initialize touch controls for mobile devices
+    initializeTouchControls();
+
     // WebSocket is optional - game works offline
     console.log('Starting game...');
     console.log('WebSocket server is optional - game runs offline by default');

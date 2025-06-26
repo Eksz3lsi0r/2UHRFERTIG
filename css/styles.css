@@ -15,6 +15,7 @@
 @import url('./components/windows.css');
 @import url('./components/connection-status.css');
 @import url('./components/weapon-notification.css');
+@import url('./components/touch-controls.css');
 
 /* Game-specific */
 @import url('./game/level-display.css');
