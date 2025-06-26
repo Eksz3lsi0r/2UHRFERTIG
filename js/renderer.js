@@ -202,7 +202,12 @@ function initRenderer() {
         cameraHeight = CONFIG.HEIGHT;
     }
 
-    camera = new THREE.PerspectiveCamera(75, aspectRatio, 0.1, 2000);
+    camera = new THREE.PerspectiveCamera(
+        isMobileMode ? 90 : 75, // Wider field of view for mobile
+        aspectRatio,
+        0.1,
+        2000
+    );
 
     // Create WebGL renderer with deep purple background
     const canvas = document.getElementById('gameCanvas');
@@ -237,8 +242,9 @@ function initRenderer() {
     waterMaterial = new THREE.MeshLambertMaterial({ color: 0x7B68EE }); // Medium slate blue water
     bridgeMaterial = new THREE.MeshLambertMaterial({ color: 0x9370DB }); // Medium purple bridge
 
-    // Create water plane
-    const waterGeometry = new THREE.PlaneGeometry(2000, 2000);
+    // Create water plane - wider for mobile to show full scene
+    const waterWidth = isMobileMode ? 3000 : 2000;
+    const waterGeometry = new THREE.PlaneGeometry(waterWidth, 2000);
     const waterMesh = new THREE.Mesh(waterGeometry, waterMaterial);
     waterMesh.rotation.x = -Math.PI / 2;
     waterMesh.position.y = -5;
@@ -266,8 +272,11 @@ function createBridge() {
 function updateCamera() {
     if (!player) return;
 
-    // Camera with steeper angle for better distance view - doubled bridge distance
-    const cameraOffset = new THREE.Vector3(0, 150, 240); // Doubled z-distance from 120 to 240
+    // Camera positioning - different for mobile to show full bridge width
+    const cameraOffset = isMobileMode ?
+        new THREE.Vector3(0, 180, 300) : // Higher and further back for mobile
+        new THREE.Vector3(0, 150, 240); // Standard desktop view
+
     const targetPosition = new THREE.Vector3(
         player.mesh.position.x + cameraOffset.x,
         player.mesh.position.y + cameraOffset.y,
@@ -277,11 +286,11 @@ function updateCamera() {
     // Smooth camera movement
     camera.position.lerp(targetPosition, 0.1);
 
-    // Look at point much further ahead for better distance view
+    // Look at point - adjusted for mobile view
     const lookAtTarget = new THREE.Vector3(
         player.mesh.position.x,
-        player.mesh.position.y + 5, // Lower target height
-        player.mesh.position.z - 200 // Much further ahead
+        player.mesh.position.y + (isMobileMode ? 10 : 5), // Higher target for mobile
+        player.mesh.position.z - (isMobileMode ? 150 : 200) // Less far ahead for mobile
     );
     camera.lookAt(lookAtTarget);
 }

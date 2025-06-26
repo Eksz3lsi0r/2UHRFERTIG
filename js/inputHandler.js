@@ -2,6 +2,38 @@
 const keys = {};
 let touchControlsEnabled = false;
 let keyboardDetected = false;
+let lastMoveTime = 0;
+const MOVE_COOLDOWN = 150; // Milliseconds between moves to prevent double-movement
+
+// Controlled movement function with cooldown
+function performMove(direction) {
+    const currentTime = Date.now();
+    if (currentTime - lastMoveTime < MOVE_COOLDOWN) {
+        return; // Ignore if too soon after last move
+    }
+
+    if (!gameState.paused && !gameState.gameOver && player) {
+        const oldLane = player.lane;
+        player.move(direction);
+
+        // Check if movement was successful (lane actually changed)
+        if (player.lane !== oldLane) {
+            lastMoveTime = currentTime;
+
+            // Add visual feedback for successful move on mobile
+            if (isMobileDevice()) {
+                const buttonId = direction === -1 ? 'moveLeftBtn' : 'moveRightBtn';
+                const button = document.getElementById(buttonId);
+                if (button) {
+                    button.classList.add('move-success');
+                    setTimeout(() => {
+                        button.classList.remove('move-success');
+                    }, 300);
+                }
+            }
+        }
+    }
+}
 
 // Detect if device is mobile
 function isMobileDevice() {
@@ -46,9 +78,7 @@ function initializeTouchControls() {
     // Left button touch events
     moveLeftBtn.addEventListener('touchstart', (e) => {
         e.preventDefault();
-        if (!gameState.paused && !gameState.gameOver && player) {
-            player.move(-1);
-        }
+        performMove(-1);
     });
 
     moveLeftBtn.addEventListener('touchend', (e) => {
@@ -58,9 +88,7 @@ function initializeTouchControls() {
     // Right button touch events
     moveRightBtn.addEventListener('touchstart', (e) => {
         e.preventDefault();
-        if (!gameState.paused && !gameState.gameOver && player) {
-            player.move(1);
-        }
+        performMove(1);
     });
 
     moveRightBtn.addEventListener('touchend', (e) => {
@@ -93,16 +121,12 @@ function initializeTouchControls() {
     // Also add click events as fallback
     moveLeftBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        if (!gameState.paused && !gameState.gameOver && player) {
-            player.move(-1);
-        }
+        performMove(-1);
     });
 
     moveRightBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        if (!gameState.paused && !gameState.gameOver && player) {
-            player.move(1);
-        }
+        performMove(1);
     });
 
     shootBtn.addEventListener('click', (e) => {
@@ -286,16 +310,12 @@ document.addEventListener('keydown', (e) => {
         case 'KeyA':
         case 'ArrowLeft':
             // Python: if event.key == pygame.K_a: player.move(-1)
-            if (!gameState.paused && !gameState.gameOver && player) {
-                player.move(-1);
-            }
+            performMove(-1);
             break;
         case 'KeyD':
         case 'ArrowRight':
             // Python: elif event.key == pygame.K_d: player.move(1)
-            if (!gameState.paused && !gameState.gameOver && player) {
-                player.move(1);
-            }
+            performMove(1);
             break;
         case 'Space':
             // Python: elif event.key == pygame.K_SPACE and player.shoot_cd == 0:
