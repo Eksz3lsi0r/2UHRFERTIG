@@ -203,7 +203,7 @@ function initRenderer() {
     }
 
     camera = new THREE.PerspectiveCamera(
-        75, // Same field of view for both mobile and desktop
+        75, // Same field of view for all platforms
         aspectRatio,
         0.1,
         2000
@@ -272,7 +272,7 @@ function createBridge() {
 function updateCamera() {
     if (!player) return;
 
-    // Camera positioning - identical for both mobile and desktop
+    // Camera positioning - identical for all platforms, only screen aspect ratio differs
     const cameraOffset = new THREE.Vector3(0, 150, 240); // Same positioning for all platforms
 
     const targetPosition = new THREE.Vector3(
