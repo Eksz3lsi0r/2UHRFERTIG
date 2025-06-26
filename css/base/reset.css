@@ -1,0 +1,13 @@
+/* Reset CSS - Base reset and normalization */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #2D1B2E, #4A1A4F, #6A2C70);
+    color: #E6E6FA;
+    overflow: hidden;
+}

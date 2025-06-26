@@ -1,0 +1,18 @@
+/* Layout CSS - Main container and layout styles */
+.game-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: radial-gradient(ellipse at center, #4A1A4F, #2D1B2E);
+}
+
+#gameCanvas {
+    border: 2px solid #9370DB;
+    border-radius: 8px;
+    box-shadow: 0 0 20px rgba(147, 112, 219, 0.5);
+    display: block;
+    margin: 0 auto;
+    width: 100%;
+    height: 100%;
+}

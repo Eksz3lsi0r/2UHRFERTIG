@@ -1,6 +1,61 @@
 // 3D Renderer with Three.js
 let scene, camera, renderer;
 let waterMaterial, bridgeMaterial;
+let starField; // For endless starfield
+
+// Create endless starfield
+function createStarField() {
+    const starGeometry = new THREE.BufferGeometry();
+    const starCount = 3000; // Number of stars
+
+    const positions = new Float32Array(starCount * 3);
+    const colors = new Float32Array(starCount * 3);
+
+    // Generate random star positions and colors
+    for (let i = 0; i < starCount; i++) {
+        const i3 = i * 3;
+
+        // Random positions in a large sphere around the scene
+        positions[i3] = (Math.random() - 0.5) * 4000;     // x
+        positions[i3 + 1] = (Math.random() - 0.5) * 2000; // y
+        positions[i3 + 2] = (Math.random() - 0.5) * 4000; // z
+
+        // Purple-tinted star colors with some variation
+        const intensity = 0.5 + Math.random() * 0.5;
+        colors[i3] = 0.8 * intensity;     // red component
+        colors[i3 + 1] = 0.6 * intensity; // green component
+        colors[i3 + 2] = 1.0 * intensity; // blue component (more blue for purple tint)
+    }
+
+    starGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    starGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+    // Star material
+    const starMaterial = new THREE.PointsMaterial({
+        size: 2,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.8,
+        sizeAttenuation: false // Keep stars same size regardless of distance
+    });
+
+    starField = new THREE.Points(starGeometry, starMaterial);
+    scene.add(starField);
+}
+
+// Update starfield for endless effect
+function updateStarField() {
+    if (!starField) return;
+
+    // Slowly rotate the starfield for dynamic effect
+    starField.rotation.y += 0.0002;
+    starField.rotation.x += 0.0001;
+
+    // Move stars based on player movement for parallax effect
+    if (typeof gameState !== 'undefined' && gameState.backgroundOffset !== undefined) {
+        starField.position.z = gameState.backgroundOffset * 0.1; // Slow parallax
+    }
+}
 
 // Text sprite creation function
 function createTextSprite(text, color = '#ffffff', size = 64, backgroundColor = 'rgba(0, 0, 0, 0.8)', widthMultiplier = 1) {
@@ -118,35 +173,35 @@ function createHealthBarSprite(health, maxHealth, width = 100, height = 15) {
 }
 
 function initRenderer() {
-    // Create scene
+    // Create scene with deeper purple atmosphere
     scene = new THREE.Scene();
-    scene.fog = new THREE.Fog(0x87CEEB, 100, 1000);
+    scene.fog = new THREE.Fog(0x2D1B69, 100, 1500); // Deeper purple fog
 
     // Create camera (third person)
     camera = new THREE.PerspectiveCamera(75, CONFIG.WIDTH / CONFIG.HEIGHT, 0.1, 2000);
 
-    // Create WebGL renderer
+    // Create WebGL renderer with deep purple background
     const canvas = document.getElementById('gameCanvas');
     renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
     renderer.setSize(CONFIG.WIDTH, CONFIG.HEIGHT);
-    renderer.setClearColor(0x87CEEB, 1);
+    renderer.setClearColor(0x1A0F2E, 1); // Very deep purple background
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-    // Add lighting
-    const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+    // Add lighting with purple tint
+    const ambientLight = new THREE.AmbientLight(0x6B2F7F, 0.7); // Purple ambient light
     scene.add(ambientLight);
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    const directionalLight = new THREE.DirectionalLight(0xB19CD9, 0.8); // Light purple directional light
     directionalLight.position.set(50, 100, 50);
     directionalLight.castShadow = true;
     directionalLight.shadow.mapSize.width = 2048;
     directionalLight.shadow.mapSize.height = 2048;
     scene.add(directionalLight);
 
-    // Create materials with Python colors
-    waterMaterial = new THREE.MeshLambertMaterial({ color: 0x3296c8 }); // Python: WATER_COLOR = (50,150,200)
-    bridgeMaterial = new THREE.MeshLambertMaterial({ color: 0x646464 }); // Python: BRIDGE_COLOR = (100,100,100)
+    // Create materials with purple color scheme
+    waterMaterial = new THREE.MeshLambertMaterial({ color: 0x7B68EE }); // Medium slate blue water
+    bridgeMaterial = new THREE.MeshLambertMaterial({ color: 0x9370DB }); // Medium purple bridge
 
     // Create water plane
     const waterGeometry = new THREE.PlaneGeometry(2000, 2000);
@@ -157,6 +212,9 @@ function initRenderer() {
 
     // Create bridge segments
     createBridge();
+
+    // Create starfield
+    createStarField();
 }
 
 function createBridge() {
@@ -208,6 +266,9 @@ function drawGame() {
             }
         }
     });
+
+    // Update starfield
+    updateStarField();
 
     renderer.render(scene, camera);
 }

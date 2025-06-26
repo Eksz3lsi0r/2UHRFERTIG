@@ -1,0 +1,62 @@
+/* Weapon Upgrade Notification CSS */
+.weapon-upgrade-notification {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(135deg, #7B68EE, #9370DB);
+    border: 2px solid #DDA0DD;
+    border-radius: 15px;
+    padding: 20px 30px;
+    z-index: 1500;
+    color: #E6E6FA;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(147, 112, 219, 0.5);
+    backdrop-filter: blur(10px);
+    transition: all 0.5s ease;
+    max-width: 400px;
+}
+
+.weapon-upgrade-notification.hidden {
+    opacity: 0;
+    visibility: hidden;
+    transform: translate(-50%, -50%) scale(0.8);
+}
+
+.weapon-upgrade-notification.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, -50%) scale(1);
+    animation: weaponUpgradeGlow 0.5s ease;
+}
+
+.notification-content h3 {
+    margin: 0 0 10px 0;
+    font-size: 24px;
+    color: #FFD700;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+}
+
+.notification-content p {
+    margin: 10px 0;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.notification-content small {
+    font-size: 14px;
+    color: #DDA0DD;
+    font-style: italic;
+}
+
+@keyframes weaponUpgradeGlow {
+    0% {
+        box-shadow: 0 10px 30px rgba(147, 112, 219, 0.5);
+    }
+    50% {
+        box-shadow: 0 15px 40px rgba(255, 215, 0, 0.7);
+    }
+    100% {
+        box-shadow: 0 10px 30px rgba(147, 112, 219, 0.5);
+    }
+}

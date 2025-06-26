@@ -4,12 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Runner-Shooter: Squad Assault</title>
-    <!-- Favicon to prevent 404 error -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+    <!-- Prevent favicon 404 error with explicit definitions -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+    <link rel="shortcut icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="css/ui.css">
-    <link rel="stylesheet" href="css/game.css">
+    <!-- Modern modular CSS architecture -->
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
     <div class="game-container">
@@ -58,18 +59,38 @@
             <p>Drücke T zum Zurücksetzen (-100 Coins)</p>
         </div>
 
-        <!-- Weapon Upgrade Prompt -->
-        <div id="weaponPrompt" class="pause-overlay hidden" style="background: rgba(0,0,0,0.5);">
-            <h2>Wähle deine Waffe (U)</h2>
-        </div>
+        <!-- Weapon upgrades are now handled automatically with notifications -->
     </div>
 
+    <!-- Modern modular JavaScript architecture -->
     <script src="js/config.js"></script>
     <script src="js/websocket.js"></script>
-    <script src="js/gameObjects.js"></script>
-    <script src="js/gameLogic.js"></script>
+
+    <!-- Base classes (load first) -->
+    <script src="js/entities/base-sprite.js"></script>
+
+    <!-- Entity classes -->
+    <script src="js/entities/player.js"></script>
+    <script src="js/entities/projectile.js"></script>
+    <script src="js/entities/enemy.js"></script>
+    <script src="js/entities/gate.js"></script>
+    <script src="js/entities/boss.js"></script>
+
+    <!-- Effect classes -->
+    <script src="js/effects/particles.js"></script>
+
+    <!-- Game systems -->
+    <script src="js/systems/collision.js"></script>
+    <script src="js/systems/spawning.js"></script>
+    <script src="js/systems/data-manager.js"></script>
+    <script src="js/systems/ui-manager.js"></script>
+    <script src="js/core/game-loop.js"></script>
+
+    <!-- Renderer and input handling -->
     <script src="js/renderer.js"></script>
     <script src="js/inputHandler.js"></script>
+
+    <!-- Main game initialization -->
     <script src="js/main.js"></script>
 </body>
 </html>

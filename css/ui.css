@@ -1,3 +1,13 @@
+/* DEPRECATED - This file has been split into modular components
+ * Use css/styles.css instead, which imports:
+ * - components/menu.css (for menus)
+ * - components/overlays.css (for overlays)
+ * - components/windows.css (for windows)
+ * - components/connection-status.css (for connection status)
+ *
+ * This file is kept for backward compatibility
+ */
+
 /* UI CSS - User interface elements and overlays */
 .menu-overlay {
     position: absolute;

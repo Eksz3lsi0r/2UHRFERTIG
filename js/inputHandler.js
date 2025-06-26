@@ -118,15 +118,7 @@ document.addEventListener('keydown', (e) => {
             }
             e.preventDefault();
             break;
-        case 'KeyU':
-            // Python: elif event.key == pygame.K_u and distance > 3000 and not player.weapon_upgraded:
-            if (!gameState.paused && !gameState.gameOver && player &&
-                gameState.distance > 3000 && !player.weaponUpgraded) {
-                player.weapon = "upgraded";
-                player.weaponUpgraded = true;
-                weaponPrompt.classList.add('hidden');
-            }
-            break;
+        // KeyU removed - weapon upgrades are now automatic
     }
 });
 

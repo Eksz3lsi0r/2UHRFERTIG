@@ -1,3 +1,12 @@
+/* DEPRECATED - This file has been split into modular components
+ * Use css/styles.css instead, which imports:
+ * - game/level-display.css (for level display)
+ * - game/ui-elements.css (for game UI elements)
+ * - animations/game-animations.css (for animations)
+ *
+ * This file is kept for backward compatibility
+ */
+
 /* Game CSS - Game-specific styles and animations */
 
 /* Level display overlay - positioned over player */

@@ -1,3 +1,17 @@
+/* DEPRECATED - This file has been split into modular components
+ * Use the following new structure instead:
+ *
+ * entities/base-sprite.js     - Base GameSprite class
+ * entities/player.js          - Player class
+ * entities/projectile.js      - Projectile class
+ * entities/enemy.js           - Enemy class
+ * entities/gate.js            - Gate class
+ * entities/boss.js            - Boss class
+ * effects/particles.js        - Particle and FloatingText classes
+ *
+ * This file is kept for backward compatibility
+ */
+
 // Game Objects - 3D Version
 class GameSprite {
     constructor(x = 0, y = 0, z = 0, width = 40, height = 40, depth = 40) {
@@ -457,7 +471,7 @@ class Gate extends GameSprite {
             textColor = this.value >= 0 ? '#00ff00' : '#ff4444';
         }
 
-        // Create new text sprite with halved font size for gate values (128 * 25 = 3200)
+        // Create new text sprite with appropriate font size for gate values
         this.textSprite = createTextSprite(this.display, textColor, 3200, 'rgba(0, 0, 0, 0.9)');
 
         if (scene) {

@@ -1,0 +1,38 @@
+/* Level Display CSS - Player level indicator */
+.level-display {
+    position: fixed;
+    background: rgba(74, 26, 79, 0.8);
+    color: #E6E6FA;
+    padding: 8px 15px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    z-index: 150;
+    pointer-events: none;
+    white-space: nowrap;
+    border: 1px solid rgba(221, 160, 221, 0.5);
+    transform: translate(-50%, -50%);
+    transition: opacity 0.2s ease, transform 0.1s ease;
+    text-shadow: 0 0 10px rgba(147, 112, 219, 0.8);
+    box-shadow: 0 4px 15px rgba(147, 112, 219, 0.3);
+
+    /* Default positioning using CSS custom properties */
+    left: var(--player-x, 50%);
+    top: var(--player-y, 50%);
+}
+
+.level-display.hidden {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.level-display.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Level display positioning variants */
+.level-display.above-player {
+    /* Will use CSS custom properties for positioning */
+    margin-top: -10px; /* Slight offset above player */
+}

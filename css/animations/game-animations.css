@@ -1,0 +1,50 @@
+/* Game Animations CSS - Purple-themed animations and transitions */
+
+/* Level display animations */
+@keyframes levelPulse {
+    0% {
+        transform: translate(-50%, -50%) scale(1);
+        color: #E6E6FA;
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.2);
+        background: rgba(186, 85, 211, 0.8);
+        color: #FFFFFF;
+        box-shadow: 0 0 20px rgba(186, 85, 211, 0.6);
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+        color: #E6E6FA;
+    }
+}
+
+/* Purple glow animation for game elements */
+@keyframes purpleGlow {
+    0%, 100% {
+        box-shadow: 0 0 10px rgba(147, 112, 219, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 25px rgba(147, 112, 219, 0.7);
+    }
+}
+
+/* Floating animation for UI elements */
+@keyframes floatPurple {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+.level-display.level-changed {
+    animation: levelPulse 0.3s ease;
+}
+
+/* Apply purple glow to interactive elements */
+.menu-button,
+.character-window,
+.talents-window {
+    animation: purpleGlow 3s ease-in-out infinite;
+}

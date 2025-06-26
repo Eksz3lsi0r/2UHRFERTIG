@@ -1,3 +1,15 @@
+/* DEPRECATED - This file has been split into modular components
+ * Use the following new structure instead:
+ *
+ * systems/collision.js        - Collision detection and floating text management
+ * systems/spawning.js         - Entity spawning (enemies, gates, boss)
+ * systems/data-manager.js     - Save/load game data
+ * systems/ui-manager.js       - UI updates and character window
+ * core/game-loop.js           - Main game loop, update, and reset functions
+ *
+ * This file is kept for backward compatibility
+ */
+
 // Game Logic - 1:1 implementation from Python version
 
 // Floating text management
@@ -327,8 +339,8 @@ function updateGame() {
     }
 
     if (boss && boss.health <= 0) {
-        gameState.victory = true;
-        gameState.gameOver = true;
+        // gameState.victory = true;
+        // gameState.gameOver = true;
         // Boss kill rewards - exact same as Python
         gameState.coins += 10;
         gameState.startLevel++;

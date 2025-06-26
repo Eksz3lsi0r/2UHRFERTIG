@@ -1,3 +1,12 @@
+/* DEPRECATED - This file has been split into modular components
+ * Use css/styles.css instead, which imports:
+ * - base/reset.css (for base styles)
+ * - layout/container.css (for layout)
+ * - utilities/helpers.css (for utilities)
+ *
+ * This file is kept for backward compatibility
+ */
+
 /* Main CSS - Base styles and layout */
 * {
     margin: 0;

@@ -49,7 +49,7 @@ const gameOverOverlay = document.getElementById('gameOverOverlay');
 const uiOverlay = document.getElementById('uiOverlay');
 const characterWindow = document.getElementById('characterWindow');
 const talentsWindow = document.getElementById('talentsWindow');
-const weaponPrompt = document.getElementById('weaponPrompt');
+// weaponPrompt removed - automatic weapon upgrades now
 
 // Menu button handlers
 document.getElementById('newGameBtn').addEventListener('click', () => {
