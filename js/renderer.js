@@ -203,7 +203,7 @@ function initRenderer() {
     }
 
     camera = new THREE.PerspectiveCamera(
-        isMobileMode ? 90 : 75, // Wider field of view for mobile
+        75, // Same field of view for both mobile and desktop
         aspectRatio,
         0.1,
         2000
@@ -272,10 +272,8 @@ function createBridge() {
 function updateCamera() {
     if (!player) return;
 
-    // Camera positioning - different for mobile to show full bridge width
-    const cameraOffset = isMobileMode ?
-        new THREE.Vector3(0, 180, 300) : // Higher and further back for mobile
-        new THREE.Vector3(0, 150, 240); // Standard desktop view
+    // Camera positioning - identical for both mobile and desktop
+    const cameraOffset = new THREE.Vector3(0, 150, 240); // Same positioning for all platforms
 
     const targetPosition = new THREE.Vector3(
         player.mesh.position.x + cameraOffset.x,
@@ -286,11 +284,11 @@ function updateCamera() {
     // Smooth camera movement
     camera.position.lerp(targetPosition, 0.1);
 
-    // Look at point - adjusted for mobile view
+    // Look at point - identical for all platforms
     const lookAtTarget = new THREE.Vector3(
         player.mesh.position.x,
-        player.mesh.position.y + (isMobileMode ? 10 : 5), // Higher target for mobile
-        player.mesh.position.z - (isMobileMode ? 150 : 200) // Less far ahead for mobile
+        player.mesh.position.y + 5,
+        player.mesh.position.z - 200
     );
     camera.lookAt(lookAtTarget);
 }
