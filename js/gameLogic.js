@@ -400,14 +400,19 @@ function resetGame() {
     gameState.victory = false;
     gameState.paused = false;
 
-    // Reset enemy health multiplier like Python after game restart
-    if (boss && boss.health <= 0) {
-        // Boss kill case
-        gameState.enemyHealthMultiplier = 1;
-    } else if (boss && boss.health >= 1) {
-        // Boss not defeated case
-        gameState.enemyHealthMultiplier = 1;
+    // RESET ALL MULTIPLIERS - ensure clean game state
+    gameState.enemyHealthMultiplier = 1;
+    gameState.startLevel = 1; // Reset start level multiplier
+
+    // Ensure player multipliers are reset (redundant but explicit)
+    if (player) {
+        player.level = 1;           // Player level multiplier
+        player.gateCollision = 0;   // Gate collision multiplier
+        player.weapon = "basic";    // Weapon multiplier reset
+        player.weaponUpgraded = false;
     }
+
+    console.log("All multipliers reset to base values");
 }
 
 // Save/Load game data - 1:1 from Python version

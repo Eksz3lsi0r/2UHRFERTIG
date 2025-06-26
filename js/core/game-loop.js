@@ -167,12 +167,17 @@ function resetGame() {
     gameState.victory = false;
     gameState.paused = false;
 
-    // ALWAYS reset enemy health multiplier on restart (R key)
-    // This ensures no hidden multipliers persist between games
+    // RESET ALL MULTIPLIERS - ensure clean game state
     gameState.enemyHealthMultiplier = 1;
+    gameState.startLevel = 1; // Reset start level multiplier
 
-    // Reset player gate collision counter to prevent health scaling
+    // Ensure player multipliers are reset (redundant but explicit)
     if (player) {
-        player.gateCollision = 0;
+        player.level = 1;           // Player level multiplier
+        player.gateCollision = 0;   // Gate collision multiplier
+        player.weapon = "basic";    // Weapon multiplier reset
+        player.weaponUpgraded = false;
     }
+
+    console.log("All multipliers reset to base values");
 }
