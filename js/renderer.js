@@ -2,6 +2,14 @@
 let scene, camera, renderer;
 let waterMaterial, bridgeMaterial;
 let starField; // For endless starfield
+let isMobileMode = false;
+
+// Check if mobile mode should be active
+function checkMobileMode() {
+    isMobileMode = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+                   (window.innerWidth <= 768 && 'ontouchstart' in window);
+    return isMobileMode;
+}
 
 // Create endless starfield
 function createStarField() {
@@ -173,20 +181,46 @@ function createHealthBarSprite(health, maxHealth, width = 100, height = 15) {
 }
 
 function initRenderer() {
+    // Check if we're in mobile mode
+    checkMobileMode();
+
     // Create scene with deeper purple atmosphere
     scene = new THREE.Scene();
     scene.fog = new THREE.Fog(0x2D1B69, 100, 1500); // Deeper purple fog
 
-    // Create camera (third person)
-    camera = new THREE.PerspectiveCamera(75, CONFIG.WIDTH / CONFIG.HEIGHT, 0.1, 2000);
+    // Create camera (third person) - adjust for mobile
+    let aspectRatio, cameraWidth, cameraHeight;
+
+    if (isMobileMode) {
+        const canvas = document.getElementById('gameCanvas');
+        cameraWidth = canvas.offsetWidth || window.innerWidth;
+        cameraHeight = canvas.offsetHeight || (window.innerHeight * 0.65);
+        aspectRatio = cameraWidth / cameraHeight;
+    } else {
+        aspectRatio = CONFIG.WIDTH / CONFIG.HEIGHT;
+        cameraWidth = CONFIG.WIDTH;
+        cameraHeight = CONFIG.HEIGHT;
+    }
+
+    camera = new THREE.PerspectiveCamera(75, aspectRatio, 0.1, 2000);
 
     // Create WebGL renderer with deep purple background
     const canvas = document.getElementById('gameCanvas');
-    renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
-    renderer.setSize(CONFIG.WIDTH, CONFIG.HEIGHT);
+    renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: !isMobileMode }); // Disable antialiasing on mobile for performance
+
+    if (isMobileMode) {
+        renderer.setSize(cameraWidth, cameraHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Limit pixel ratio for performance
+    } else {
+        renderer.setSize(CONFIG.WIDTH, CONFIG.HEIGHT);
+        renderer.setPixelRatio(window.devicePixelRatio);
+    }
+
     renderer.setClearColor(0x1A0F2E, 1); // Very deep purple background
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.shadowMap.enabled = !isMobileMode; // Disable shadows on mobile for performance
+    if (!isMobileMode) {
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    }
 
     // Add lighting with purple tint
     const ambientLight = new THREE.AmbientLight(0x6B2F7F, 0.7); // Purple ambient light

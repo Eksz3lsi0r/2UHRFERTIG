@@ -57,15 +57,23 @@
             <h3>Talente</h3>
             <div>Verfügbar: <span id="availableTalents">0</span></div>
             <p>Drücke T zum Zurücksetzen (-100 Coins)</p>
-        </div>
+        </div>        <!-- Weapon upgrades are now handled automatically with notifications -->
 
-        <!-- Weapon upgrades are now handled automatically with notifications -->
+        <!-- Mobile Controls Area -->
+        <div id="mobileControlsArea" class="mobile-controls-area" style="display: none;">
+            <!-- Mobile Game Info -->
+            <div class="mobile-game-info">
+                <div>Leben: <span id="mobileHealth">3</span></div>
+                <div>Level: <span id="mobileLevel">1</span></div>
+                <div>Kills: <span id="mobileKills">0</span></div>
+            </div>
 
-        <!-- Touch Controls for Mobile -->
-        <div id="touchControls" class="touch-controls">
-            <button class="touch-button left" id="moveLeftBtn">←</button>
-            <button class="touch-button shoot" id="shootBtn">🔥</button>
-            <button class="touch-button right" id="moveRightBtn">→</button>
+            <!-- Touch Controls for Mobile -->
+            <div id="touchControls" class="touch-controls">
+                <button class="touch-button left" id="moveLeftBtn">←</button>
+                <button class="touch-button shoot" id="shootBtn">🔥</button>
+                <button class="touch-button right" id="moveRightBtn">→</button>
+            </div>
         </div>
 
         <!-- Tap to shoot area for mobile -->

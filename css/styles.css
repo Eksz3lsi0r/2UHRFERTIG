@@ -16,6 +16,7 @@
 @import url('./components/connection-status.css');
 @import url('./components/weapon-notification.css');
 @import url('./components/touch-controls.css');
+@import url('./components/mobile-mode.css');
 
 /* Game-specific */
 @import url('./game/level-display.css');

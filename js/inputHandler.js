@@ -16,13 +16,18 @@ function initializeTouchControls() {
     const moveRightBtn = document.getElementById('moveRightBtn');
     const shootBtn = document.getElementById('shootBtn');
     const tapToShootArea = document.getElementById('tapToShootArea');
+    const mobileControlsArea = document.getElementById('mobileControlsArea');
 
     if (!touchControls || !moveLeftBtn || !moveRightBtn || !shootBtn) return;
 
-    // Show/hide touch controls based on device
+    // Enable mobile mode if on mobile device
     if (isMobileDevice() && !keyboardDetected) {
+        enableMobileMode();
         touchControlsEnabled = true;
         touchControls.style.display = 'flex';
+        if (mobileControlsArea) {
+            mobileControlsArea.style.display = 'flex';
+        }
         if (tapToShootArea) {
             tapToShootArea.classList.add('active');
         }
@@ -119,6 +124,66 @@ function hideControlsOnKeyboard() {
         if (tapToShootArea) {
             tapToShootArea.classList.remove('active');
         }
+    }
+}
+
+// Enable mobile mode
+function enableMobileMode() {
+    document.body.classList.add('mobile-mode');
+
+    // Adjust canvas size for mobile
+    const canvas = document.getElementById('gameCanvas');
+    if (canvas) {
+        // Set canvas to mobile dimensions
+        const isLandscape = window.innerWidth > window.innerHeight;
+        if (isLandscape) {
+            canvas.width = Math.min(1200, window.innerWidth);
+            canvas.height = Math.min(600, window.innerHeight * 0.7);
+        } else {
+            canvas.width = Math.min(800, window.innerWidth);
+            canvas.height = Math.min(600, window.innerHeight * 0.65);
+        }
+    }
+
+    // Prevent scrolling
+    document.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+    }, { passive: false });
+
+    // Prevent zoom
+    document.addEventListener('gesturestart', (e) => {
+        e.preventDefault();
+    });
+
+    // Update mobile UI
+    updateMobileUI();
+}
+
+// Update mobile UI elements
+function updateMobileUI() {
+    if (!isMobileDevice()) return;
+
+    const mobileHealth = document.getElementById('mobileHealth');
+    const mobileLevel = document.getElementById('mobileLevel');
+    const mobileKills = document.getElementById('mobileKills');
+
+    if (mobileHealth && player) {
+        mobileHealth.textContent = player.health || 3;
+    }
+    if (mobileLevel) {
+        mobileLevel.textContent = gameState.startLevel || 1;
+    }
+    if (mobileKills) {
+        mobileKills.textContent = gameState.enemyKills || 0;
+    }
+}
+
+// Handle orientation change
+function handleOrientationChange() {
+    if (isMobileDevice()) {
+        setTimeout(() => {
+            enableMobileMode();
+        }, 100);
     }
 }
 
@@ -250,8 +315,15 @@ document.addEventListener('keyup', (e) => {
     keys[e.code] = false;
 });
 
+// Add orientation change listener
+window.addEventListener('orientationchange', handleOrientationChange);
+window.addEventListener('resize', handleOrientationChange);
+
 // Initialize touch controls on game load
 initializeTouchControls();
 
 // Hide touch controls if keyboard is detected
 window.addEventListener('keydown', hideControlsOnKeyboard);
+
+// Handle orientation change
+window.addEventListener('orientationchange', handleOrientationChange);

@@ -5,6 +5,9 @@ function updateUI() {
     document.getElementById('menuCoins').textContent = gameState.coins;
     document.getElementById('gameCoins').textContent = gameState.coins;
     document.getElementById('availableTalents').textContent = gameState.talentpoints - gameState.allocatedTalents;
+
+    // Update mobile UI if in mobile mode
+    updateMobileUI();
 }
 
 // Update character window - matching Python's display
