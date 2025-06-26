@@ -188,19 +188,13 @@ function initRenderer() {
     scene = new THREE.Scene();
     scene.fog = new THREE.Fog(0x2D1B69, 100, 1500); // Deeper purple fog
 
-    // Create camera (third person) - adjust for mobile
+    // Create camera (third person) - unified setup for all platforms
     let aspectRatio, cameraWidth, cameraHeight;
 
-    if (isMobileMode) {
-        const canvas = document.getElementById('gameCanvas');
-        cameraWidth = canvas.offsetWidth || window.innerWidth;
-        cameraHeight = canvas.offsetHeight || (window.innerHeight * 0.65);
-        aspectRatio = cameraWidth / cameraHeight;
-    } else {
-        aspectRatio = CONFIG.WIDTH / CONFIG.HEIGHT;
-        cameraWidth = CONFIG.WIDTH;
-        cameraHeight = CONFIG.HEIGHT;
-    }
+    // Use actual window dimensions for both mobile and desktop to ensure identical scaling
+    cameraWidth = window.innerWidth;
+    cameraHeight = window.innerHeight;
+    aspectRatio = cameraWidth / cameraHeight;
 
     camera = new THREE.PerspectiveCamera(
         75, // Same field of view for all platforms
@@ -213,13 +207,9 @@ function initRenderer() {
     const canvas = document.getElementById('gameCanvas');
     renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: !isMobileMode }); // Disable antialiasing on mobile for performance
 
-    if (isMobileMode) {
-        renderer.setSize(cameraWidth, cameraHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Limit pixel ratio for performance
-    } else {
-        renderer.setSize(CONFIG.WIDTH, CONFIG.HEIGHT);
-        renderer.setPixelRatio(window.devicePixelRatio);
-    }
+    // Use same sizing approach for all platforms
+    renderer.setSize(cameraWidth, cameraHeight);
+    renderer.setPixelRatio(isMobileMode ? Math.min(window.devicePixelRatio, 2) : window.devicePixelRatio);
 
     renderer.setClearColor(0x1A0F2E, 1); // Very deep purple background
     renderer.shadowMap.enabled = !isMobileMode; // Disable shadows on mobile for performance
