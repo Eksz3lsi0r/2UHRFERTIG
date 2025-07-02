@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crystal Crabby - Maria Krabbe | Professionelle Tarot Beratung Online</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Philosopher:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --mystic-purple: #4A0E4E;
+            --deep-purple: #2D1B3D;
+            --mystic-green: #0F4C3A;
+            --mystic-blue: #1E3A8A;
+            --gold: #FFD700;
+            --silver: #C0C0C0;
+        }
+
+        body {
+            font-family: 'Philosopher', sans-serif;
+            background: linear-gradient(135deg, var(--deep-purple) 0%, var(--mystic-purple) 50%, var(--mystic-green) 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .stars-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                radial-gradient(2px 2px at 20px 30px, #fff, transparent),
+                radial-gradient(2px 2px at 40px 70px, rgba(255, 255, 255, 0.8), transparent),
+                radial-gradient(1px 1px at 90px 40px, #fff, transparent),
+                radial-gradient(1px 1px at 130px 80px, rgba(255, 255, 255, 0.6), transparent),
+                radial-gradient(2px 2px at 160px 30px, #fff, transparent);
+            background-repeat: repeat;
+            background-size: 200px 100px;
+            animation: twinkle 3s ease-in-out infinite alternate;
+            z-index: 0;
+        }
+
+        @keyframes twinkle {
+            0% {
+                opacity: 0.3;
+            }
+
+            100% {
+                opacity: 0.8;
+            }
+        }
+
+        .mystical-card {
+            background: rgba(74, 14, 78, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 215, 0, 0.2);
+        }
+
+        .mystical-header {
+            font-family: 'Cinzel', serif;
+            background: linear-gradient(45deg, var(--gold), var(--silver), var(--gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+        }
+
+        .tarot-card {
+            width: 80px;
+            height: 120px;
+            background: linear-gradient(135deg, var(--mystic-purple), var(--deep-purple));
+            border: 2px solid var(--gold);
+            border-radius: 8px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            cursor: pointer;
+        }
+
+        .tarot-card:hover {
+            transform: rotateY(180deg) scale(1.1);
+        }
+
+        .tarot-card::before {
+            content: '✦';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--gold);
+            font-size: 24px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+
+            50% {
+                opacity: 0.7;
+                transform: translate(-50%, -50%) scale(1.2);
+            }
+        }
+
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .calendar-day {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .calendar-day.available {
+            background: rgba(15, 76, 58, 0.7);
+            border: 1px solid var(--gold);
+            color: white;
+        }
+
+        .calendar-day.busy {
+            background: rgba(139, 69, 19, 0.7);
+            border: 1px solid #cd853f;
+            color: #ffdddd;
+        }
+
+        .calendar-day.full {
+            background: rgba(139, 0, 0, 0.7);
+            border: 1px solid #ff6b6b;
+            color: #ffcccc;
+        }
+
+        .calendar-day:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+        }
+
+        .availability-indicator {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        .indicator-green {
+            background: #00ff00;
+        }
+
+        .indicator-yellow {
+            background: #ffff00;
+        }
+
+        .indicator-red {
+            background: #ff0000;
+        }
+
+        .zoom-feature {
+            background: linear-gradient(135deg, rgba(30, 58, 138, 0.9), rgba(15, 76, 58, 0.9));
+            border: 1px solid rgba(255, 215, 0, 0.4);
+            box-shadow: 0 0 30px rgba(30, 58, 138, 0.5);
+        }
+
+        .price-tag {
+            background: linear-gradient(45deg, var(--gold), #ffd700, var(--gold));
+            color: var(--deep-purple);
+            font-weight: 700;
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: inline-block;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+
+            0%,
+            100% {
+                box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+            }
+
+            50% {
+                box-shadow: 0 6px 25px rgba(255, 215, 0, 0.8);
+            }
+        }
+
+        .mystical-button {
+            background: linear-gradient(135deg, var(--mystic-purple), var(--mystic-blue));
+            border: 2px solid var(--gold);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 30px;
+            font-weight: 600;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mystical-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.3), transparent);
+            transition: left 0.6s;
+        }
+
+        .mystical-button:hover::before {
+            left: 100%;
+        }
+
+        .mystical-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(255, 215, 0, 0.4);
+        }
+
+        .booking-modal {
+            background: rgba(45, 27, 61, 0.98);
+            backdrop-filter: blur(15px);
+            border: 2px solid var(--gold);
+        }
+
+        .crystal-orb {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8), rgba(74, 14, 78, 0.9), rgba(30, 58, 138, 0.9));
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.6), inset 0 0 30px rgba(255, 255, 255, 0.3);
+            animation: rotate 10s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .section-divider {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+            margin: 40px 0;
+        }
+
+        .testimonial-card {
+            background: rgba(15, 76, 58, 0.8);
+            border-left: 4px solid var(--gold);
+            transition: transform 0.3s;
+        }
+
+        .testimonial-card:hover {
+            transform: translateX(10px);
+        }
+
+        @media (max-width: 768px) {
+            .tarot-card {
+                width: 60px;
+                height: 90px;
+            }
+
+            .calendar-day {
+                width: 35px;
+                height: 35px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="stars-bg"></div>
+
+    <!-- Header -->
+    <header class="relative z-10 py-8">
+        <div class="container mx-auto px-4 text-center">
+            <div class="flex justify-center items-center mb-4">
+                <div class="crystal-orb mr-6"></div>
+                <div>
+                    <h1 class="mystical-header text-6xl font-bold mb-2">Crystal Crabby</h1>
+                    <p class="text-gold text-xl font-medium">Maria Krabbe - Deutschlands führende Online-Tarot-Beraterin
+                    </p>
+                </div>
+                <div class="crystal-orb ml-6"></div>
+            </div>
+
+            <div class="flex justify-center space-x-4 mt-6">
+                <div class="tarot-card floating"></div>
+                <div class="tarot-card floating" style="animation-delay: 0.5s;"></div>
+                <div class="tarot-card floating" style="animation-delay: 1s;"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="relative z-10">
+        <!-- Hero Section -->
+        <section class="py-16">
+            <div class="container mx-auto px-4">
+                <div class="mystical-card rounded-2xl p-12 text-center">
+                    <h2 class="mystical-header text-4xl font-bold mb-6">Entdecke deine Zukunft mit professioneller
+                        Tarot-Beratung</h2>
+                    <p class="text-white text-lg mb-8 max-w-3xl mx-auto">
+                        Erlebe persönliche Tarot-Sitzungen mit Maria Krabbe bequem von zu Hause aus.
+                        Über Zoom erhalten Sie eine individuelle Kartenlegung mit tiefgreifenden Einsichten
+                        in Ihre Lebenssituation und Zukunftsperspektiven.
+                    </p>
+
+                    <div class="grid md:grid-cols-2 gap-8 mt-12">
+                        <div class="zoom-feature rounded-xl p-8">
+                            <i class="fas fa-video text-gold text-4xl mb-4"></i>
+                            <h3 class="text-white text-2xl font-bold mb-4">Live Zoom-Sitzungen</h3>
+                            <p class="text-gray-200">Persönliche 1-zu-1 Beratung in Echtzeit. Sie sehen mich die Karten
+                                legen und erhalten sofortige Deutungen.</p>
+                        </div>
+
+                        <div class="zoom-feature rounded-xl p-8">
+                            <i class="fas fa-calendar-alt text-gold text-4xl mb-4"></i>
+                            <h3 class="text-white text-2xl font-bold mb-4">Flexible Terminbuchung</h3>
+                            <p class="text-gray-200">Buchen Sie Ihren Wunschtermin online. Sehen Sie in Echtzeit meine
+                                Verfügbarkeit und wählen Sie die passende Sitzungsdauer.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- Pricing Section -->
+        <section class="py-16">
+            <div class="container mx-auto px-4">
+                <h2 class="mystical-header text-4xl font-bold text-center mb-12">Sitzungsangebote & Preise</h2>
+
+                <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                    <div class="mystical-card rounded-2xl p-8 text-center relative overflow-hidden">
+                        <div class="absolute top-4 right-4">
+                            <div class="price-tag">50€</div>
+                        </div>
+                        <i class="fas fa-clock text-gold text-5xl mb-6"></i>
+                        <h3 class="text-white text-2xl font-bold mb-4">Express-Sitzung</h3>
+                        <p class="text-gold text-xl font-bold mb-4">30 Minuten</p>
+                        <ul class="text-gray-200 space-y-2 mb-8">
+                            <li><i class="fas fa-star text-gold mr-2"></i>Grundlegende Kartenlegung</li>
+                            <li><i class="fas fa-star text-gold mr-2"></i>1-2 Lebensbereiche</li>
+                            <li><i class="fas fa-star text-gold mr-2"></i>Direkte Antworten</li>
+                            <li><i class="fas fa-star text-gold mr-2"></i>Live via Zoom</li>
+                        </ul>
+                        <button class="mystical-button w-full" onclick="openBookingModal('express')">
+                            <i class="fas fa-calendar-plus mr-2"></i>Jetzt buchen
+                        </button>
+                    </div>
+
+                    <div class="mystical-card rounded-2xl p-8 text-center relative overflow-hidden">
+                        <div class="absolute top-4 right-4">
+                            <div class="price-tag">85€</div>
+                        </div>
+                        <i class="fas fa-gem text-gold text-5xl mb-6"></i>
+                        <h3 class="text-white text-2xl font-bold mb-4">Premium-Sitzung</h3>
+                        <p class="text-gold text-xl font-bold mb-4">60 Minuten</p>
+                        <ul class="text-gray-200 space-y-2 mb-8">
+                            <li><i class="fas fa-star text-gold mr-2"></i>Ausführliche Kartenlegung</li>
+                            <li><i class="fas fa-star text-gold mr-2"></i>Alle Lebensbereiche</li>
+                            <li><i class="fas fa-star text-gold mr-2"></i>Tiefgehende Deutung</li>
+                            <li><i class="fas fa-star text-gold mr-2"></i>Zukunftsprognose</li>
+                            <li><i class="fas fa-star text-gold mr-2"></i>Live via Zoom</li>
+                        </ul>
+                        <button class="mystical-button w-full" onclick="openBookingModal('premium')">
+                            <i class="fas fa-calendar-plus mr-2"></i>Jetzt buchen
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- Calendar Section -->
+        <section class="py-16">
+            <div class="container mx-auto px-4">
+                <h2 class="mystical-header text-4xl font-bold text-center mb-12">Verfügbare Termine</h2>
+
+                <div class="mystical-card rounded-2xl p-8 max-w-4xl mx-auto">
+                    <div class="flex justify-between items-center mb-8">
+                        <button onclick="changeMonth(-1)" class="mystical-button">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <h3 class="text-white text-2xl font-bold" id="currentMonth">Dezember 2024</h3>
+                        <button onclick="changeMonth(1)" class="mystical-button">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-7 gap-2 mb-4">
+                        <div class="text-gold font-bold text-center py-2">Mo</div>
+                        <div class="text-gold font-bold text-center py-2">Di</div>
+                        <div class="text-gold font-bold text-center py-2">Mi</div>
+                        <div class="text-gold font-bold text-center py-2">Do</div>
+                        <div class="text-gold font-bold text-center py-2">Fr</div>
+                        <div class="text-gold font-bold text-center py-2">Sa</div>
+                        <div class="text-gold font-bold text-center py-2">So</div>
+                    </div>
+
+                    <div class="grid grid-cols-7 gap-2" id="calendarGrid">
+                        <!-- Calendar days will be generated by JavaScript -->
+                    </div>
+
+                    <div class="mt-8 grid md:grid-cols-3 gap-4 text-center">
+                        <div class="flex items-center justify-center">
+                            <div class="calendar-day available mr-3">
+                                <div class="availability-indicator indicator-green"></div>
+                            </div>
+                            <span class="text-white">Verfügbar</span>
+                        </div>
+                        <div class="flex items-center justify-center">
+                            <div class="calendar-day busy mr-3">
+                                <div class="availability-indicator indicator-yellow"></div>
+                            </div>
+                            <span class="text-white">Wenige Plätze</span>
+                        </div>
+                        <div class="flex items-center justify-center">
+                            <div class="calendar-day full mr-3">
+                                <div class="availability-indicator indicator-red"></div>
+                            </div>
+                            <span class="text-white">Ausgebucht</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- About Section -->
+        <section class="py-16">
+            <div class="container mx-auto px-4">
+                <div class="mystical-card rounded-2xl p-12">
+                    <div class="grid md:grid-cols-2 gap-12 items-center">
+                        <div>
+                            <h2 class="mystical-header text-4xl font-bold mb-6">Über Crystal Crabby</h2>
+                            <p class="text-white text-lg mb-6">
+                                Als Maria Krabbe bin ich seit über 15 Jahren professionell in der Welt der Esoterik
+                                tätig.
+                                Unter dem Namen Crystal Crabby biete ich deutschlandweit Online-Tarot-Beratungen an.
+                            </p>
+                            <p class="text-gray-200 mb-6">
+                                Meine Spezialität liegt in der intuitiven Kartenlegung mit dem klassischen
+                                Rider-Waite-Tarot.
+                                Jede Sitzung ist individuell auf Sie abgestimmt und bietet klare Einblicke in Ihre
+                                aktuelle
+                                Lebenssituation sowie mögliche Entwicklungen.
+                            </p>
+                            <div class="flex space-x-4">
+                                <i class="fas fa-certificate text-gold text-2xl"></i>
+                                <div>
+                                    <h4 class="text-gold font-bold mb-2">Zertifizierte Beraterin</h4>
+                                    <p class="text-gray-200">15+ Jahre Erfahrung in Tarot und spiritueller Beratung</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-center">
+                            <div class="inline-block p-8 mystical-card rounded-full">
+                                <i class="fas fa-user-alt text-gold text-8xl"></i>
+                            </div>
+                            <p class="text-gold font-bold text-xl mt-4">Maria Krabbe</p>
+                            <p class="text-white">Crystal Crabby</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- Testimonials -->
+        <section class="py-16">
+            <div class="container mx-auto px-4">
+                <h2 class="mystical-header text-4xl font-bold text-center mb-12">Was meine Klienten sagen</h2>
+
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div class="testimonial-card rounded-xl p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="flex text-gold">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                        <p class="text-white mb-4">"Eine absolut beeindruckende Sitzung! Maria hat so präzise meine
+                            Situation erfasst und mir wichtige Impulse für meine Zukunft gegeben."</p>
+                        <p class="text-gold font-bold">- Sandra M.</p>
+                    </div>
+
+                    <div class="testimonial-card rounded-xl p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="flex text-gold">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                        <p class="text-white mb-4">"Die Online-Sitzung war technisch perfekt und inhaltlich sehr
+                            tiefgreifend. Ich kann Crystal Crabby nur weiterempfehlen!"</p>
+                        <p class="text-gold font-bold">- Michael R.</p>
+                    </div>
+
+                    <div class="testimonial-card rounded-xl p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="flex text-gold">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                        <p class="text-white mb-4">"Endlich eine seriöse Tarot-Beratung online! Maria ist sehr
+                            einfühlsam und ihre Deutungen sind erstaunlich treffsicher."</p>
+                        <p class="text-gold font-bold">- Lisa K.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- Contact -->
+        <section class="py-16">
+            <div class="container mx-auto px-4">
+                <div class="mystical-card rounded-2xl p-12 text-center">
+                    <h2 class="mystical-header text-4xl font-bold mb-8">Kontakt & Support</h2>
+
+                    <div class="grid md:grid-cols-3 gap-8 mb-8">
+                        <div>
+                            <i class="fas fa-envelope text-gold text-3xl mb-4"></i>
+                            <h3 class="text-white text-xl font-bold mb-2">E-Mail</h3>
+                            <p class="text-gray-200">info@crystal-crabby.de</p>
+                        </div>
+
+                        <div>
+                            <i class="fas fa-clock text-gold text-3xl mb-4"></i>
+                            <h3 class="text-white text-xl font-bold mb-2">Sprechzeiten</h3>
+                            <p class="text-gray-200">Mo-Fr: 10:00-20:00<br>Sa: 10:00-16:00</p>
+                        </div>
+
+                        <div>
+                            <i class="fas fa-video text-gold text-3xl mb-4"></i>
+                            <h3 class="text-white text-xl font-bold mb-2">Technischer Support</h3>
+                            <p class="text-gray-200">Hilfe bei Zoom-Einrichtung<br>kostenlos verfügbar</p>
+                        </div>
+                    </div>
+
+                    <p class="text-white text-lg mb-8">
+                        Haben Sie Fragen zur Buchung oder benötigen technische Unterstützung?
+                        Ich helfe Ihnen gerne weiter!
+                    </p>
+
+                    <button class="mystical-button text-lg px-8 py-4">
+                        <i class="fas fa-comments mr-2"></i>Kontakt aufnehmen
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Booking Modal -->
+    <div id="bookingModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+        <div class="booking-modal rounded-2xl p-8 max-w-md w-full mx-4">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-white text-2xl font-bold">Termin buchen</h3>
+                <button onclick="closeBookingModal()" class="text-gold text-2xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <form id="bookingForm">
+                <div class="mb-4">
+                    <label class="text-white block mb-2">Sitzungsart:</label>
+                    <div id="sessionType" class="text-gold font-bold text-lg"></div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="text-white block mb-2">Gewählter Termin:</label>
+                    <input type="date" id="selectedDate"
+                        class="w-full p-3 rounded-lg bg-gray-800 text-white border border-gold">
+                </div>
+
+                <div class="mb-4">
+                    <label class="text-white block mb-2">Uhrzeit:</label>
+                    <select id="timeSlot" class="w-full p-3 rounded-lg bg-gray-800 text-white border border-gold">
+                        <option value="10:00">10:00 Uhr</option>
+                        <option value="12:00">12:00 Uhr</option>
+                        <option value="14:00">14:00 Uhr</option>
+                        <option value="16:00">16:00 Uhr</option>
+                        <option value="18:00">18:00 Uhr</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="text-white block mb-2">Ihr Name:</label>
+                    <input type="text" id="clientName"
+                        class="w-full p-3 rounded-lg bg-gray-800 text-white border border-gold" required>
+                </div>
+
+                <div class="mb-6">
+                    <label class="text-white block mb-2">E-Mail:</label>
+                    <input type="email" id="clientEmail"
+                        class="w-full p-3 rounded-lg bg-gray-800 text-white border border-gold" required>
+                </div>
+
+                <button type="submit" class="mystical-button w-full text-lg py-4">
+                    <i class="fas fa-calendar-check mr-2"></i>Verbindlich buchen
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="relative z-10 py-8 mt-16">
+        <div class="container mx-auto px-4 text-center">
+            <div class="mystical-card rounded-xl p-6">
+                <p class="text-gray-300">&copy; 2024 Crystal Crabby - Maria Krabbe. Alle Rechte vorbehalten.</p>
+                <p class="text-gray-400 text-sm mt-2">Professionelle Tarot-Beratung | Deutschlandweite Online-Sitzungen
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Calendar functionality
+        let currentDate = new Date();
+        const monthNames = ["Januar", "Februar", "März", "April", "Mai", "Juni",
+            "Juli", "August", "September", "Oktober", "November", "Dezember"];
+
+        function generateCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+
+            document.getElementById('currentMonth').textContent = `${monthNames[month]} ${year}`;
+
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            const startDay = (firstDay.getDay() + 6) % 7; // Monday = 0
+
+            const calendarGrid = document.getElementById('calendarGrid');
+            calendarGrid.innerHTML = '';
+
+            // Empty cells for days before month starts
+            for (let i = 0; i < startDay; i++) {
+                const emptyDay = document.createElement('div');
+                calendarGrid.appendChild(emptyDay);
+            }
+
+            // Days of the month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day';
+                dayElement.textContent = day;
+
+                // Random availability simulation
+                const availability = Math.random();
+                if (availability > 0.7) {
+                    dayElement.classList.add('available');
+                    dayElement.innerHTML += '<div class="availability-indicator indicator-green"></div>';
+                } else if (availability > 0.3) {
+                    dayElement.classList.add('busy');
+                    dayElement.innerHTML += '<div class="availability-indicator indicator-yellow"></div>';
+                } else {
+                    dayElement.classList.add('full');
+                    dayElement.innerHTML += '<div class="availability-indicator indicator-red"></div>';
+                }
+
+                dayElement.addEventListener('click', () => selectDate(year, month, day));
+                calendarGrid.appendChild(dayElement);
+            }
+        }
+
+        function changeMonth(delta) {
+            currentDate.setMonth(currentDate.getMonth() + delta);
+            generateCalendar();
+        }
+
+        function selectDate(year, month, day) {
+            const selectedDate = new Date(year, month, day);
+            const dateString = selectedDate.toISOString().split('T')[0];
+            document.getElementById('selectedDate').value = dateString;
+        }
+
+        // Modal functionality
+        function openBookingModal(type) {
+            const modal = document.getElementById('bookingModal');
+            const sessionType = document.getElementById('sessionType');
+
+            if (type === 'express') {
+                sessionType.textContent = 'Express-Sitzung (30 Min) - 50€';
+            } else {
+                sessionType.textContent = 'Premium-Sitzung (60 Min) - 85€';
+            }
+
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeBookingModal() {
+            const modal = document.getElementById('bookingModal');
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Form submission
+        document.getElementById('bookingForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            // Simulate booking process
+            const name = document.getElementById('clientName').value;
+            const email = document.getElementById('clientEmail').value;
+            const date = document.getElementById('selectedDate').value;
+            const time = document.getElementById('timeSlot').value;
+
+            alert(`Vielen Dank ${name}! Ihre Buchung wurde erfolgreich übermittelt.\n\nTermin: ${date} um ${time}\n\nSie erhalten in Kürze eine Bestätigung mit den Zoom-Zugangsdaten an ${email}.`);
+
+            closeBookingModal();
+            document.getElementById('bookingForm').reset();
+        });
+
+        // Initialize calendar
+        generateCalendar();
+
+        // Close modal when clicking outside
+        document.getElementById('bookingModal').addEventListener('click', function (e) {
+            if (e.target === this) {
+                closeBookingModal();
+            }
+        });
+    </script>
+</body>
+
+</html>
