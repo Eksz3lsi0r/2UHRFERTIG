@@ -1,0 +1,435 @@
+/* Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    color: #ffffff;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    text-align: center;
+}
+
+/* Screen Management */
+.screen {
+    display: none;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.screen.active {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Buttons */
+.btn-primary, .btn-secondary {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin: 8px;
+}
+
+.btn-primary {
+    background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Start Screen */
+#startScreen h1 {
+    font-size: 3rem;
+    margin-bottom: 30px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.player-input {
+    margin: 30px 0;
+}
+
+.player-input input {
+    padding: 15px;
+    font-size: 18px;
+    border: none;
+    border-radius: 8px;
+    margin-right: 10px;
+    min-width: 200px;
+    text-align: center;
+}
+
+.info {
+    margin-top: 20px;
+    opacity: 0.8;
+}
+
+/* Waiting Screen */
+.loading {
+    margin: 30px 0;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top: 4px solid #fff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Game Screen */
+#gameScreen {
+    display: none;
+    min-height: 100vh;
+    padding: 10px;
+}
+
+#gameScreen.active {
+    display: flex;
+    flex-direction: column;
+}
+
+.game-header {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.player-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.player {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+}
+
+.player.white .player-color {
+    color: #ffffff;
+    font-size: 20px;
+}
+
+.player.black .player-color {
+    color: #333333;
+    font-size: 20px;
+}
+
+.game-status {
+    text-align: center;
+}
+
+#currentTurn {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+#gameMessage {
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+/* Game Board */
+.game-board-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.dice-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+.dice-area {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 15px;
+    border-radius: 10px;
+}
+
+.dice {
+    width: 50px;
+    height: 50px;
+    background: white;
+    color: #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 24px;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.roll-btn {
+    padding: 10px 20px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.roll-btn:hover {
+    background: #45a049;
+}
+
+.roll-btn:disabled {
+    background: #cccccc;
+    cursor: not-allowed;
+}
+
+/* Backgammon Board */
+.game-board {
+    width: 90vw;
+    max-width: 800px;
+    height: 400px;
+    background: #8B4513;
+    border: 3px solid #654321;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.board-half {
+    flex: 1;
+    display: flex;
+    padding: 10px;
+}
+
+.points-row {
+    display: flex;
+    width: 100%;
+    gap: 2px;
+}
+
+.point {
+    flex: 1;
+    min-height: 150px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    position: relative;
+    border-radius: 0 0 20px 20px;
+}
+
+.top .point {
+    border-radius: 20px 20px 0 0;
+}
+
+.point:nth-child(odd) {
+    background: #D2B48C;
+}
+
+.point:nth-child(even) {
+    background: #A0522D;
+}
+
+.point:hover {
+    opacity: 0.8;
+}
+
+.point.selected {
+    box-shadow: inset 0 0 0 3px #ffff00;
+}
+
+.point.valid-move {
+    box-shadow: inset 0 0 0 3px #00ff00;
+}
+
+.bar {
+    width: 30px;
+    background: #654321;
+    border-left: 2px solid #8B4513;
+    border-right: 2px solid #8B4513;
+}
+
+/* Game Pieces */
+.piece {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 2px solid #333;
+    margin: 1px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.piece.white {
+    background: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.piece.black {
+    background: #333333;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.piece:hover {
+    transform: scale(1.1);
+}
+
+.piece.selected {
+    box-shadow: 0 0 0 3px #ffff00;
+}
+
+/* Game Controls */
+.game-controls {
+    text-align: center;
+    margin-top: 20px;
+}
+
+/* Game Over Screen */
+.winner-info {
+    margin: 30px 0;
+    font-size: 18px;
+}
+
+.game-over-actions {
+    margin-top: 30px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    #startScreen h1 {
+        font-size: 2rem;
+    }
+    
+    .player-input input {
+        min-width: 150px;
+        margin-bottom: 10px;
+        margin-right: 0;
+    }
+    
+    .player-input {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .game-board {
+        width: 95vw;
+        height: 300px;
+    }
+    
+    .point {
+        min-height: 100px;
+    }
+    
+    .piece {
+        width: 20px;
+        height: 20px;
+    }
+    
+    .player-info {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .dice {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+    }
+}
+
+@media (max-width: 480px) {
+    .screen {
+        padding: 10px;
+    }
+    
+    .container {
+        padding: 10px;
+    }
+    
+    .game-board {
+        height: 250px;
+    }
+    
+    .point {
+        min-height: 80px;
+    }
+    
+    .piece {
+        width: 18px;
+        height: 18px;
+    }
+    
+    .dice-area {
+        padding: 10px;
+        gap: 10px;
+    }
+}
+
+/* Animation for piece movement */
+@keyframes moveAnimation {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+.piece.moving {
+    animation: moveAnimation 0.3s ease-in-out;
+}
+
+/* Highlight effects */
+.highlight {
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.6; }
+    100% { opacity: 1; }
+}
