@@ -7,7 +7,7 @@ class BoardRenderer {
 
         boardElement.innerHTML = '';
 
-        // Obere Reihe (Points 12-23)
+        // Obere Reihe (Points 12-17)
         for (let i = 12; i < 18; i++) {
             this.renderPoint(i, 'top', boardElement, gameState, selectedPoint);
         }
@@ -16,23 +16,30 @@ class BoardRenderer {
         const barTop = document.createElement('div');
         barTop.className = 'bar';
         barTop.style.gridRow = '1';
+        barTop.style.gridColumn = '7';
 
         // Add black checkers on bar
         if (gameState.bar && gameState.bar.black > 0) {
-            for (let i = 0; i < gameState.bar.black; i++) {
+            for (let i = 0; i < Math.min(gameState.bar.black, 5); i++) {
                 const checker = this.createChecker('black', gameState, playerColor);
                 barTop.appendChild(checker);
+            }
+            if (gameState.bar.black > 5) {
+                const counter = document.createElement('div');
+                counter.className = 'counter';
+                counter.textContent = gameState.bar.black;
+                barTop.appendChild(counter);
             }
         }
 
         boardElement.appendChild(barTop);
 
-        // Rechte Hälfte (18-23)
+        // Rechte Hälfte der oberen Reihe (18-23)
         for (let i = 18; i < 24; i++) {
             this.renderPoint(i, 'top', boardElement, gameState, selectedPoint);
         }
 
-        // Untere Reihe (Points 11-0)
+        // Untere Reihe (Points 11-6)
         for (let i = 11; i >= 6; i--) {
             this.renderPoint(i, 'bottom', boardElement, gameState, selectedPoint);
         }
@@ -41,21 +48,31 @@ class BoardRenderer {
         const barBottom = document.createElement('div');
         barBottom.className = 'bar';
         barBottom.style.gridRow = '2';
+        barBottom.style.gridColumn = '7';
 
         // Add white checkers on bar
         if (gameState.bar && gameState.bar.white > 0) {
-            for (let i = 0; i < gameState.bar.white; i++) {
+            for (let i = 0; i < Math.min(gameState.bar.white, 5); i++) {
                 const checker = this.createChecker('white', gameState, playerColor);
                 barBottom.appendChild(checker);
+            }
+            if (gameState.bar.white > 5) {
+                const counter = document.createElement('div');
+                counter.className = 'counter';
+                counter.textContent = gameState.bar.white;
+                barBottom.appendChild(counter);
             }
         }
 
         boardElement.appendChild(barBottom);
 
-        // Rechte Hälfte (5-0)
+        // Rechte Hälfte der unteren Reihe (5-0)
         for (let i = 5; i >= 0; i--) {
             this.renderPoint(i, 'bottom', boardElement, gameState, selectedPoint);
         }
+
+        // Home-Bereiche aktualisieren
+        this.renderHome(gameState, selectedPoint, playerColor);
     }
 
     static renderPoint(index, position, container, gameState, selectedPoint = null) {
