@@ -3,3 +3,4 @@
 
 # Node.js-Abhängigkeiten
 node_modules/
+.DS_Store

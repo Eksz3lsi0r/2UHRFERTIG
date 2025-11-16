@@ -40,9 +40,26 @@ export const GridSnap = {
     let minR = Math.min(...shape.map(([r]) => r));
     let minC = Math.min(...shape.map(([, c]) => c));
     const firstBlock = this.cellMatrix[minR][minC].getBoundingClientRect();
+
+    // Dynamischer Offset basierend auf Bildschirmgröße und Figurgröße
+    const screenHeight = window.innerHeight;
+    const screenWidth = window.innerWidth;
+
+    // Grundoffset abhängig von Bildschirmgröße
+    let baseOffset = 60;
+    if (screenHeight < 600) baseOffset = 45;         // Sehr kleine Handys
+    else if (screenHeight < 800) baseOffset = 50;    // Normale Handys
+    else if (screenWidth < 768) baseOffset = 55;     // Tablets im Portrait
+
+    // Zusätzliche Anpassung für große Figuren (damit sie nicht zu nah am Finger sind)
+    const shapeHeight = Math.max(...shape.map(([r]) => r)) - Math.min(...shape.map(([r]) => r)) + 1;
+    const shapeAdjustment = Math.max(0, (shapeHeight - 2) * 5); // Große Figuren etwas weiter weg
+
+    const finalOffset = baseOffset + shapeAdjustment;
+
     this.currentOffset = {
       x: 0,
-      y: touch.clientY - firstBlock.top - firstBlock.height / 2 - 200,
+      y: touch.clientY - firstBlock.top - firstBlock.height / 2 - finalOffset,
     };
     window.state.currentDragShape = shape;
     window.state.currentDragOffset = this.currentOffset;
@@ -144,10 +161,10 @@ export const GridSnap = {
       );
       const canClearLines = isValid
         ? this.checkCanClearLines(
-            this.currentShape,
-            this.previewRow,
-            this.previewCol
-          )
+          this.currentShape,
+          this.previewRow,
+          this.previewCol
+        )
         : false;
 
       // Determine preview type
@@ -231,18 +248,14 @@ export const GridSnap = {
     this.previewEl.style.left = "0";
     this.previewEl.style.top = "0";
     this.previewEl.style.transform = "translate3d(0, 0, 0)";
-    this.previewEl.style.gridTemplateRows = `repeat(${
-      maxRow - minRow + 1
-    }, 1fr)`;
-    this.previewEl.style.gridTemplateColumns = `repeat(${
-      maxCol - minCol + 1
-    }, 1fr)`;
-    this.previewEl.style.width = `${
-      (maxCol - minCol + 1) * this.cellSize + (maxCol - minCol) * this.gap
-    }px`;
-    this.previewEl.style.height = `${
-      (maxRow - minRow + 1) * this.cellSize + (maxRow - minRow) * this.gap
-    }px`;
+    this.previewEl.style.gridTemplateRows = `repeat(${maxRow - minRow + 1
+      }, 1fr)`;
+    this.previewEl.style.gridTemplateColumns = `repeat(${maxCol - minCol + 1
+      }, 1fr)`;
+    this.previewEl.style.width = `${(maxCol - minCol + 1) * this.cellSize + (maxCol - minCol) * this.gap
+      }px`;
+    this.previewEl.style.height = `${(maxRow - minRow + 1) * this.cellSize + (maxRow - minRow) * this.gap
+      }px`;
     this.previewEl.style.gap = `${this.gap}px`;
 
     shape.forEach(([r, c]) => {
@@ -287,12 +300,10 @@ export const GridSnap = {
     });
     container.style.gridTemplateRows = `repeat(${maxR - minR + 1}, 1fr)`;
     container.style.gridTemplateColumns = `repeat(${maxC - minC + 1}, 1fr)`;
-    container.style.width = `${
-      (maxC - minC + 1) * this.cellSize + (maxC - minC) * this.gap
-    }px`;
-    container.style.height = `${
-      (maxR - minR + 1) * this.cellSize + (maxR - minR) * this.gap
-    }px`;
+    container.style.width = `${(maxC - minC + 1) * this.cellSize + (maxC - minC) * this.gap
+      }px`;
+    container.style.height = `${(maxR - minR + 1) * this.cellSize + (maxR - minR) * this.gap
+      }px`;
     container.style.gap = `${this.gap}px`;
     shape.forEach(([r, c]) => {
       const block = document.createElement("div");

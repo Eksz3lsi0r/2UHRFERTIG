@@ -20,9 +20,9 @@ function createSound(path, options = {}) {
   if (!howlAvailable) {
     return {
       play: () => debugLog(`Sound würde abgespielt: ${path}`),
-      stop: () => {},
-      once: () => {},
-      off: () => {},
+      stop: () => { },
+      once: () => { },
+      off: () => { },
     };
   }
   return new Howl({
@@ -34,7 +34,9 @@ function createSound(path, options = {}) {
 
 /* ---------- Soundeffekte --------------------------------------------- */
 export const placeSound = createSound("/sounds/place.wav");
-export const clearSound = createSound("/sounds/clear.wav");
+export const clearSound = createSound("/sounds/clear.wav", {
+  volume: 0.3
+});
 export const successSound = createSound("/sounds/success.wav");
 export const pickSound = createSound("/sounds/pick.wav");
 

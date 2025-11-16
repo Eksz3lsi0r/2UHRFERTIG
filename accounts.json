@@ -9,6 +9,15 @@
       "losses": 0,
       "totalGames": 0
     },
+    "12341": {
+      "username": "12341",
+      "password": "1234",
+      "createdAt": "2025-11-16T08:33:45.575Z",
+      "rankingPoints": 1000,
+      "wins": 0,
+      "losses": 0,
+      "totalGames": 0
+    },
     "bhh": {
       "username": "abc",
       "password": "123",
