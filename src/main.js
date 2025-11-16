@@ -1,5 +1,8 @@
 /* --------------------------------------------------------------------
  *  src/main.js   –   Bootstrap & High-Level-Flows
+ *  
+ *  Main entry point for the game application
+ *  Handles initialization, global API exposure, and game flow coordination
  * ------------------------------------------------------------------ */
 import { state } from "./state.js";
 import { ui } from "./ui.js";
@@ -369,7 +372,7 @@ function startPvpMode(ranked = false) {
   if (typeof window.ui?.buildBoardDOM === "function") {
     window.ui.buildBoardDOM();
   }
-  
+
   // Show matchmaking overlay instead of game area immediately
   ui.showMatchmakingOverlay(ranked);
 
