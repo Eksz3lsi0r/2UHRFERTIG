@@ -1,7 +1,6 @@
 // Three.js Setup
 let scene, camera, renderer;
 let ball, paddle1, paddle2, table, ballLight;
-const resetButton = document.getElementById("resetButton");
 const playModeButton = document.getElementById("playModeButton");
 const speedToggleButton = document.getElementById("speedToggleButton");
 
@@ -366,7 +365,6 @@ function toggleSpeed() {
 }
 
 // Event-Listener
-resetButton.addEventListener("click", resetGame);
 playModeButton.addEventListener("click", togglePlayMode);
 speedToggleButton.addEventListener("click", toggleSpeed);
 
