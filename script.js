@@ -569,7 +569,10 @@ function startPvPMatchmaking() {
   }
 
   // Verbinde zum WebSocket Server
-  ws = new WebSocket("ws://localhost:8080");
+  // Automatische Erkennung: Lokal oder Render.com
+  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+  const wsUrl = `${protocol}//${window.location.host}`;
+  ws = new WebSocket(wsUrl);
 
   ws.onopen = () => {
     console.log("🔌 Mit Server verbunden");

@@ -1,13 +1,65 @@
 const WebSocket = require("ws");
+const http = require("http");
+const fs = require("fs");
+const path = require("path");
 
-const PORT = 8080;
-const wss = new WebSocket.Server({ port: PORT });
+// Port für Render.com (nutzt Umgebungsvariable) oder lokal 8080
+const PORT = process.env.PORT || 8080;
+
+// HTTP Server für statische Dateien
+const server = http.createServer((req, res) => {
+  // Setze CORS-Header für lokale Entwicklung
+  res.setHeader("Access-Control-Allow-Origin", "*");
+
+  let filePath = "." + req.url;
+  if (filePath === "./") {
+    filePath = "./index.html";
+  }
+
+  const extname = String(path.extname(filePath)).toLowerCase();
+  const mimeTypes = {
+    ".html": "text/html",
+    ".js": "text/javascript",
+    ".css": "text/css",
+    ".json": "application/json",
+    ".png": "image/png",
+    ".jpg": "image/jpg",
+    ".gif": "image/gif",
+    ".svg": "image/svg+xml",
+    ".ico": "image/x-icon",
+  };
+
+  const contentType = mimeTypes[extname] || "application/octet-stream";
+
+  fs.readFile(filePath, (error, content) => {
+    if (error) {
+      if (error.code === "ENOENT") {
+        res.writeHead(404, { "Content-Type": "text/html" });
+        res.end("<h1>404 - Datei nicht gefunden</h1>", "utf-8");
+      } else {
+        res.writeHead(500);
+        res.end("Server-Fehler: " + error.code, "utf-8");
+      }
+    } else {
+      res.writeHead(200, { "Content-Type": contentType });
+      res.end(content, "utf-8");
+    }
+  });
+});
+
+// WebSocket Server an HTTP Server anhängen
+const wss = new WebSocket.Server({ server });
 
 // Spieler- und Matchmaking-Verwaltung
 let waitingPlayer = null;
 const activeGames = new Map();
 
-console.log(`🏓 WebSocket Server läuft auf Port ${PORT}`);
+// Server starten
+server.listen(PORT, () => {
+  console.log(`🏓 Server läuft auf Port ${PORT}`);
+  console.log(`📡 HTTP: http://localhost:${PORT}`);
+  console.log(`🔌 WebSocket: ws://localhost:${PORT}`);
+});
 
 wss.on("connection", (ws) => {
   console.log("🔌 Neuer Spieler verbunden");
