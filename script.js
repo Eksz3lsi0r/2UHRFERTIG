@@ -677,6 +677,11 @@ function handleServerMessage(data) {
       playModeButton.disabled = true;
       speedToggleButton.disabled = true;
 
+      // Verstecke alle Control-Buttons während PvP
+      speedToggleButton.style.display = "none";
+      playModeButton.style.display = "none";
+      pvpModeButton.style.display = "none";
+
       // Passe Kamera für Spieler an
       setCameraForPlayer(myPlayerNumber);
 
@@ -741,6 +746,11 @@ function leavePvPMode() {
   // Reaktiviere Buttons
   playModeButton.disabled = false;
   speedToggleButton.disabled = false;
+
+  // Zeige alle Control-Buttons wieder an
+  speedToggleButton.style.display = "flex";
+  playModeButton.style.display = "flex";
+  pvpModeButton.style.display = "flex";
 
   // Setze Labels zurück
   const player1Label = document.querySelector(".player1 .player-label");
