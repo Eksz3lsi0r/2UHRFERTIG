@@ -42,8 +42,8 @@ function initScene() {
 
   // Szene
   scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x0a0a15);
-  scene.fog = new THREE.Fog(0x0a0a15, 30, 60);
+  scene.background = new THREE.Color(0x050510);
+  scene.fog = new THREE.Fog(0x0a0a15, 30, 70);
 
   // Kamera
   camera = new THREE.PerspectiveCamera(
@@ -63,10 +63,10 @@ function initScene() {
   container.appendChild(renderer.domElement);
 
   // Lichter
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+  const ambientLight = new THREE.AmbientLight(0x4a5b8f, 0.3);
   scene.add(ambientLight);
 
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
+  const directionalLight = new THREE.DirectionalLight(0x667eea, 0.5);
   directionalLight.position.set(5, 15, 10);
   directionalLight.castShadow = true;
   directionalLight.shadow.mapSize.width = 2048;
@@ -78,43 +78,79 @@ function initScene() {
   scene.add(directionalLight);
 
   // Ball-Licht
-  ballLight = new THREE.PointLight(0x764ba2, 1, 10);
+  ballLight = new THREE.PointLight(0xffffff, 1.5, 15);
   scene.add(ballLight);
 
   // Tisch
   const tableGeometry = new THREE.BoxGeometry(TABLE_WIDTH, 0.5, TABLE_LENGTH);
   const tableMaterial = new THREE.MeshStandardMaterial({
-    color: 0x1a5f3f,
+    color: 0x0d4d35,
     roughness: 0.3,
-    metalness: 0.1,
+    metalness: 0.2,
+    emissive: 0x0a3d2a,
+    emissiveIntensity: 0.3,
   });
   table = new THREE.Mesh(tableGeometry, tableMaterial);
   table.position.y = -0.25;
   table.receiveShadow = true;
   scene.add(table);
 
+  // Neon-Glow um den Tisch
+  const glowGeometry = new THREE.BoxGeometry(
+    TABLE_WIDTH + 0.5,
+    0.6,
+    TABLE_LENGTH + 0.5,
+  );
+  const glowMaterial = new THREE.MeshBasicMaterial({
+    color: 0x00f2fe,
+    transparent: true,
+    opacity: 0.1,
+    side: THREE.BackSide,
+  });
+  const tableGlow = new THREE.Mesh(glowGeometry, glowMaterial);
+  tableGlow.position.y = -0.25;
+  scene.add(tableGlow);
+
   // Tischlinien
-  const lineMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+  const lineMaterial = new THREE.MeshBasicMaterial({
+    color: 0x00f2fe,
+    transparent: true,
+    opacity: 0.9,
+  });
   const centerLine = new THREE.Mesh(
-    new THREE.BoxGeometry(0.1, 0.51, TABLE_LENGTH),
+    new THREE.BoxGeometry(0.15, 0.52, TABLE_LENGTH),
     lineMaterial,
   );
   centerLine.position.y = 0;
   scene.add(centerLine);
 
   const sideLine1 = new THREE.Mesh(
-    new THREE.BoxGeometry(TABLE_WIDTH, 0.51, 0.1),
+    new THREE.BoxGeometry(TABLE_WIDTH, 0.52, 0.15),
     lineMaterial,
   );
   sideLine1.position.set(0, 0, TABLE_LENGTH / 2);
   scene.add(sideLine1);
 
   const sideLine2 = new THREE.Mesh(
-    new THREE.BoxGeometry(TABLE_WIDTH, 0.51, 0.1),
+    new THREE.BoxGeometry(TABLE_WIDTH, 0.52, 0.15),
     lineMaterial,
   );
   sideLine2.position.set(0, 0, -TABLE_LENGTH / 2);
   scene.add(sideLine2);
+
+  // Zusätzliche Neon-Glow-Linien
+  const glowLineMaterial = new THREE.MeshBasicMaterial({
+    color: 0x00f2fe,
+    transparent: true,
+    opacity: 0.3,
+  });
+
+  const centerGlow = new THREE.Mesh(
+    new THREE.BoxGeometry(0.5, 0.55, TABLE_LENGTH),
+    glowLineMaterial,
+  );
+  centerGlow.position.y = 0;
+  scene.add(centerGlow);
 
   // Schläger 1 (vorne)
   const paddleGeometry = new THREE.BoxGeometry(
@@ -123,27 +159,52 @@ function initScene() {
     0.3,
   );
   const paddle1Material = new THREE.MeshStandardMaterial({
-    color: 0x667eea,
-    emissive: 0x667eea,
-    emissiveIntensity: 0.3,
-    roughness: 0.4,
+    color: 0x00f2fe,
+    emissive: 0x00f2fe,
+    emissiveIntensity: 0.5,
+    roughness: 0.3,
+    metalness: 0.7,
   });
   paddle1 = new THREE.Mesh(paddleGeometry, paddle1Material);
   paddle1.position.set(0, 0, TABLE_LENGTH / 2 + 1);
   paddle1.castShadow = true;
   scene.add(paddle1);
 
+  // Neon-Glow für Schläger 1
+  const paddle1GlowGeometry = new THREE.BoxGeometry(
+    PADDLE_WIDTH + 0.3,
+    PADDLE_HEIGHT + 0.3,
+    0.4,
+  );
+  const paddle1GlowMaterial = new THREE.MeshBasicMaterial({
+    color: 0x00f2fe,
+    transparent: true,
+    opacity: 0.3,
+  });
+  const paddle1Glow = new THREE.Mesh(paddle1GlowGeometry, paddle1GlowMaterial);
+  paddle1.add(paddle1Glow);
+
   // Schläger 2 (hinten)
   const paddle2Material = new THREE.MeshStandardMaterial({
-    color: 0xff6b6b,
-    emissive: 0xff6b6b,
-    emissiveIntensity: 0.3,
-    roughness: 0.4,
+    color: 0xf093fb,
+    emissive: 0xf093fb,
+    emissiveIntensity: 0.5,
+    roughness: 0.3,
+    metalness: 0.7,
   });
   paddle2 = new THREE.Mesh(paddleGeometry, paddle2Material);
   paddle2.position.set(0, 0, -(TABLE_LENGTH / 2 + 1));
   paddle2.castShadow = true;
   scene.add(paddle2);
+
+  // Neon-Glow für Schläger 2
+  const paddle2GlowMaterial = new THREE.MeshBasicMaterial({
+    color: 0xf093fb,
+    transparent: true,
+    opacity: 0.3,
+  });
+  const paddle2Glow = new THREE.Mesh(paddle1GlowGeometry, paddle2GlowMaterial);
+  paddle2.add(paddle2Glow);
 
   // Ball
   const ballGeometry = new THREE.SphereGeometry(BALL_RADIUS, 32, 32);
@@ -274,6 +335,47 @@ function updateBall() {
   ballLight.position.copy(ball.position);
 }
 
+// 3D Neon-Gitter Effekt erstellen
+function createNeonGrid() {
+  const gridHelper = new THREE.GridHelper(60, 30, 0x00f2fe, 0x667eea);
+  gridHelper.material.opacity = 0.15;
+  gridHelper.material.transparent = true;
+  gridHelper.position.y = -0.5;
+  scene.add(gridHelper);
+
+  // Vertikales Gitter für Wände
+  const verticalGrid1 = new THREE.GridHelper(40, 20, 0xf093fb, 0x764ba2);
+  verticalGrid1.material.opacity = 0.1;
+  verticalGrid1.material.transparent = true;
+  verticalGrid1.rotation.x = Math.PI / 2;
+  verticalGrid1.position.set(TABLE_WIDTH / 2 + 5, 10, 0);
+  scene.add(verticalGrid1);
+
+  const verticalGrid2 = new THREE.GridHelper(40, 20, 0xf093fb, 0x764ba2);
+  verticalGrid2.material.opacity = 0.1;
+  verticalGrid2.material.transparent = true;
+  verticalGrid2.rotation.x = Math.PI / 2;
+  verticalGrid2.position.set(-TABLE_WIDTH / 2 - 5, 10, 0);
+  scene.add(verticalGrid2);
+
+  // Neon-Linien um den Tisch
+  const neonLineMaterial = new THREE.LineBasicMaterial({
+    color: 0x00f2fe,
+    linewidth: 2,
+  });
+
+  const points = [];
+  points.push(new THREE.Vector3(-TABLE_WIDTH / 2, 0, -TABLE_LENGTH / 2));
+  points.push(new THREE.Vector3(TABLE_WIDTH / 2, 0, -TABLE_LENGTH / 2));
+  points.push(new THREE.Vector3(TABLE_WIDTH / 2, 0, TABLE_LENGTH / 2));
+  points.push(new THREE.Vector3(-TABLE_WIDTH / 2, 0, TABLE_LENGTH / 2));
+  points.push(new THREE.Vector3(-TABLE_WIDTH / 2, 0, -TABLE_LENGTH / 2));
+
+  const geometry = new THREE.BufferGeometry().setFromPoints(points);
+  const neonBorder = new THREE.Line(geometry, neonLineMaterial);
+  scene.add(neonBorder);
+}
+
 // Ball zurücksetzen
 function resetBall() {
   ball.position.set(0, BALL_RADIUS, 0);
@@ -300,6 +402,10 @@ function updateScore() {
 
 // Render-Funktion
 function render() {
+  // Animiere Ball-Licht Intensität
+  const time = Date.now() * 0.001;
+  ballLight.intensity = 1 + Math.sin(time * 3) * 0.3;
+
   renderer.render(scene, camera);
 }
 
@@ -372,6 +478,7 @@ speedToggleButton.addEventListener("click", toggleSpeed);
 document.addEventListener("DOMContentLoaded", () => {
   console.log("3D Tischtennis-Spiel gestartet!");
   initScene();
+  createNeonGrid();
   resetBall();
   updateScore();
   gameLoop();
