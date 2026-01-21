@@ -122,6 +122,25 @@
       </div>
     </div>
 
+    <!-- Game Over Overlay für PvP -->
+    <div id="gameOverOverlay" class="matchmaking-overlay hidden">
+      <div class="matchmaking-content game-over-content">
+        <div class="trophy-icon">🏆</div>
+        <h2 id="gameOverTitle" class="matchmaking-title">Spieler gewinnt!</h2>
+        <p class="matchmaking-text">Was möchtest du tun?</p>
+        <div class="game-over-buttons">
+          <button id="rematchButton" class="game-over-btn rematch-btn">
+            <span class="btn-icon">🔄</span>
+            <span class="btn-text">Rematch</span>
+          </button>
+          <button id="goBackButton" class="game-over-btn goback-btn">
+            <span class="btn-icon">←</span>
+            <span class="btn-text">Go Back</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="script.js"></script>
   </body>

@@ -6,6 +6,10 @@ const speedToggleButton = document.getElementById("speedToggleButton");
 const pvpModeButton = document.getElementById("pvpModeButton");
 const matchmakingOverlay = document.getElementById("matchmakingOverlay");
 const cancelMatchmakingButton = document.getElementById("cancelMatchmaking");
+const gameOverOverlay = document.getElementById("gameOverOverlay");
+const gameOverTitle = document.getElementById("gameOverTitle");
+const rematchButton = document.getElementById("rematchButton");
+const goBackButton = document.getElementById("goBackButton");
 
 // WebSocket & PvP State
 let ws = null;
@@ -306,6 +310,44 @@ function showControlButtons() {
   }
 }
 
+// ===== GAME OVER OVERLAY FUNKTIONEN =====
+
+function showGameOverOverlay(winner) {
+  // Bestimme Gewinner-Text basierend auf Spieler
+  let winnerText = winner;
+  if (isPvPMode) {
+    if (winner === "CPU 1") {
+      winnerText = myPlayerNumber === 1 ? "Du gewinnst!" : "Gegner gewinnt!";
+    } else {
+      winnerText = myPlayerNumber === 2 ? "Du gewinnst!" : "Gegner gewinnt!";
+    }
+  }
+
+  gameOverTitle.textContent = winnerText;
+  gameOverOverlay.classList.remove("hidden");
+}
+
+function handleRematch() {
+  // Verstecke Overlay
+  gameOverOverlay.classList.add("hidden");
+
+  // Sende Rematch-Request an Server
+  if (ws && ws.readyState === WebSocket.OPEN && isPvPMode) {
+    ws.send(JSON.stringify({ type: "rematch_request" }));
+  }
+
+  // Setze Spiel zurück
+  resetGame();
+}
+
+function handleGoBack() {
+  // Verstecke Overlay
+  gameOverOverlay.classList.add("hidden");
+
+  // Verlasse PvP-Modus
+  leavePvPMode();
+}
+
 function onWindowResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
@@ -518,8 +560,14 @@ function updateScore() {
   if (gameState.score1 >= WINNING_SCORE || gameState.score2 >= WINNING_SCORE) {
     const winner = gameState.score1 >= WINNING_SCORE ? "CPU 1" : "CPU 2";
     setTimeout(() => {
-      alert(`${winner} gewinnt! 🏆`);
-      resetGame();
+      if (isPvPMode) {
+        // Im PvP-Modus: Zeige Game Over Overlay mit Optionen
+        showGameOverOverlay(winner);
+      } else {
+        // Im Einzelspieler: Normales Alert
+        alert(`${winner} gewinnt! 🏆`);
+        resetGame();
+      }
     }, 100);
   }
 }
@@ -641,6 +689,18 @@ cancelMatchmakingButton.addEventListener("click", cancelMatchmaking);
 cancelMatchmakingButton.addEventListener("touchend", (e) => {
   e.preventDefault();
   cancelMatchmaking();
+});
+
+rematchButton.addEventListener("click", handleRematch);
+rematchButton.addEventListener("touchend", (e) => {
+  e.preventDefault();
+  handleRematch();
+});
+
+goBackButton.addEventListener("click", handleGoBack);
+goBackButton.addEventListener("touchend", (e) => {
+  e.preventDefault();
+  handleGoBack();
 });
 
 // ===== WEBSOCKET & PVP FUNKTIONEN =====
