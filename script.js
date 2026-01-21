@@ -3,7 +3,7 @@ let scene, camera, renderer;
 let ball, paddle1, paddle2, table, ballLight;
 const resetButton = document.getElementById("resetButton");
 const playModeButton = document.getElementById("playModeButton");
-const speedButtons = document.querySelectorAll(".speed-btn");
+const speedToggleButton = document.getElementById("speedToggleButton");
 
 // Mausposition
 let mouseX = 0;
@@ -337,37 +337,38 @@ function togglePlayMode() {
   isManualMode = !isManualMode;
   playModeButton.classList.toggle("active");
 
+  const player1Label = document.querySelector(".player1 .player-label");
+  const btnText = playModeButton.querySelector(".btn-text");
+
   if (isManualMode) {
-    playModeButton.textContent = "CPU-Modus";
-    document.getElementById("score1").previousElementSibling.textContent =
-      "SPIELER";
+    btnText.textContent = "CPU-Modus";
+    player1Label.textContent = "SPIELER";
   } else {
-    playModeButton.textContent = "Selbst Spielen";
-    document.getElementById("score1").previousElementSibling.textContent =
-      "CPU 1";
+    btnText.textContent = "Selbst spielen";
+    player1Label.textContent = "CPU 1";
   }
 }
 
-// Geschwindigkeit ändern
-function setGameSpeed(speed) {
-  gameSpeed = speed;
-  speedButtons.forEach((btn) => {
-    btn.classList.remove("active");
-    if (parseInt(btn.dataset.speed) === speed) {
-      btn.classList.add("active");
-    }
-  });
+// Geschwindigkeit wechseln
+function toggleSpeed() {
+  // Zyklus: 1 -> 2 -> 3 -> 4 -> 5 -> 1
+  gameSpeed = gameSpeed >= 5 ? 1 : gameSpeed + 1;
+
+  speedToggleButton.dataset.speed = gameSpeed;
+  const speedLabel = speedToggleButton.querySelector(".speed-label");
+  speedLabel.textContent = `x${gameSpeed}`;
+
+  // Visuelles Feedback
+  speedToggleButton.style.transform = "scale(1.2)";
+  setTimeout(() => {
+    speedToggleButton.style.transform = "";
+  }, 200);
 }
 
 // Event-Listener
 resetButton.addEventListener("click", resetGame);
 playModeButton.addEventListener("click", togglePlayMode);
-
-speedButtons.forEach((btn) => {
-  btn.addEventListener("click", () => {
-    setGameSpeed(parseInt(btn.dataset.speed));
-  });
-});
+speedToggleButton.addEventListener("click", toggleSpeed);
 
 // Spiel starten
 document.addEventListener("DOMContentLoaded", () => {
