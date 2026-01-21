@@ -3,6 +3,15 @@ let scene, camera, renderer;
 let ball, paddle1, paddle2, table, ballLight;
 const playModeButton = document.getElementById("playModeButton");
 const speedToggleButton = document.getElementById("speedToggleButton");
+const pvpModeButton = document.getElementById("pvpModeButton");
+const matchmakingOverlay = document.getElementById("matchmakingOverlay");
+const cancelMatchmakingButton = document.getElementById("cancelMatchmaking");
+
+// WebSocket & PvP State
+let ws = null;
+let isPvPMode = false;
+let myPlayerNumber = null;
+let isMatchFound = false;
 
 // Mausposition
 let mouseX = 0;
@@ -238,8 +247,26 @@ function onWindowResize() {
   renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
+// Kamera-Perspektive für Spieler anpassen
+function setCameraForPlayer(playerNumber) {
+  if (playerNumber === 2) {
+    // Kamera für Spieler 2 (hinten) - dreht Ansicht um 180°
+    camera.position.set(0, 15, -28);
+    camera.lookAt(0, 0, 0);
+  } else {
+    // Standard-Kamera für Spieler 1 (vorne)
+    camera.position.set(0, 15, 28);
+    camera.lookAt(0, 0, 0);
+  }
+}
+
 // CPU AI für Schläger 1 (vorne)
 function updateCPU1() {
+  // Im PvP-Modus: Nur CPU wenn ich Spieler 2 bin, sonst wird Gegner synchronisiert
+  if (isPvPMode && myPlayerNumber === 1) {
+    return; // Spieler 1 steuert manuell
+  }
+
   const prediction = ball.position.z > 0 ? ball.position.x : 0;
   const diff = prediction - paddle1.position.x;
 
@@ -259,6 +286,11 @@ function updateCPU1() {
 
 // CPU AI für Schläger 2 (hinten)
 function updateCPU2() {
+  // Im PvP-Modus: Nur CPU wenn ich Spieler 1 bin, sonst wird Gegner synchronisiert
+  if (isPvPMode && myPlayerNumber === 2) {
+    return; // Spieler 2 steuert manuell
+  }
+
   const prediction = ball.position.z < 0 ? ball.position.x : 0;
   const diff = prediction - paddle2.position.x;
 
@@ -278,6 +310,11 @@ function updateCPU2() {
 
 // Ball-Update
 function updateBall() {
+  // Im PvP-Modus: Nur Spieler 1 berechnet Ball-Physik
+  if (isPvPMode && myPlayerNumber !== 1) {
+    return; // Spieler 2 erhält Ball-Updates vom Server
+  }
+
   // Position aktualisieren
   ball.position.x += gameState.ball.velocity.x;
   ball.position.z += gameState.ball.velocity.z;
@@ -321,6 +358,7 @@ function updateBall() {
   if (ball.position.z > TABLE_LENGTH / 2 + 5 || ball.position.y < -5) {
     gameState.score2++;
     updateScore();
+    sendScoreUpdate(); // PvP: Synchronisiere Score
     resetBall();
   } else if (
     ball.position.z < -(TABLE_LENGTH / 2 + 5) ||
@@ -328,11 +366,17 @@ function updateBall() {
   ) {
     gameState.score1++;
     updateScore();
+    sendScoreUpdate(); // PvP: Synchronisiere Score
     resetBall();
   }
 
   // Ball-Licht Position aktualisieren
   ballLight.position.copy(ball.position);
+
+  // PvP: Sende Ball-Updates
+  if (isPvPMode && myPlayerNumber === 1) {
+    sendBallUpdate();
+  }
 }
 
 // 3D Neon-Gitter Effekt erstellen
@@ -412,15 +456,34 @@ function render() {
 // Spiel-Loop
 function gameLoop() {
   for (let i = 0; i < gameSpeed; i++) {
-    if (isManualMode) {
-      // Manuelle Steuerung
+    if (isPvPMode) {
+      // PvP-Modus: Steuere meinen Schläger
+      const myPaddle = myPlayerNumber === 1 ? paddle1 : paddle2;
+      const maxX = TABLE_WIDTH / 2 - PADDLE_WIDTH / 2;
+      // Invertiere Steuerung für Spieler 2 (gedrehte Kamera)
+      const controlX = myPlayerNumber === 2 ? -mouseX : mouseX;
+      myPaddle.position.x = Math.max(-maxX, Math.min(maxX, controlX));
+
+      // Sende Schläger-Update an Server
+      sendPaddleUpdate(myPaddle.position.x);
+
+      // Gegner-Schläger wird über WebSocket aktualisiert
+      if (myPlayerNumber === 1) {
+        updateCPU2(); // Gegner CPU (wenn nicht verbunden)
+      } else {
+        updateCPU1(); // Gegner CPU (wenn nicht verbunden)
+      }
+    } else if (isManualMode) {
+      // Manuelle Steuerung (Einzelspieler)
       const maxX = TABLE_WIDTH / 2 - PADDLE_WIDTH / 2;
       paddle1.position.x = Math.max(-maxX, Math.min(maxX, mouseX));
+      updateCPU2();
     } else {
-      // CPU-Steuerung
+      // CPU-Steuerung (beide KI)
       updateCPU1();
+      updateCPU2();
     }
-    updateCPU2();
+
     updateBall();
   }
   render();
@@ -439,6 +502,11 @@ function resetGame() {
 
 // Spielmodus wechseln
 function togglePlayMode() {
+  // Im PvP-Modus nicht verfügbar
+  if (isPvPMode) {
+    return;
+  }
+
   isManualMode = !isManualMode;
   playModeButton.classList.toggle("active");
 
@@ -473,6 +541,210 @@ function toggleSpeed() {
 // Event-Listener
 playModeButton.addEventListener("click", togglePlayMode);
 speedToggleButton.addEventListener("click", toggleSpeed);
+pvpModeButton.addEventListener("click", startPvPMatchmaking);
+cancelMatchmakingButton.addEventListener("click", cancelMatchmaking);
+
+// ===== WEBSOCKET & PVP FUNKTIONEN =====
+
+function startPvPMatchmaking() {
+  if (isPvPMode) {
+    // Verlasse PvP-Modus
+    leavePvPMode();
+    return;
+  }
+
+  // Verbinde zum WebSocket Server
+  ws = new WebSocket("ws://localhost:8080");
+
+  ws.onopen = () => {
+    console.log("🔌 Mit Server verbunden");
+    // Zeige Matchmaking Overlay
+    matchmakingOverlay.classList.remove("hidden");
+    pvpModeButton.classList.add("active");
+
+    // Suche nach Match
+    ws.send(JSON.stringify({ type: "find_match" }));
+  };
+
+  ws.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    handleServerMessage(data);
+  };
+
+  ws.onclose = () => {
+    console.log("❌ Verbindung zum Server getrennt");
+    if (isPvPMode) {
+      alert("Verbindung zum Server verloren!");
+      leavePvPMode();
+    }
+  };
+
+  ws.onerror = (error) => {
+    console.error("WebSocket Fehler:", error);
+    alert(
+      'Fehler bei der Verbindung zum Server. Starte den Server mit "npm start"',
+    );
+    matchmakingOverlay.classList.add("hidden");
+    pvpModeButton.classList.remove("active");
+  };
+}
+
+function handleServerMessage(data) {
+  switch (data.type) {
+    case "waiting":
+      console.log("⏳ Warte auf Gegner...");
+      break;
+
+    case "match_found":
+      console.log(`✅ Match gefunden! Du bist Spieler ${data.playerNumber}`);
+      myPlayerNumber = data.playerNumber;
+      isMatchFound = true;
+      isPvPMode = true;
+
+      // Verstecke Overlay
+      matchmakingOverlay.classList.add("hidden");
+
+      // Setze Spieler-Labels
+      const player1Label = document.querySelector(".player1 .player-label");
+      const player2Label = document.querySelector(".player2 .player-label");
+
+      if (myPlayerNumber === 1) {
+        player1Label.textContent = "DU";
+        player2Label.textContent = "GEGNER";
+      } else {
+        player1Label.textContent = "GEGNER";
+        player2Label.textContent = "DU";
+      }
+
+      // Deaktiviere andere Buttons
+      playModeButton.disabled = true;
+      speedToggleButton.disabled = true;
+
+      // Passe Kamera für Spieler an
+      setCameraForPlayer(myPlayerNumber);
+
+      // Setze Spiel zurück
+      resetGame();
+      break;
+
+    case "opponent_paddle":
+      // Aktualisiere Gegner-Schläger
+      if (data.playerNumber !== myPlayerNumber) {
+        const opponentPaddle = myPlayerNumber === 1 ? paddle2 : paddle1;
+        opponentPaddle.position.x = data.position.x;
+      }
+      break;
+
+    case "ball_sync":
+      // Synchronisiere Ball (nur für nicht-autorisierten Spieler)
+      if (myPlayerNumber === 2) {
+        ball.position.x = data.position.x;
+        ball.position.y = data.position.y;
+        ball.position.z = data.position.z;
+        gameState.ball.velocity.x = data.velocity.x;
+        gameState.ball.velocity.z = data.velocity.z;
+      }
+      break;
+
+    case "score_sync":
+      gameState.score1 = data.score1;
+      gameState.score2 = data.score2;
+      updateScore();
+      break;
+
+    case "opponent_left":
+      alert("Gegner hat das Spiel verlassen!");
+      leavePvPMode();
+      break;
+  }
+}
+
+function cancelMatchmaking() {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.close();
+  }
+  matchmakingOverlay.classList.add("hidden");
+  pvpModeButton.classList.remove("active");
+}
+
+function leavePvPMode() {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ type: "leave_game" }));
+    ws.close();
+  }
+
+  ws = null;
+  isPvPMode = false;
+  myPlayerNumber = null;
+  isMatchFound = false;
+
+  matchmakingOverlay.classList.add("hidden");
+  pvpModeButton.classList.remove("active");
+
+  // Reaktiviere Buttons
+  playModeButton.disabled = false;
+  speedToggleButton.disabled = false;
+
+  // Setze Labels zurück
+  const player1Label = document.querySelector(".player1 .player-label");
+  const player2Label = document.querySelector(".player2 .player-label");
+  player1Label.textContent = isManualMode ? "SPIELER" : "CPU 1";
+  player2Label.textContent = "CPU 2";
+
+  // Setze Kamera auf Standard zurück
+  setCameraForPlayer(1);
+
+  resetGame();
+}
+
+function sendPaddleUpdate(position) {
+  if (ws && ws.readyState === WebSocket.OPEN && isPvPMode) {
+    ws.send(
+      JSON.stringify({
+        type: "paddle_update",
+        position: { x: position },
+      }),
+    );
+  }
+}
+
+function sendBallUpdate() {
+  if (
+    ws &&
+    ws.readyState === WebSocket.OPEN &&
+    isPvPMode &&
+    myPlayerNumber === 1
+  ) {
+    ws.send(
+      JSON.stringify({
+        type: "ball_update",
+        position: {
+          x: ball.position.x,
+          y: ball.position.y,
+          z: ball.position.z,
+        },
+        velocity: gameState.ball.velocity,
+      }),
+    );
+  }
+}
+
+function sendScoreUpdate() {
+  if (
+    ws &&
+    ws.readyState === WebSocket.OPEN &&
+    isPvPMode &&
+    myPlayerNumber === 1
+  ) {
+    ws.send(
+      JSON.stringify({
+        type: "score_update",
+        score1: gameState.score1,
+        score2: gameState.score2,
+      }),
+    );
+  }
+}
 
 // Spiel starten
 document.addEventListener("DOMContentLoaded", () => {

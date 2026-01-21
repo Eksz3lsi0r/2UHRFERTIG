@@ -1,0 +1,22 @@
+{
+  "name": "tischtennis-3d-pvp",
+  "version": "1.0.0",
+  "description": "3D Tischtennis-Spiel mit PvP über WebSocket",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "tischtennis",
+    "websocket",
+    "pvp",
+    "3d",
+    "game"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "ws": "^8.16.0"
+  }
+}

@@ -94,6 +94,29 @@
         <span class="btn-icon">🎮</span>
         <span class="btn-text">Selbst spielen</span>
       </button>
+
+      <!-- PvP Mode Control -->
+      <button id="pvpModeButton" class="control-btn pvp-btn">
+        <span class="btn-icon">⚔️</span>
+        <span class="btn-text">PvP Spielen</span>
+      </button>
+    </div>
+
+    <!-- Matchmaking Overlay -->
+    <div id="matchmakingOverlay" class="matchmaking-overlay hidden">
+      <div class="matchmaking-content">
+        <div class="matchmaking-spinner">
+          <div class="spinner-ring"></div>
+          <div class="spinner-ring"></div>
+          <div class="spinner-ring"></div>
+        </div>
+        <h2 class="matchmaking-title">Suche nach Gegner...</h2>
+        <p class="matchmaking-text">Warte auf einen anderen Spieler</p>
+        <button id="cancelMatchmaking" class="cancel-btn">
+          <span class="btn-icon">✖</span>
+          <span class="btn-text">Abbrechen</span>
+        </button>
+      </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
