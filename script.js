@@ -54,14 +54,19 @@ function initScene() {
   scene.background = new THREE.Color(0x050510);
   scene.fog = new THREE.Fog(0x0a0a15, 30, 70);
 
-  // Kamera
+  // Kamera - responsive für mobile Geräte
+  const isMobile = window.innerWidth < 768;
+  const initialFov = isMobile ? 85 : 75;
+  const initialDistance = isMobile ? 32 : 28;
+  const initialHeight = isMobile ? 18 : 15;
+
   camera = new THREE.PerspectiveCamera(
-    75,
+    initialFov,
     window.innerWidth / window.innerHeight,
     0.1,
     1000,
   );
-  camera.position.set(0, 15, 28);
+  camera.position.set(0, initialHeight, initialDistance);
   camera.lookAt(0, 0, 0);
 
   // Renderer
@@ -260,17 +265,32 @@ function onWindowResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
+
+  // Passe Kamera-Zoom für mobile Geräte an
+  if (window.innerWidth < 768) {
+    // Mobile: Kleinerer Bildschirm, mehr Abstand
+    camera.fov = 85;
+  } else {
+    // Desktop: Standard FOV
+    camera.fov = 75;
+  }
+  camera.updateProjectionMatrix();
 }
 
 // Kamera-Perspektive für Spieler anpassen
 function setCameraForPlayer(playerNumber) {
+  // Dynamische Kamera-Position basierend auf Bildschirmgröße
+  const isMobile = window.innerWidth < 768;
+  const distance = isMobile ? 32 : 28;
+  const height = isMobile ? 18 : 15;
+
   if (playerNumber === 2) {
     // Kamera für Spieler 2 (hinten) - dreht Ansicht um 180°
-    camera.position.set(0, 15, -28);
+    camera.position.set(0, height, -distance);
     camera.lookAt(0, 0, 0);
   } else {
     // Standard-Kamera für Spieler 1 (vorne)
-    camera.position.set(0, 15, 28);
+    camera.position.set(0, height, distance);
     camera.lookAt(0, 0, 0);
   }
 }
@@ -553,11 +573,30 @@ function toggleSpeed() {
   }, 200);
 }
 
-// Event-Listener
+// Event-Listener (Click + Touch für Mobile)
 playModeButton.addEventListener("click", togglePlayMode);
+playModeButton.addEventListener("touchend", (e) => {
+  e.preventDefault();
+  togglePlayMode();
+});
+
 speedToggleButton.addEventListener("click", toggleSpeed);
+speedToggleButton.addEventListener("touchend", (e) => {
+  e.preventDefault();
+  toggleSpeed();
+});
+
 pvpModeButton.addEventListener("click", startPvPMatchmaking);
+pvpModeButton.addEventListener("touchend", (e) => {
+  e.preventDefault();
+  startPvPMatchmaking();
+});
+
 cancelMatchmakingButton.addEventListener("click", cancelMatchmaking);
+cancelMatchmakingButton.addEventListener("touchend", (e) => {
+  e.preventDefault();
+  cancelMatchmaking();
+});
 
 // ===== WEBSOCKET & PVP FUNKTIONEN =====
 
