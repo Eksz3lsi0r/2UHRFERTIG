@@ -38,6 +38,7 @@ const WINNING_SCORE = 10;
 const gameState = {
   ball: {
     velocity: { x: 0.3, z: 0.24 },
+    isCritical: false, // Kritischer Konter aktiv
   },
   paddle1: {
     position: { y: 0 },
@@ -432,10 +433,8 @@ function updateCPU2() {
 
 // Ball-Update
 function updateBall() {
-  // Im PvP-Modus: Nur Spieler 1 berechnet Ball-Physik
-  if (isPvPMode && myPlayerNumber !== 1) {
-    return; // Spieler 2 erhält Ball-Updates vom Server
-  }
+  // Im PvP-Modus: Beide Spieler berechnen Ball-Physik lokal (Client-Side Prediction)
+  // Spieler 1 bleibt autoritativ und sendet Korrekturen
 
   // Position aktualisieren
   ball.position.x += gameState.ball.velocity.x;
@@ -458,9 +457,25 @@ function updateBall() {
       PADDLE_WIDTH / 2 + BALL_RADIUS &&
     ball.position.y <= PADDLE_HEIGHT / 2 + BALL_RADIUS
   ) {
-    gameState.ball.velocity.z = -Math.abs(gameState.ball.velocity.z) * 1.05;
+    // 20% Chance für kritischen Konter
+    const isCritical = Math.random() < 0.2;
+    const speedMultiplier = isCritical ? 2.1 : 1.05; // Doppelte Geschwindigkeit bei Kritisch
+
+    gameState.ball.velocity.z =
+      -Math.abs(gameState.ball.velocity.z) * speedMultiplier;
     gameState.ball.velocity.x += (ball.position.x - paddle1.position.x) * 0.15;
     ball.position.z = TABLE_LENGTH / 2;
+
+    // Setze kritischen Status
+    gameState.ball.isCritical = isCritical;
+    if (isCritical) {
+      activateCriticalEffect();
+      sendCriticalUpdate(true); // PvP: Synchronisiere kritischen Konter
+    } else {
+      gameState.ball.isCritical = false;
+      deactivateCriticalEffect();
+      sendCriticalUpdate(false);
+    }
   }
 
   // Schläger 2 Kollision (hinten)
@@ -471,9 +486,25 @@ function updateBall() {
       PADDLE_WIDTH / 2 + BALL_RADIUS &&
     ball.position.y <= PADDLE_HEIGHT / 2 + BALL_RADIUS
   ) {
-    gameState.ball.velocity.z = Math.abs(gameState.ball.velocity.z) * 1.05;
+    // 20% Chance für kritischen Konter
+    const isCritical = Math.random() < 0.2;
+    const speedMultiplier = isCritical ? 2.1 : 1.05; // Doppelte Geschwindigkeit bei Kritisch
+
+    gameState.ball.velocity.z =
+      Math.abs(gameState.ball.velocity.z) * speedMultiplier;
     gameState.ball.velocity.x += (ball.position.x - paddle2.position.x) * 0.15;
     ball.position.z = -(TABLE_LENGTH / 2);
+
+    // Setze kritischen Status
+    gameState.ball.isCritical = isCritical;
+    if (isCritical) {
+      activateCriticalEffect();
+      sendCriticalUpdate(true); // PvP: Synchronisiere kritischen Konter
+    } else {
+      gameState.ball.isCritical = false;
+      deactivateCriticalEffect();
+      sendCriticalUpdate(false);
+    }
   }
 
   // Punktzählung
@@ -499,6 +530,32 @@ function updateBall() {
   if (isPvPMode && myPlayerNumber === 1) {
     sendBallUpdate();
   }
+}
+
+// Kritischer Konter: Visueller Effekt aktivieren
+function activateCriticalEffect() {
+  // Ändere Ball-Farbe zu orange/gold
+  ball.material.color.setHex(0xff6600);
+  ball.material.emissive.setHex(0xff6600);
+  ball.material.emissiveIntensity = 1.2;
+
+  // Verstärke Ball-Licht
+  ballLight.color.setHex(0xff6600);
+  ballLight.intensity = 3.0;
+  ballLight.distance = 25;
+}
+
+// Kritischer Konter: Visueller Effekt deaktivieren
+function deactivateCriticalEffect() {
+  // Setze Ball-Farbe zurück zu weiß
+  ball.material.color.setHex(0xffffff);
+  ball.material.emissive.setHex(0xffffff);
+  ball.material.emissiveIntensity = 0.5;
+
+  // Normales Ball-Licht
+  ballLight.color.setHex(0xffffff);
+  ballLight.intensity = 1.5;
+  ballLight.distance = 15;
 }
 
 // 3D Neon-Gitter Effekt erstellen
@@ -804,12 +861,19 @@ function handleServerMessage(data) {
 
     case "ball_sync":
       // Synchronisiere Ball (nur für nicht-autorisierten Spieler)
+      // Mit sanfter Interpolation statt hartem Override für flüssigere Bewegung
       if (myPlayerNumber === 2) {
-        ball.position.x = data.position.x;
-        ball.position.y = data.position.y;
-        ball.position.z = data.position.z;
-        gameState.ball.velocity.x = data.velocity.x;
-        gameState.ball.velocity.z = data.velocity.z;
+        // Sanfte Korrektur der Position (Interpolation)
+        const lerpFactor = 0.3; // 30% Korrektur pro Frame
+        ball.position.x += (data.position.x - ball.position.x) * lerpFactor;
+        ball.position.y += (data.position.y - ball.position.y) * lerpFactor;
+        ball.position.z += (data.position.z - ball.position.z) * lerpFactor;
+
+        // Geschwindigkeit wird auch sanft korrigiert
+        gameState.ball.velocity.x +=
+          (data.velocity.x - gameState.ball.velocity.x) * lerpFactor;
+        gameState.ball.velocity.z +=
+          (data.velocity.z - gameState.ball.velocity.z) * lerpFactor;
       }
       break;
 
@@ -817,6 +881,16 @@ function handleServerMessage(data) {
       gameState.score1 = data.score1;
       gameState.score2 = data.score2;
       updateScore();
+      break;
+
+    case "critical_hit":
+      // Synchronisiere kritischen Konter-Status
+      gameState.ball.isCritical = data.isCritical;
+      if (data.isCritical) {
+        activateCriticalEffect();
+      } else {
+        deactivateCriticalEffect();
+      }
       break;
 
     case "opponent_left":
@@ -913,6 +987,22 @@ function sendScoreUpdate() {
         type: "score_update",
         score1: gameState.score1,
         score2: gameState.score2,
+      }),
+    );
+  }
+}
+
+function sendCriticalUpdate(isCritical) {
+  if (
+    ws &&
+    ws.readyState === WebSocket.OPEN &&
+    isPvPMode &&
+    myPlayerNumber === 1
+  ) {
+    ws.send(
+      JSON.stringify({
+        type: "critical_hit",
+        isCritical: isCritical,
       }),
     );
   }

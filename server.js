@@ -85,6 +85,10 @@ wss.on("connection", (ws) => {
           handleScoreUpdate(ws, data);
           break;
 
+        case "critical_hit":
+          handleCriticalHit(ws, data);
+          break;
+
         case "leave_game":
           handleLeaveGame(ws);
           break;
@@ -161,9 +165,21 @@ function handlePaddleUpdate(ws, data) {
   }
 }
 
+// Throttle Ball-Updates um Netzwerklast zu reduzieren
+const ballUpdateThrottle = new Map();
+const BALL_UPDATE_INTERVAL = 50; // Update alle 50ms (statt jeden Frame)
+
 function handleBallUpdate(ws, data) {
   const game = activeGames.get(ws.gameId);
   if (!game) return;
+
+  // Throttle: Nur alle 50ms senden
+  const now = Date.now();
+  const lastUpdate = ballUpdateThrottle.get(ws.gameId) || 0;
+  if (now - lastUpdate < BALL_UPDATE_INTERVAL) {
+    return; // Überspringe dieses Update
+  }
+  ballUpdateThrottle.set(ws.gameId, now);
 
   const opponent = ws === game.player1 ? game.player2 : game.player1;
 
@@ -195,6 +211,22 @@ function handleScoreUpdate(ws, data) {
   }
 }
 
+function handleCriticalHit(ws, data) {
+  const game = activeGames.get(ws.gameId);
+  if (!game) return;
+
+  const opponent = ws === game.player1 ? game.player2 : game.player1;
+
+  if (opponent && opponent.readyState === WebSocket.OPEN) {
+    opponent.send(
+      JSON.stringify({
+        type: "critical_hit",
+        isCritical: data.isCritical,
+      }),
+    );
+  }
+}
+
 function handleLeaveGame(ws) {
   const game = activeGames.get(ws.gameId);
   if (!game) return;
@@ -210,6 +242,7 @@ function handleLeaveGame(ws) {
   }
 
   activeGames.delete(ws.gameId);
+  ballUpdateThrottle.delete(ws.gameId); // Cleanup throttle
   console.log(`🚪 Spieler hat Spiel ${ws.gameId} verlassen`);
 }
 
