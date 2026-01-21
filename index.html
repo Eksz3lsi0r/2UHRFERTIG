@@ -3,32 +3,47 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CPU Tischtennis 3D</title>
+    <title>⚡ Magic Wizard Arena ⚡</title>
     <link rel="stylesheet" href="style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=MedievalSharp&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
     <div id="gameCanvas"></div>
 
     <div class="ui-overlay">
-      <h1>CPU Tischtennis 3D</h1>
+      <h1>⚡ MAGIC WIZARD ARENA ⚡</h1>
+      <div class="subtitle">✨ Epic Spell Battle ✨</div>
       <div class="scoreboard">
         <div class="score">
-          <span class="player-label">CPU 1</span>
+          <span class="player-label">🔮 WIZARD BLUE</span>
           <span id="score1" class="score-value">0</span>
         </div>
         <div class="score">
-          <span class="player-label">CPU 2</span>
+          <span class="player-label">🔥 WIZARD RED</span>
           <span id="score2" class="score-value">0</span>
         </div>
       </div>
     </div>
 
     <div class="controls-overlay">
-      <button id="resetButton">Spiel neu starten</button>
+      <button id="resetButton">🔄 Neue Schlacht</button>
     </div>
 
     <div class="play-mode-overlay">
-      <button id="playModeButton">Selbst Spielen</button>
+      <button id="playModeButton">⚔️ Kämpfen</button>
+    </div>
+
+    <div class="speed-control-overlay">
+      <button class="speed-btn active" data-speed="1">x1</button>
+      <button class="speed-btn" data-speed="2">x2</button>
+      <button class="speed-btn" data-speed="3">x3</button>
+      <button class="speed-btn" data-speed="4">x4</button>
+      <button class="speed-btn" data-speed="5">x5</button>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>

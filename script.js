@@ -1,13 +1,9 @@
 // Three.js Setup
 let scene, camera, renderer;
 let ball, paddle1, paddle2, table, ballLight;
-let arenaWalls = [];
-let arenaFloor, arenaCeiling;
 let particles = [];
-let ballTrail = [];
-let spotlights = [];
-let timeSprite;
-let frameCounter = 0;
+let trailPoints = [];
+let stars = [];
 const resetButton = document.getElementById("resetButton");
 const playModeButton = document.getElementById("playModeButton");
 
@@ -48,8 +44,11 @@ function initScene() {
 
   // Szene
   scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x050510);
-  scene.fog = new THREE.Fog(0x050510, 35, 70);
+  scene.background = new THREE.Color(0x0a0015);
+  scene.fog = new THREE.Fog(0x1a0030, 30, 80);
+
+  // Erstelle magischen Sternenhimmel
+  createStarfield();
 
   // Kamera
   camera = new THREE.PerspectiveCamera(
@@ -68,20 +67,11 @@ function initScene() {
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   container.appendChild(renderer.domElement);
 
-  // Arena-Boden
-  createArenaFloor();
-
-  // Arena-Wände
-  createArenaWalls();
-
-  // Arena-Decke
-  createArenaCeiling();
-
   // Lichter
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+  const ambientLight = new THREE.AmbientLight(0x6a4c93, 0.5);
   scene.add(ambientLight);
 
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
+  const directionalLight = new THREE.DirectionalLight(0xffd700, 0.7);
   directionalLight.position.set(5, 15, 10);
   directionalLight.castShadow = true;
   directionalLight.shadow.mapSize.width = 2048;
@@ -92,32 +82,54 @@ function initScene() {
   directionalLight.shadow.camera.bottom = -20;
   scene.add(directionalLight);
 
-  // Arena Spotlights
-  createArenaSpotlights();
+  // Magische Punktlichter
+  const magicLight1 = new THREE.PointLight(0x00ffff, 1.5, 20);
+  magicLight1.position.set(-10, 8, 0);
+  scene.add(magicLight1);
 
-  // Ball-Licht
-  ballLight = new THREE.PointLight(0x764ba2, 2, 15);
-  ballLight.castShadow = true;
+  const magicLight2 = new THREE.PointLight(0xff00ff, 1.5, 20);
+  magicLight2.position.set(10, 8, 0);
+  scene.add(magicLight2);
+
+  // Ball-Licht (magisches Leuchten)
+  ballLight = new THREE.PointLight(0xffd700, 2, 15);
   scene.add(ballLight);
 
-  // Tisch
+  // Magische Arena (statt Tisch)
   const tableGeometry = new THREE.BoxGeometry(TABLE_WIDTH, 0.5, TABLE_LENGTH);
   const tableMaterial = new THREE.MeshStandardMaterial({
-    color: 0x0d3d2a,
+    color: 0x2d1b4e,
     roughness: 0.2,
-    metalness: 0.4,
-    emissive: 0x0a2f1f,
-    emissiveIntensity: 0.2,
+    metalness: 0.6,
+    emissive: 0x4a148c,
+    emissiveIntensity: 0.3,
   });
   table = new THREE.Mesh(tableGeometry, tableMaterial);
   table.position.y = -0.25;
   table.receiveShadow = true;
   scene.add(table);
 
-  // Tischlinien mit Glow
-  const lineMaterial = new THREE.MeshStandardMaterial({
-    color: 0xffffff,
-    emissive: 0xffffff,
+  // Magischer Glow-Effekt unter der Arena
+  const glowGeometry = new THREE.RingGeometry(
+    TABLE_WIDTH / 2 - 2,
+    TABLE_WIDTH / 2 + 5,
+    32,
+  );
+  const glowMaterial = new THREE.MeshBasicMaterial({
+    color: 0x6a0dad,
+    transparent: true,
+    opacity: 0.3,
+    side: THREE.DoubleSide,
+  });
+  const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+  glow.rotation.x = -Math.PI / 2;
+  glow.position.y = -0.5;
+  scene.add(glow);
+
+  // Magische Linien
+  const lineMaterial = new THREE.MeshBasicMaterial({
+    color: 0x00ffff,
+    emissive: 0x00ffff,
     emissiveIntensity: 0.8,
   });
   const centerLine = new THREE.Mesh(
@@ -127,71 +139,196 @@ function initScene() {
   centerLine.position.y = 0;
   scene.add(centerLine);
 
+  const sideLine1Material = new THREE.MeshBasicMaterial({
+    color: 0xff00ff,
+    emissive: 0xff00ff,
+    emissiveIntensity: 0.8,
+  });
   const sideLine1 = new THREE.Mesh(
     new THREE.BoxGeometry(TABLE_WIDTH, 0.51, 0.15),
-    lineMaterial,
+    sideLine1Material,
   );
   sideLine1.position.set(0, 0, TABLE_LENGTH / 2);
   scene.add(sideLine1);
 
   const sideLine2 = new THREE.Mesh(
     new THREE.BoxGeometry(TABLE_WIDTH, 0.51, 0.15),
-    lineMaterial,
+    sideLine1Material,
   );
   sideLine2.position.set(0, 0, -TABLE_LENGTH / 2);
   scene.add(sideLine2);
 
-  // Schläger 1 (vorne)
+  // Zauberstab 1 (vorne) - Blauer Wizard
   const paddleGeometry = new THREE.BoxGeometry(
     PADDLE_WIDTH,
     PADDLE_HEIGHT,
     0.3,
   );
   const paddle1Material = new THREE.MeshStandardMaterial({
-    color: 0x667eea,
-    emissive: 0x667eea,
-    emissiveIntensity: 0.3,
-    roughness: 0.4,
+    color: 0x00d4ff,
+    emissive: 0x0080ff,
+    emissiveIntensity: 0.7,
+    roughness: 0.2,
+    metalness: 0.8,
   });
   paddle1 = new THREE.Mesh(paddleGeometry, paddle1Material);
   paddle1.position.set(0, 0, TABLE_LENGTH / 2 + 1);
   paddle1.castShadow = true;
   scene.add(paddle1);
 
-  // Schläger 2 (hinten)
+  // Aura für Zauberstab 1
+  const aura1Geometry = new THREE.SphereGeometry(PADDLE_HEIGHT / 2, 16, 16);
+  const aura1Material = new THREE.MeshBasicMaterial({
+    color: 0x00d4ff,
+    transparent: true,
+    opacity: 0.2,
+    side: THREE.BackSide,
+  });
+  const aura1 = new THREE.Mesh(aura1Geometry, aura1Material);
+  paddle1.add(aura1);
+
+  // Zauberstab 2 (hinten) - Roter Wizard
   const paddle2Material = new THREE.MeshStandardMaterial({
-    color: 0xff6b6b,
-    emissive: 0xff6b6b,
-    emissiveIntensity: 0.3,
-    roughness: 0.4,
+    color: 0xff4444,
+    emissive: 0xff0000,
+    emissiveIntensity: 0.7,
+    roughness: 0.2,
+    metalness: 0.8,
   });
   paddle2 = new THREE.Mesh(paddleGeometry, paddle2Material);
   paddle2.position.set(0, 0, -(TABLE_LENGTH / 2 + 1));
   paddle2.castShadow = true;
   scene.add(paddle2);
 
-  // Ball
+  // Aura für Zauberstab 2
+  const aura2Geometry = new THREE.SphereGeometry(PADDLE_HEIGHT / 2, 16, 16);
+  const aura2Material = new THREE.MeshBasicMaterial({
+    color: 0xff4444,
+    transparent: true,
+    opacity: 0.2,
+    side: THREE.BackSide,
+  });
+  const aura2 = new THREE.Mesh(aura2Geometry, aura2Material);
+  paddle2.add(aura2);
+
+  // Magische Energie-Sphäre (Ball)
   const ballGeometry = new THREE.SphereGeometry(BALL_RADIUS, 32, 32);
   const ballMaterial = new THREE.MeshStandardMaterial({
-    color: 0xffffff,
-    emissive: 0xffffff,
-    emissiveIntensity: 0.5,
-    roughness: 0.2,
-    metalness: 0.8,
+    color: 0xffd700,
+    emissive: 0xffa500,
+    emissiveIntensity: 1.2,
+    roughness: 0.1,
+    metalness: 0.9,
   });
   ball = new THREE.Mesh(ballGeometry, ballMaterial);
   ball.position.set(0, 2, 0);
   ball.castShadow = true;
   scene.add(ball);
 
-  // Zeitanzeige über dem Ball
-  createTimeDisplay();
+  // Äußere Glüh-Sphäre
+  const glowBallGeometry = new THREE.SphereGeometry(BALL_RADIUS * 1.5, 32, 32);
+  const glowBallMaterial = new THREE.MeshBasicMaterial({
+    color: 0xffd700,
+    transparent: true,
+    opacity: 0.3,
+    side: THREE.BackSide,
+  });
+  const glowBall = new THREE.Mesh(glowBallGeometry, glowBallMaterial);
+  ball.add(glowBall);
+
+  // Erstelle Partikelsystem
+  createParticles();
 
   // Responsive
   window.addEventListener("resize", onWindowResize);
 
   // Mausbewegung
   window.addEventListener("mousemove", onMouseMove);
+}
+
+// Erstelle Sternenhimmel
+function createStarfield() {
+  const starGeometry = new THREE.BufferGeometry();
+  const starVertices = [];
+
+  for (let i = 0; i < 1000; i++) {
+    const x = (Math.random() - 0.5) * 200;
+    const y = Math.random() * 100 + 20;
+    const z = (Math.random() - 0.5) * 200;
+    starVertices.push(x, y, z);
+  }
+
+  starGeometry.setAttribute(
+    "position",
+    new THREE.Float32BufferAttribute(starVertices, 3),
+  );
+
+  const starMaterial = new THREE.PointsMaterial({
+    color: 0xffffff,
+    size: 0.3,
+    transparent: true,
+    opacity: 0.8,
+  });
+
+  const starField = new THREE.Points(starGeometry, starMaterial);
+  scene.add(starField);
+  stars.push(starField);
+}
+
+// Erstelle Partikelsystem
+function createParticles() {
+  const particleCount = 30;
+
+  for (let i = 0; i < particleCount; i++) {
+    const particleGeometry = new THREE.SphereGeometry(0.1, 8, 8);
+    const particleMaterial = new THREE.MeshBasicMaterial({
+      color: Math.random() > 0.5 ? 0xffd700 : 0xff00ff,
+      transparent: true,
+      opacity: 0.7,
+    });
+
+    const particle = new THREE.Mesh(particleGeometry, particleMaterial);
+    particle.userData = {
+      velocity: {
+        x: (Math.random() - 0.5) * 0.1,
+        y: (Math.random() - 0.5) * 0.1,
+        z: (Math.random() - 0.5) * 0.1,
+      },
+      life: Math.random() * 100,
+    };
+
+    particles.push(particle);
+    scene.add(particle);
+  }
+}
+
+// Aktualisiere Partikel
+function updateParticles() {
+  particles.forEach((particle) => {
+    // Folge dem Ball
+    const toBall = new THREE.Vector3(
+      ball.position.x - particle.position.x,
+      ball.position.y - particle.position.y,
+      ball.position.z - particle.position.z,
+    );
+    toBall.normalize();
+    toBall.multiplyScalar(0.05);
+
+    particle.position.x += particle.userData.velocity.x + toBall.x;
+    particle.position.y += particle.userData.velocity.y + toBall.y;
+    particle.position.z += particle.userData.velocity.z + toBall.z;
+
+    // Lebenszyklus
+    particle.userData.life++;
+    if (particle.userData.life > 100) {
+      particle.position.copy(ball.position);
+      particle.userData.life = 0;
+      particle.material.color.setHex(Math.random() > 0.5 ? 0xffd700 : 0xff00ff);
+    }
+
+    // Fade-Effekt
+    particle.material.opacity = 1 - particle.userData.life / 100;
+  });
 }
 
 function onMouseMove(event) {
@@ -252,12 +389,6 @@ function updateBall() {
   // Ball bleibt auf konstanter Höhe
   ball.position.y = BALL_RADIUS;
 
-  // Ball-Trail Effekt
-  createBallTrail();
-
-  // Zeitanzeige aktualisieren
-  updateTimeDisplay();
-
   // Seitenkollisionen
   if (Math.abs(ball.position.x) >= TABLE_WIDTH / 2) {
     gameState.ball.velocity.x *= -0.9;
@@ -275,7 +406,6 @@ function updateBall() {
     gameState.ball.velocity.z = -Math.abs(gameState.ball.velocity.z) * 1.05;
     gameState.ball.velocity.x += (ball.position.x - paddle1.position.x) * 0.15;
     ball.position.z = TABLE_LENGTH / 2;
-    createHitParticles(ball.position, 0x667eea);
   }
 
   // Schläger 2 Kollision (hinten)
@@ -289,7 +419,6 @@ function updateBall() {
     gameState.ball.velocity.z = Math.abs(gameState.ball.velocity.z) * 1.05;
     gameState.ball.velocity.x += (ball.position.x - paddle2.position.x) * 0.15;
     ball.position.z = -(TABLE_LENGTH / 2);
-    createHitParticles(ball.position, 0xff6b6b);
   }
 
   // Punktzählung
@@ -336,9 +465,6 @@ function updateScore() {
 
 // Render-Funktion
 function render() {
-  updateParticles();
-  updateBallTrail();
-  updateSpotlights();
   renderer.render(scene, camera);
 }
 
@@ -354,6 +480,38 @@ function gameLoop() {
   }
   updateCPU2();
   updateBall();
+  updateParticles();
+
+  // Rotiere die Sterne leicht
+  stars.forEach((starField) => {
+    starField.rotation.y += 0.0001;
+  });
+
+  // Animiere Zauberstab-Auren
+  if (paddle1.children[0]) {
+    paddle1.children[0].scale.set(
+      1 + Math.sin(Date.now() * 0.003) * 0.1,
+      1 + Math.sin(Date.now() * 0.003) * 0.1,
+      1 + Math.sin(Date.now() * 0.003) * 0.1,
+    );
+  }
+  if (paddle2.children[0]) {
+    paddle2.children[0].scale.set(
+      1 + Math.sin(Date.now() * 0.003 + Math.PI) * 0.1,
+      1 + Math.sin(Date.now() * 0.003 + Math.PI) * 0.1,
+      1 + Math.sin(Date.now() * 0.003 + Math.PI) * 0.1,
+    );
+  }
+
+  // Animiere Ball-Glow
+  if (ball.children[0]) {
+    ball.children[0].scale.set(
+      1 + Math.sin(Date.now() * 0.005) * 0.2,
+      1 + Math.sin(Date.now() * 0.005) * 0.2,
+      1 + Math.sin(Date.now() * 0.005) * 0.2,
+    );
+  }
+
   render();
   requestAnimationFrame(gameLoop);
 }
@@ -374,336 +532,19 @@ function togglePlayMode() {
   playModeButton.classList.toggle("active");
 
   if (isManualMode) {
-    playModeButton.textContent = "CPU-Modus";
+    playModeButton.textContent = "⚔️ AI-Modus";
     document.getElementById("score1").previousElementSibling.textContent =
-      "SPIELER";
+      "⭐ DU";
   } else {
-    playModeButton.textContent = "Selbst Spielen";
+    playModeButton.textContent = "⚔️ Kämpfen";
     document.getElementById("score1").previousElementSibling.textContent =
-      "CPU 1";
+      "🔮 WIZARD BLUE";
   }
 }
 
 // Event-Listener
 resetButton.addEventListener("click", resetGame);
 playModeButton.addEventListener("click", togglePlayMode);
-
-// Arena-Boden erstellen
-function createArenaFloor() {
-  const floorGeometry = new THREE.CircleGeometry(50, 64);
-  const floorMaterial = new THREE.MeshStandardMaterial({
-    color: 0x0a0a15,
-    roughness: 0.8,
-    metalness: 0.2,
-    emissive: 0x1a1a3a,
-    emissiveIntensity: 0.1,
-  });
-  arenaFloor = new THREE.Mesh(floorGeometry, floorMaterial);
-  arenaFloor.rotation.x = -Math.PI / 2;
-  arenaFloor.position.y = -5;
-  arenaFloor.receiveShadow = true;
-  scene.add(arenaFloor);
-}
-
-// Arena-Wände erstellen
-function createArenaWalls() {
-  const wallHeight = 20;
-  const wallMaterial = new THREE.MeshStandardMaterial({
-    color: 0x0f0f20,
-    roughness: 0.7,
-    metalness: 0.3,
-    emissive: 0x1a1a4a,
-    emissiveIntensity: 0.15,
-    transparent: true,
-    opacity: 0.7,
-  });
-
-  // Wand hinten
-  const backWall = new THREE.Mesh(
-    new THREE.BoxGeometry(60, wallHeight, 0.5),
-    wallMaterial,
-  );
-  backWall.position.set(0, wallHeight / 2 - 5, -35);
-  backWall.receiveShadow = true;
-  scene.add(backWall);
-  arenaWalls.push(backWall);
-
-  // Wand vorne
-  const frontWall = new THREE.Mesh(
-    new THREE.BoxGeometry(60, wallHeight, 0.5),
-    wallMaterial,
-  );
-  frontWall.position.set(0, wallHeight / 2 - 5, 35);
-  frontWall.receiveShadow = true;
-  scene.add(frontWall);
-  arenaWalls.push(frontWall);
-
-  // Wand links
-  const leftWall = new THREE.Mesh(
-    new THREE.BoxGeometry(0.5, wallHeight, 70),
-    wallMaterial,
-  );
-  leftWall.position.set(-30, wallHeight / 2 - 5, 0);
-  leftWall.receiveShadow = true;
-  scene.add(leftWall);
-  arenaWalls.push(leftWall);
-
-  // Wand rechts
-  const rightWall = new THREE.Mesh(
-    new THREE.BoxGeometry(0.5, wallHeight, 70),
-    wallMaterial,
-  );
-  rightWall.position.set(30, wallHeight / 2 - 5, 0);
-  rightWall.receiveShadow = true;
-  scene.add(rightWall);
-  arenaWalls.push(rightWall);
-
-  // Leuchtende Kanten
-  createGlowingEdges();
-}
-
-// Arena-Decke erstellen
-function createArenaCeiling() {
-  const ceilingGeometry = new THREE.CircleGeometry(50, 64);
-  const ceilingMaterial = new THREE.MeshStandardMaterial({
-    color: 0x0a0a15,
-    roughness: 0.9,
-    metalness: 0.1,
-    emissive: 0x0f0f1f,
-    emissiveIntensity: 0.05,
-    transparent: true,
-    opacity: 0.3,
-  });
-  arenaCeiling = new THREE.Mesh(ceilingGeometry, ceilingMaterial);
-  arenaCeiling.rotation.x = Math.PI / 2;
-  arenaCeiling.position.y = 20;
-  scene.add(arenaCeiling);
-}
-
-// Leuchtende Kanten
-function createGlowingEdges() {
-  const edgeMaterial = new THREE.MeshBasicMaterial({
-    color: 0x667eea,
-    transparent: true,
-    opacity: 0.6,
-  });
-
-  const positions = [
-    [0, -4.8, -35],
-    [0, -4.8, 35],
-    [-30, -4.8, 0],
-    [30, -4.8, 0],
-  ];
-
-  const sizes = [
-    [60, 0.2, 0.5],
-    [60, 0.2, 0.5],
-    [0.5, 0.2, 70],
-    [0.5, 0.2, 70],
-  ];
-
-  for (let i = 0; i < positions.length; i++) {
-    const edge = new THREE.Mesh(
-      new THREE.BoxGeometry(...sizes[i]),
-      edgeMaterial,
-    );
-    edge.position.set(...positions[i]);
-    scene.add(edge);
-  }
-}
-
-// Arena Spotlights
-function createArenaSpotlights() {
-  const spotlightPositions = [
-    { x: -15, z: -15 },
-    { x: 15, z: -15 },
-    { x: -15, z: 15 },
-    { x: 15, z: 15 },
-  ];
-
-  spotlightPositions.forEach((pos, index) => {
-    const spotlight = new THREE.SpotLight(
-      index % 2 === 0 ? 0x667eea : 0xff6b6b,
-      0.8,
-      40,
-      Math.PI / 6,
-      0.5,
-      1,
-    );
-    spotlight.position.set(pos.x, 18, pos.z);
-    spotlight.target.position.set(pos.x, 0, pos.z);
-    spotlight.castShadow = true;
-    scene.add(spotlight);
-    scene.add(spotlight.target);
-    spotlights.push(spotlight);
-  });
-}
-
-// Spotlight Animation
-function updateSpotlights() {
-  const time = Date.now() * 0.001;
-  spotlights.forEach((light, index) => {
-    light.intensity = 0.5 + Math.sin(time + index) * 0.3;
-  });
-}
-
-// Partikeleffekte bei Schlag
-function createHitParticles(position, color) {
-  const particleCount = 15;
-  for (let i = 0; i < particleCount; i++) {
-    const particle = new THREE.Mesh(
-      new THREE.SphereGeometry(0.1, 8, 8),
-      new THREE.MeshBasicMaterial({
-        color: color,
-        transparent: true,
-        opacity: 1,
-      }),
-    );
-    particle.position.copy(position);
-    particle.velocity = {
-      x: (Math.random() - 0.5) * 0.3,
-      y: Math.random() * 0.3,
-      z: (Math.random() - 0.5) * 0.3,
-    };
-    particle.life = 1;
-    scene.add(particle);
-    particles.push(particle);
-  }
-}
-
-// Partikel aktualisieren
-function updateParticles() {
-  for (let i = particles.length - 1; i >= 0; i--) {
-    const particle = particles[i];
-    particle.position.x += particle.velocity.x;
-    particle.position.y += particle.velocity.y;
-    particle.position.z += particle.velocity.z;
-    particle.velocity.y -= 0.01; // Schwerkraft
-    particle.life -= 0.02;
-    particle.material.opacity = particle.life;
-
-    if (particle.life <= 0) {
-      scene.remove(particle);
-      particles.splice(i, 1);
-    }
-  }
-}
-
-// Ball-Trail erstellen
-function createBallTrail() {
-  if (Math.random() > 0.7) {
-    const trail = new THREE.Mesh(
-      new THREE.SphereGeometry(BALL_RADIUS * 0.5, 8, 8),
-      new THREE.MeshBasicMaterial({
-        color: 0xffffff,
-        transparent: true,
-        opacity: 0.5,
-      }),
-    );
-    trail.position.copy(ball.position);
-    trail.life = 1;
-    scene.add(trail);
-    ballTrail.push(trail);
-  }
-}
-
-// Ball-Trail aktualisieren
-function updateBallTrail() {
-  for (let i = ballTrail.length - 1; i >= 0; i--) {
-    const trail = ballTrail[i];
-    trail.life -= 0.05;
-    trail.material.opacity = trail.life * 0.5;
-    trail.scale.set(trail.life, trail.life, trail.life);
-
-    if (trail.life <= 0) {
-      scene.remove(trail);
-      ballTrail.splice(i, 1);
-    }
-  }
-}
-
-// Zeitanzeige erstellen
-function createTimeDisplay() {
-  const canvas = document.createElement("canvas");
-  canvas.width = 512;
-  canvas.height = 256;
-  const context = canvas.getContext("2d");
-
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.minFilter = THREE.LinearFilter;
-  texture.magFilter = THREE.LinearFilter;
-
-  const spriteMaterial = new THREE.SpriteMaterial({
-    map: texture,
-    transparent: true,
-    depthTest: false,
-    depthWrite: false,
-  });
-
-  timeSprite = new THREE.Sprite(spriteMaterial);
-  timeSprite.scale.set(4, 2, 1);
-  timeSprite.renderOrder = 999;
-  scene.add(timeSprite);
-}
-
-// Zeitanzeige aktualisieren
-function updateTimeDisplay() {
-  if (!timeSprite) return;
-
-  // Position über dem Ball (immer aktualisieren für glatte Bewegung)
-  timeSprite.position.set(
-    ball.position.x,
-    ball.position.y + 2.5,
-    ball.position.z,
-  );
-
-  // Canvas nur alle 5 Frames aktualisieren (Performance-Optimierung)
-  frameCounter++;
-  if (frameCounter % 5 !== 0) return;
-
-  // Berechne Zeit bis zum nächsten Schläger
-  let timeToImpact = 0;
-
-  if (gameState.ball.velocity.z > 0) {
-    // Ball bewegt sich zu Paddle1 (vorne)
-    const distance = TABLE_LENGTH / 2 + 1 - ball.position.z;
-    timeToImpact = distance / Math.abs(gameState.ball.velocity.z);
-  } else if (gameState.ball.velocity.z < 0) {
-    // Ball bewegt sich zu Paddle2 (hinten)
-    const distance = ball.position.z - -(TABLE_LENGTH / 2 + 1);
-    timeToImpact = distance / Math.abs(gameState.ball.velocity.z);
-  }
-
-  // Konvertiere zu Sekunden (60 FPS angenommen)
-  const secondsToImpact = (timeToImpact / 60).toFixed(2);
-
-  // Canvas aktualisieren
-  const canvas = timeSprite.material.map.image;
-  const context = canvas.getContext("2d");
-
-  // Canvas löschen
-  context.clearRect(0, 0, canvas.width, canvas.height);
-
-  // Hintergrund ohne Blur für Schärfe
-  context.fillStyle = "rgba(10, 10, 30, 0.9)";
-  context.roundRect(40, 60, canvas.width - 80, canvas.height - 120, 20);
-  context.fill();
-
-  // Rand mit Glow
-  context.strokeStyle = "rgba(102, 126, 234, 0.8)";
-  context.lineWidth = 4;
-  context.stroke();
-
-  // Zeit-Text (scharf und klar)
-  context.fillStyle = "#ffffff";
-  context.font = "bold 100px Arial";
-  context.textAlign = "center";
-  context.textBaseline = "middle";
-  context.fillText(secondsToImpact + "s", canvas.width / 2, canvas.height / 2);
-
-  // Textur aktualisieren
-  timeSprite.material.map.needsUpdate = true;
-}
 
 // Spiel starten
 document.addEventListener("DOMContentLoaded", () => {
