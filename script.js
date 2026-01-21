@@ -29,7 +29,7 @@ const WINNING_SCORE = 10;
 // Spielzustand
 const gameState = {
   ball: {
-    velocity: { x: 0.15, z: 0.12 },
+    velocity: { x: 0.3, z: 0.24 },
   },
   paddle1: {
     position: { y: 0 },
@@ -234,11 +234,26 @@ function initScene() {
 
   // Mausbewegung
   window.addEventListener("mousemove", onMouseMove);
+
+  // Touch-Events für Mobile
+  window.addEventListener("touchstart", onTouchMove, { passive: false });
+  window.addEventListener("touchmove", onTouchMove, { passive: false });
 }
 
 function onMouseMove(event) {
   // Normalisiere Mausposition zu 3D-Koordinaten
   mouseX = ((event.clientX / window.innerWidth) * 2 - 1) * (TABLE_WIDTH / 2);
+}
+
+function onTouchMove(event) {
+  // Verhindere Standard-Scroll-Verhalten
+  event.preventDefault();
+
+  if (event.touches.length > 0) {
+    const touch = event.touches[0];
+    // Normalisiere Touch-Position zu 3D-Koordinaten (gleich wie Maus)
+    mouseX = ((touch.clientX / window.innerWidth) * 2 - 1) * (TABLE_WIDTH / 2);
+  }
 }
 
 function onWindowResize() {
@@ -425,8 +440,8 @@ function resetBall() {
   ball.position.set(0, BALL_RADIUS, 0);
   const direction = Math.random() > 0.5 ? 1 : -1;
   gameState.ball.velocity = {
-    x: (Math.random() - 0.5) * 0.1,
-    z: direction * 0.15,
+    x: (Math.random() - 0.5) * 0.2,
+    z: direction * 0.3,
   };
 }
 
