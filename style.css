@@ -759,6 +759,8 @@ button:active {
   gap: var(--spacing-sm);
   position: relative;
   z-index: 1;
+  /* Smooth transition für Touch-Hide */
+  transition: opacity 0.3s ease-in-out;
 }
 
 .btn-icon {

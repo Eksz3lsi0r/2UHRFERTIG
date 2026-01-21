@@ -18,6 +18,10 @@ let mouseX = 0;
 let isManualMode = false;
 let gameSpeed = 1;
 
+// Touch-UI-Steuerung
+let touchHideTimeout = null;
+let isUserTouching = false;
+
 // Spielkonstanten
 const TABLE_WIDTH = 20;
 const TABLE_LENGTH = 30;
@@ -258,6 +262,47 @@ function onTouchMove(event) {
     const touch = event.touches[0];
     // Normalisiere Touch-Position zu 3D-Koordinaten (gleich wie Maus)
     mouseX = ((touch.clientX / window.innerWidth) * 2 - 1) * (TABLE_WIDTH / 2);
+
+    // Verstecke Buttons während Touch-Interaktion
+    hideControlButtonsDuringTouch();
+  }
+}
+
+function hideControlButtonsDuringTouch() {
+  // Markiere dass User toucht
+  isUserTouching = true;
+
+  // Verstecke die Buttons (nur wenn nicht im PvP)
+  if (!isPvPMode) {
+    speedToggleButton.style.opacity = "0";
+    speedToggleButton.style.pointerEvents = "none";
+    playModeButton.style.opacity = "0";
+    playModeButton.style.pointerEvents = "none";
+    pvpModeButton.style.opacity = "0";
+    pvpModeButton.style.pointerEvents = "none";
+  }
+
+  // Clear existing timeout
+  if (touchHideTimeout) {
+    clearTimeout(touchHideTimeout);
+  }
+
+  // Zeige Buttons nach 2 Sekunden Inaktivität wieder an
+  touchHideTimeout = setTimeout(() => {
+    isUserTouching = false;
+    showControlButtons();
+  }, 2000);
+}
+
+function showControlButtons() {
+  // Zeige Buttons nur wenn nicht im PvP-Modus
+  if (!isPvPMode) {
+    speedToggleButton.style.opacity = "1";
+    speedToggleButton.style.pointerEvents = "auto";
+    playModeButton.style.opacity = "1";
+    playModeButton.style.pointerEvents = "auto";
+    pvpModeButton.style.opacity = "1";
+    pvpModeButton.style.pointerEvents = "auto";
   }
 }
 
