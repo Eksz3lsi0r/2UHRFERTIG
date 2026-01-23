@@ -1,148 +1,249 @@
-# 🏓 Tischtennis 3D - PvP Edition
+# 🏓 Tischtennis 3D - Multiplayer Edition
 
-Ein beeindruckendes 3D-Tischtennis-Spiel mit **Echtzeit-Multiplayer** über WebSocket!
+Ein beeindruckendes **3D-Tischtennis-Spiel** mit Echtzeit-Multiplayer über WebSocket, entwickelt mit **Three.js**, **React**, **Socket.io** und **TypeScript**.
+
+![Tischtennis 3D](https://img.shields.io/badge/Game-Tischtennis%203D-ff00ff?style=for-the-badge)
+![WebSocket](https://img.shields.io/badge/WebSocket-Socket.io-00ffff?style=for-the-badge)
+![Three.js](https://img.shields.io/badge/3D-Three.js-000000?style=for-the-badge)
+
+---
 
 ## ✨ Features
 
-- 🎮 **Einzelspieler-Modus**: Spiele gegen die KI oder übernimm selbst die Kontrolle
-- ⚔️ **PvP-Modus**: Fordere echte Gegner in Echtzeit heraus
-- 🌐 **WebSocket-Technologie**: Nahtlose Echtzeit-Synchronisation
-- 🎨 **Neon-Aesthetik**: Atemberaubende 3D-Grafiken mit Three.js
-- ⚡ **Geschwindigkeitssteuerung**: Passe das Spieltempo an (x1 bis x5)
-- 🏆 **Punktesystem**: Spiele bis 10 Punkte
+### 🎮 Spielmodi
+- **CPU vs CPU**: Zwei KI-Spieler spielen gegeneinander (perfekt zum Zuschauen)
+- **Selbst spielen**: Spiele gegen eine intelligente KI
+- **PvP-Modus**: Fordere echte Gegner in Echtzeit heraus
 
-## 🚀 Installation & Start
+### 🌐 Echtzeit-Multiplayer
+- **Automatisches Matchmaking**: Spieler werden automatisch in einer Warteschlange gepaart
+- **WebSocket-Synchronisation**: Nahtlose Echtzeit-Kommunikation zwischen Spielern
+- **Latenz-Kompensation**: Ball-Update-Throttling für flüssiges Gameplay
+- **Reconnect-Handling**: Robuste Verbindungsverwaltung
 
-### Voraussetzungen
+### 🎨 Neon-Cyberpunk-Ästhetik
+- **Animierter Hintergrund**: Schwebende Gradient-Orbs und Partikel
+- **Glassmorphism-Effekte**: Moderne UI-Panels mit Blur-Effekten
+- **Neon-Beleuchtung**: Magenta, Cyan und Gelb-Akzente
+- **3D-Grafik**: Realistische Schatten und Beleuchtung mit Three.js
 
-- [Node.js](https://nodejs.org/) (Version 14 oder höher)
-- Ein moderner Webbrowser (Chrome, Firefox, Edge, Safari)
+### ⚡ Gameplay
+- **Tastatursteuerung**: 
+  - Spieler 1: **A** / **D** (Links/Rechts)
+  - Spieler 2: **←** / **→** (Links/Rechts)
+- **Geschwindigkeitssteuerung**: Passe das Spieltempo an (x1 bis x5)
+- **Realistische Physik**: Ball-Bounce, Spin und Kollisionserkennung
+- **Live-Scoreboard**: Echtzeit-Punktestand-Synchronisation
 
-### Schritt 1: Abhängigkeiten installieren
+### 📊 Statistiken & Historie
+- **Spielerstatistiken**: Tracking von Spielen, Siegen, Niederlagen
+- **Match-Historie**: Vollständige Aufzeichnung aller gespielten Matches
+- **Datenbank-Integration**: MySQL/TiDB für persistente Datenspeicherung
 
-```bash
-npm install
+---
+
+## 🚀 Technologie-Stack
+
+### Frontend
+- **React 19** mit TypeScript
+- **Three.js** für 3D-Rendering
+- **Socket.io-client** für WebSocket-Kommunikation
+- **Tailwind CSS 4** mit Neon-Cyberpunk-Theme
+- **shadcn/ui** für UI-Komponenten
+- **Vite** als Build-Tool
+
+### Backend
+- **Node.js** mit Express 4
+- **Socket.io** für Echtzeit-WebSocket-Server
+- **tRPC 11** für type-safe API
+- **Drizzle ORM** für Datenbankzugriff
+- **MySQL/TiDB** als Datenbank
+
+### DevOps
+- **Vitest** für Unit-Tests
+- **TypeScript** für Type-Safety
+- **ESLint** & **Prettier** für Code-Qualität
+
+---
+
+## 📁 Projektstruktur
+
+```
+tischtennis-multiplayer/
+├── client/
+│   ├── src/
+│   │   ├── game/
+│   │   │   └── GameEngine.ts       # Three.js 3D-Engine
+│   │   ├── pages/
+│   │   │   ├── Game.tsx            # Haupt-Spielkomponente
+│   │   │   └── NotFound.tsx
+│   │   ├── components/             # UI-Komponenten
+│   │   ├── App.tsx                 # Routing
+│   │   └── index.css               # Neon-Cyberpunk-Styling
+│   └── index.html
+├── server/
+│   ├── gameServer.ts               # WebSocket-Server & Matchmaking
+│   ├── db.ts                       # Datenbank-Queries
+│   ├── routers.ts                  # tRPC-Router
+│   └── _core/                      # Framework-Plumbing
+├── drizzle/
+│   └── schema.ts                   # Datenbank-Schema
+├── shared/
+│   └── gameTypes.ts                # Gemeinsame TypeScript-Typen
+└── todo.md                         # Feature-Tracking
 ```
 
-### Schritt 2: WebSocket-Server starten
-
-```bash
-npm start
-```
-
-Der Server läuft nun auf `ws://localhost:8080`
-
-### Schritt 3: Spiel öffnen
-
-Öffne `index.html` in deinem Browser:
-
-- **Variante A**: Doppelklick auf `index.html`
-- **Variante B**: Mit lokalem Server (empfohlen):
-
-  ```bash
-  # Mit Python 3
-  python3 -m http.server 3000
-
-  # Mit Node.js (npx)
-  npx serve .
-  ```
-
-  Dann öffne: `http://localhost:3000`
+---
 
 ## 🎮 Spielanleitung
 
 ### Steuerung
 
-- **Maus bewegen**: Steuere deinen Schläger (in "Selbst spielen" oder PvP-Modus)
+#### CPU vs CPU Modus
+- Keine Steuerung erforderlich
+- Beobachte, wie zwei KIs gegeneinander spielen
 
-### Modi
+#### Selbst spielen Modus
+- **A**: Schläger nach links bewegen
+- **D**: Schläger nach rechts bewegen
+- Spiele gegen eine intelligente KI
 
-1. **CPU vs CPU**: Zwei KIs spielen gegeneinander (Standard)
-2. **Selbst spielen**: Du gegen die KI
-3. **PvP Spielen**: Online gegen echte Gegner
+#### PvP-Modus
+- **Spieler 1**: **A** / **D** (Links/Rechts)
+- **Spieler 2**: **←** / **→** (Links/Rechts)
+- Beide Spieler steuern ihre Schläger nur horizontal
 
-### PvP-Modus starten
+### Geschwindigkeitssteuerung
+- Klicke auf den **⚡ x1** Button, um die Spielgeschwindigkeit zu ändern
+- Verfügbare Geschwindigkeiten: x1, x2, x3, x4, x5
 
-1. Klicke auf den Button **"PvP Spielen"** ⚔️
-2. Das Matchmaking-Overlay erscheint
-3. Warte, bis ein anderer Spieler beitritt
-4. Das Spiel startet automatisch, wenn ein Match gefunden wurde!
+### PvP-Matchmaking
+1. Klicke auf **⚔️ PvP Spielen**
+2. Das System sucht automatisch nach einem Gegner
+3. Sobald ein Match gefunden wurde, startet das Spiel
+4. Spieler 1 kontrolliert die Ball-Physik, Spieler 2 erhält Updates
 
-### Spielablauf im PvP
+---
 
-- **Spieler 1** (vorderer Schläger): Kontrolliert die Ball-Physik
-- **Spieler 2** (hinterer Schläger): Erhält Ball-Updates in Echtzeit
-- Beide Spieler steuern ihre Schläger mit der Maus
-- Punkte werden automatisch synchronisiert
+## 🔧 Installation & Entwicklung
 
-## 📁 Projektstruktur
+### Voraussetzungen
+- Node.js (Version 18+)
+- pnpm (empfohlen) oder npm
+- MySQL/TiDB-Datenbank
 
+### Setup
+
+1. **Repository klonen**
+```bash
+git clone https://github.com/Eksz3lsi0r/2UHRFERTIG.git
+cd tischtennis-multiplayer
 ```
-mm/
-├── index.html          # Haupt-HTML-Datei
-├── style.css           # Styling & Animationen
-├── script.js           # Spiel-Logik & WebSocket-Client
-├── server.js           # WebSocket-Server für PvP
-├── package.json        # Node.js-Abhängigkeiten
-└── README.md           # Diese Datei
+
+2. **Dependencies installieren**
+```bash
+pnpm install
 ```
 
-## 🔧 Technologie-Stack
+3. **Datenbank-Migration**
+```bash
+pnpm db:push
+```
 
-- **Frontend**:
-  - Three.js (3D-Rendering)
-  - Vanilla JavaScript
-  - CSS3 (Glassmorphism & Animationen)
+4. **Development-Server starten**
+```bash
+pnpm dev
+```
 
-- **Backend**:
-  - Node.js
-  - WebSocket (`ws` library)
+Der Server läuft nun auf `http://localhost:3000`
+
+### Tests ausführen
+```bash
+pnpm test
+```
+
+---
 
 ## 🌐 WebSocket-Events
 
 ### Client → Server
 
-- `find_match`: Suche nach einem Match
-- `paddle_update`: Schläger-Position senden
-- `ball_update`: Ball-Position synchronisieren (nur Spieler 1)
-- `score_update`: Punktestand aktualisieren (nur Spieler 1)
-- `leave_game`: Spiel verlassen
+| Event | Payload | Beschreibung |
+|-------|---------|--------------|
+| `find_match` | `{ userId: number \| null }` | Suche nach einem Match |
+| `paddle_update` | `{ position: Vector3 }` | Schläger-Position senden |
+| `ball_update` | `{ position: Vector3, velocity: Vector3 }` | Ball-Position synchronisieren (nur Spieler 1) |
+| `score_update` | `{ score1: number, score2: number }` | Punktestand aktualisieren (nur Spieler 1) |
+| `leave_game` | - | Spiel verlassen |
 
 ### Server → Client
 
-- `waiting`: Warte auf Gegner
-- `match_found`: Match gefunden, enthält Spielernummer
-- `opponent_paddle`: Gegner-Schläger-Position
-- `ball_sync`: Ball-Synchronisation
-- `score_sync`: Punktestand-Update
-- `opponent_left`: Gegner hat das Spiel verlassen
+| Event | Payload | Beschreibung |
+|-------|---------|--------------|
+| `waiting` | - | Warte auf Gegner |
+| `match_found` | `{ playerNumber: 1\|2, gameId: string }` | Match gefunden |
+| `opponent_paddle` | `{ position: Vector3, playerNumber: 1\|2 }` | Gegner-Schläger-Position |
+| `ball_sync` | `{ position: Vector3, velocity: Vector3 }` | Ball-Synchronisation |
+| `score_sync` | `{ score1: number, score2: number }` | Punktestand-Update |
+| `opponent_left` | - | Gegner hat das Spiel verlassen |
+
+---
+
+## 📊 Datenbank-Schema
+
+### `users`
+Benutzer-Authentifizierung und Profile
+
+### `player_stats`
+Spielerstatistiken (Spiele, Siege, Niederlagen, Punkte)
+
+### `match_history`
+Vollständige Match-Historie mit Spielergebnissen
+
+---
+
+## 🎨 Design-Philosophie
+
+Das Spiel folgt einer **Neon-Cyberpunk-Ästhetik** mit:
+- **Dunklem Hintergrund**: Tiefes Blau-Schwarz (oklch(0.15 0.02 280))
+- **Neon-Akzente**: Magenta, Cyan und Gelb
+- **Glassmorphism**: Transparente UI-Panels mit Blur-Effekten
+- **Animationen**: Schwebende Orbs, Partikel und Glow-Effekte
+- **Typografie**: Orbitron (Überschriften) und Rajdhani (Text)
+
+---
 
 ## 🐛 Troubleshooting
 
-### "Fehler bei der Verbindung zum Server"
-
-- Stelle sicher, dass der WebSocket-Server läuft (`npm start`)
-- Überprüfe, ob Port 8080 verfügbar ist
+### WebSocket-Verbindungsprobleme
+- Stelle sicher, dass der Server läuft
+- Überprüfe die Browser-Konsole auf Fehler
 - Firewall-Einstellungen prüfen
 
 ### Ball läuft nicht synchron im PvP
-
 - Der Ball wird von Spieler 1 berechnet und an Spieler 2 gesendet
 - Netzwerk-Latenz kann minimale Verzögerungen verursachen
+- Ball-Updates werden auf 50ms gedrosselt (Throttling)
 
-### Spieler können sich nicht verbinden
+### 3D-Rendering-Probleme
+- Stelle sicher, dass WebGL im Browser aktiviert ist
+- Aktualisiere Grafiktreiber
+- Verwende einen modernen Browser (Chrome, Firefox, Edge)
 
-- Beide Spieler müssen mit demselben WebSocket-Server verbunden sein
-- Bei Remote-Spielen: Ersetze `localhost` mit der Server-IP
+---
 
-## 🎯 Nächste Schritte / Erweiterungen
+## 🚧 Zukünftige Erweiterungen
 
-- 🏆 Rangliste & Spielerstatistiken
-- 💬 Chat-Funktion
-- 🎨 Anpassbare Schläger & Tische
-- 🔊 Sound-Effekte
-- 📱 Mobile-Touch-Steuerung
-- 🌍 Cloud-Deployment (Heroku, AWS, etc.)
+- [ ] 🏆 Globale Rangliste
+- [ ] 💬 In-Game-Chat
+- [ ] 🎨 Anpassbare Schläger und Tische
+- [ ] 🔊 Sound-Effekte und Musik
+- [ ] 📱 Mobile Touch-Steuerung
+- [ ] 🎥 Replay-System
+- [ ] 🏅 Achievements und Badges
+- [ ] 👥 Freundesliste und Challenges
+
+---
 
 ## 📝 Lizenz
 
@@ -150,4 +251,15 @@ MIT License - Frei zur Verwendung und Modifikation
 
 ---
 
-**Viel Spaß beim Spielen! 🏓**
+## 🙏 Credits
+
+Entwickelt mit ❤️ unter Verwendung von:
+- [Three.js](https://threejs.org/) - 3D-Grafik
+- [Socket.io](https://socket.io/) - WebSocket-Kommunikation
+- [React](https://react.dev/) - UI-Framework
+- [Tailwind CSS](https://tailwindcss.com/) - Styling
+- [tRPC](https://trpc.io/) - Type-safe API
+
+---
+
+**Viel Spaß beim Spielen! 🏓✨**
